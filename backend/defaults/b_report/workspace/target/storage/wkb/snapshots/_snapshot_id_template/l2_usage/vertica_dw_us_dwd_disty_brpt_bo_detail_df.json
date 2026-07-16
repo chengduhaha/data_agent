@@ -1,0 +1,22 @@
+{
+  "entity_id": "dw_us.dwd_disty_brpt_bo_detail_df",
+  "layer": "l2_usage",
+  "domain": "pos",
+  "reporting_target_vertica": "dw_us.dwd_disty_brpt_bo_detail_df",
+  "downstream_consumers": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "business_purpose": "Supplemental fact/context table used by select POS reports",
+  "primary_measure_columns": [
+    "unit_price",
+    "unit_cost",
+    "order_qty",
+    "u_sum_expense"
+  ],
+  "expected_refresh_pattern": "Daily incremental by `date_flag`",
+  "dimension_join_count": 13,
+  "contract_source": "knowledge/POS/tables/dwd_disty_brpt_bo_detail_df.md",
+  "evidence_doc": "target/knowledgebase/pos/dwd_disty_brpt_bo_detail_df.md",
+  "fetched_at": "2026-06-29T08:25:48.349541+00:00"
+}

@@ -1,0 +1,18 @@
+{
+  "entity_id": "dim_us.dim_pub_sales_cust_type",
+  "layer": "l2_usage",
+  "domain": "b-report-us",
+  "reporting_target_vertica": "dim_us.dim_pub_sales_cust_type",
+  "downstream_consumers": [],
+  "business_purpose": "Shared dimension for B Report attribute enrichment and join lookups",
+  "primary_measure_columns": [
+    "min_net_margin",
+    "credit_risk_rate",
+    "bo_expire_days"
+  ],
+  "expected_refresh_pattern": "Per POS contract",
+  "dimension_join_count": 0,
+  "contract_source": "knowledge/b-report-us/tables/dim_pub_sales_cust_type.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_sales_cust_type.md",
+  "fetched_at": "2026-07-02T07:57:24.767407+00:00"
+}

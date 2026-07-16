@@ -1,0 +1,19 @@
+{
+  "entity_id": "dim_us.dim_pub_vpc_group_view",
+  "layer": "l3_code",
+  "engine": "vertica",
+  "domain": "pos",
+  "ddl_semantics": {
+    "object_type": "table",
+    "create_pattern": "CREATE TABLE dim_us.dim_pub_vpc_group_view ( vpc_group_id int, group_code varchar(100), vpc_group_desc varchar(100), sequence int, owner_id int, entry_id int, entry_datetime timestamp, active varchar(100) ) ;",
+    "partition_clause": null,
+    "column_count": 8
+  },
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dim_pub_vpc_group_view.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:46.455576+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dim_pub_vpc_group_view.md"
+}

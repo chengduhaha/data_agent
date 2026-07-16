@@ -1,0 +1,14 @@
+{
+  "entity_id": "dim_us.dim_disty_bd_project_user",
+  "layer": "l2_usage",
+  "domain": "b-report-us",
+  "reporting_target_vertica": "dim_us.dim_disty_bd_project_user",
+  "downstream_consumers": [],
+  "business_purpose": "Shared dimension for B Report attribute enrichment and join lookups",
+  "primary_measure_columns": [],
+  "expected_refresh_pattern": "Per POS contract",
+  "dimension_join_count": 0,
+  "contract_source": "knowledge/b-report-us/tables/dim_disty_bd_project_user.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_disty_bd_project_user.md",
+  "fetched_at": "2026-07-02T07:57:24.410908+00:00"
+}

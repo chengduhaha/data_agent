@@ -1,0 +1,19 @@
+{
+  "entity_id": "dw_us.dwd_disty_brpt_bo_detail_df",
+  "layer": "l3_code",
+  "engine": "vertica",
+  "domain": "pos",
+  "ddl_semantics": {
+    "object_type": "table",
+    "create_pattern": "CREATE TABLE dw_us.dwd_disty_brpt_bo_detail_df ( order_no int, order_type int, order_line_no int, loc_no int, cust_no int, mcust_no int, cust_terr int, cust_type int, division int, sku_no int, vpl_no int, vpc_group_id int, vend_no int, master_vend_no int, group_id int, seg_code varchar(100), company_no int, terms varchar(100), gv_user_type varchar(100), pm_id int, pm_mgr_id int, pm_dir_id int, pm_vp_id int, unit_price numeric(20,8), unit_cost numeric(20,8), order_qty int, exp_ship_date date, exp...",
+    "partition_clause": "PARTITION BY date_flag;",
+    "column_count": 39
+  },
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dwd_disty_brpt_bo_detail_df.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:48.276647+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dwd_disty_brpt_bo_detail_df.md"
+}

@@ -1,0 +1,19 @@
+{
+  "entity_id": "dim_us.dim_pub_sales_hierarchy_by_terr_user_role",
+  "layer": "l2_usage",
+  "domain": "pos",
+  "reporting_target_vertica": "dim_us.dim_pub_sales_hierarchy_by_terr_user_role",
+  "downstream_consumers": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "business_purpose": "Shared dimension for POS attribute enrichment",
+  "primary_measure_columns": [
+    "sales_rep_pct"
+  ],
+  "expected_refresh_pattern": "Daily incremental by `date_flag`",
+  "dimension_join_count": 2,
+  "contract_source": "knowledge/POS/tables/dim_pub_sales_hierarchy_by_terr_user_role.md",
+  "evidence_doc": "target/knowledgebase/pos/dim_pub_sales_hierarchy_by_terr_user_role.md",
+  "fetched_at": "2026-06-29T08:25:45.678851+00:00"
+}

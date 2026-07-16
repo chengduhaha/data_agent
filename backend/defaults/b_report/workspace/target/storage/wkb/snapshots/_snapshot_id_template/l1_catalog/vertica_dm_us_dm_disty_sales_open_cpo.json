@@ -1,0 +1,509 @@
+{
+  "entity_id": "dm_us.dm_disty_sales_open_cpo",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dm_us.dm_disty_sales_open_cpo",
+  "schema_name": "dm_us",
+  "table_name": "dm_disty_sales_open_cpo",
+  "columns": [
+    {
+      "name": "cpo_id",
+      "type": "int"
+    },
+    {
+      "name": "cpo_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_cust_no",
+      "type": "int"
+    },
+    {
+      "name": "cpo_cust_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_sales_terr",
+      "type": "int"
+    },
+    {
+      "name": "cpo_entry_id",
+      "type": "int"
+    },
+    {
+      "name": "cpo_entry_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_entry_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "cpo_from_ref_type",
+      "type": "int"
+    },
+    {
+      "name": "cpo_from_ref_type_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "system_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_pay_meth",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_total_taxable",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_total_notax",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_sales_tax",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_freight",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_other",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_so_total",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_bo_total",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "po_total",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_ship_method",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_ship_loc_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "end_user_po_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "special_handle",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_addr1",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_addr2",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_zipcode",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_country",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_city",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_state",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_contact",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_phone_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "frt_pay_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "convert_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "convert_user",
+      "type": "int"
+    },
+    {
+      "name": "convert_user_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "sales_model",
+      "type": "int"
+    },
+    {
+      "name": "reseller_cust_no",
+      "type": "int"
+    },
+    {
+      "name": "shopping_mode",
+      "type": "int"
+    },
+    {
+      "name": "end_user_no",
+      "type": "int"
+    },
+    {
+      "name": "cpo_swl_flag",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_spa_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_change_id",
+      "type": "int"
+    },
+    {
+      "name": "cpo_change_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_change_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "cpo_delete_id",
+      "type": "int"
+    },
+    {
+      "name": "cpo_delete_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_delete_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "cpo_status",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "company_no",
+      "type": "int"
+    },
+    {
+      "name": "opportunity_id",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "probability",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_comment",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_delete_reason",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_company_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_loc_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_loc_address1",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_loc_address2",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_loc_city",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_loc_contact",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_loc_country",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_contact_email",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_contact_phone",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_loc_state",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_zipcode",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_line_seq",
+      "type": "int"
+    },
+    {
+      "name": "cpo_line_no",
+      "type": "int"
+    },
+    {
+      "name": "cpo_line_status",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_sku_no",
+      "type": "int"
+    },
+    {
+      "name": "cpo_sku_inv_type",
+      "type": "int"
+    },
+    {
+      "name": "cpo_line_qty",
+      "type": "int"
+    },
+    {
+      "name": "cpo_allocated_qty",
+      "type": "int"
+    },
+    {
+      "name": "cpo_bo_qty",
+      "type": "int"
+    },
+    {
+      "name": "cpo_so_qty",
+      "type": "int"
+    },
+    {
+      "name": "cpo_del_qty",
+      "type": "int"
+    },
+    {
+      "name": "cpo_ship_qty",
+      "type": "int"
+    },
+    {
+      "name": "cpo_price",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_grid_price",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_unit_price",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_unit_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_extended_price",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_extended_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_gm_percent",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_price_flag",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_line_delete_id",
+      "type": "int"
+    },
+    {
+      "name": "cpo_line_delete_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_line_delete_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "cpo_grid_adj",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "swl_prog_id",
+      "type": "int"
+    },
+    {
+      "name": "cis_unit_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cust_part_no",
+      "type": "int"
+    },
+    {
+      "name": "scm_no",
+      "type": "int"
+    },
+    {
+      "name": "scm_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "spa_no",
+      "type": "int"
+    },
+    {
+      "name": "spa_ref_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_extended_exp",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "spa_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp"
+    },
+    {
+      "name": "cpo_email_to",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_email_to_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "preferred_whs_ship",
+      "type": "int"
+    },
+    {
+      "name": "request_ship_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "request_deliver_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "cpo_sfdc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_acct_no2",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "hardware_serial_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "deal_id",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_quote_id",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "estimate_id",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ccw_dart",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "new_renew",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ec_comment",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "biz_solution",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "biz_solution_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "expected_close_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "email_profile_i",
+      "type": "int"
+    },
+    {
+      "name": "eu_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "total_tax",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "ec_version",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "po_vend_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_alloc_loc_char",
+      "type": "varchar(100)"
+    }
+  ],
+  "column_count": 122,
+  "partition_keys": [],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dm_disty_sales_open_cpo.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:47.109545+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dm_disty_sales_open_cpo.md"
+}

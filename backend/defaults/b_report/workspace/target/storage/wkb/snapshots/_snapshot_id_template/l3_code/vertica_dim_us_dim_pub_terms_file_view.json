@@ -1,0 +1,19 @@
+{
+  "entity_id": "dim_us.dim_pub_terms_file_view",
+  "layer": "l3_code",
+  "engine": "vertica",
+  "domain": "pos",
+  "ddl_semantics": {
+    "object_type": "table",
+    "create_pattern": "CREATE TABLE dim_us.dim_pub_terms_file_view ( doc_terms varchar(100), u_version varchar(100), terms_desc varchar(100), terms_days int, entry_datetime timestamp, entry_id int, usage varchar(100), disc_percent numeric(20,8), disc_days int, cod varchar(100), age_days int, print_invoice varchar(100), level_id int, credit_requeue varchar(100), statement varchar(100), terms_type varchar(100), terms_group varchar(100), autocred varchar(100), flooring varchar(100), credit_cost numeric(20,8), credit_risk...",
+    "partition_clause": null,
+    "column_count": 28
+  },
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dim_pub_terms_file_view.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:46.177678+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dim_pub_terms_file_view.md"
+}

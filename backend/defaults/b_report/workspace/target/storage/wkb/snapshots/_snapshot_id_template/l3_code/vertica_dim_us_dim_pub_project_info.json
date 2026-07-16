@@ -1,0 +1,19 @@
+{
+  "entity_id": "dim_us.dim_pub_project_info",
+  "layer": "l3_code",
+  "engine": "vertica",
+  "domain": "pos",
+  "ddl_semantics": {
+    "object_type": "table",
+    "create_pattern": "CREATE TABLE dim_us.dim_pub_project_info ( proj_no int, u_version varchar(100), proj_name varchar(100), proj_comments varchar(100), close_date timestamp, var_no int, entry_datetime timestamp, entry_id int, entry_obj varchar(100), delete_date timestamp, delete_id int, delete_obj varchar(100), vendor_no int, pm_no int, combine varchar(100), reseller int, profit_rec_amt numeric(20,8), profit_rec_date timestamp, close_status varchar(100), scm_claim_type int, h_version int, company_no int, eu_require...",
+    "partition_clause": null,
+    "column_count": 24
+  },
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dim_pub_project_info.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:45.555241+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dim_pub_project_info.md"
+}

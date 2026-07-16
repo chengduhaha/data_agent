@@ -1,0 +1,575 @@
+{
+  "entity_id": "dw_us.dws_disty_brpt_bd_proj_task_mtd",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "b-report-us",
+  "qualified_name": "dw_us.dws_disty_brpt_bd_proj_task_mtd",
+  "schema_name": "dw_us",
+  "table_name": "dws_disty_brpt_bd_proj_task_mtd",
+  "columns": [
+    {
+      "name": "month_no",
+      "type": "int"
+    },
+    {
+      "name": "project_no",
+      "type": "int"
+    },
+    {
+      "name": "project_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "task_no",
+      "type": "int"
+    },
+    {
+      "name": "task_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "company_no",
+      "type": "int"
+    },
+    {
+      "name": "bd_rep_id",
+      "type": "int"
+    },
+    {
+      "name": "bd_rep_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bd_mgr_id",
+      "type": "int"
+    },
+    {
+      "name": "bd_mgr_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bd_dir_id",
+      "type": "int"
+    },
+    {
+      "name": "bd_dir_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bd_vp_id",
+      "type": "int"
+    },
+    {
+      "name": "bd_vp_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "goal_nsales",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "goal_gm",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "goal_ngm",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "goal_opl_gm",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "goal_tgm",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "goal_dos",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "goal_pdt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "goal_total_btl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "goal_cust_cnt",
+      "type": "int"
+    },
+    {
+      "name": "gross_sales",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "net_sales",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "gross_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "net_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "scm_usage",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "ds_sales",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "stock_sales",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "ds_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "stock_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "ds_scm_usage",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "stock_scm_usage",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "total_unit",
+      "type": "int"
+    },
+    {
+      "name": "total_weight",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cgp",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "total_btl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "tgm_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "gm_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "ngm_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "oplgm_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "bo_gross_sales",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "bo_gross_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "bo_total_unit",
+      "type": "int"
+    },
+    {
+      "name": "bo_gm_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "so_gross_sales",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "so_gross_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "so_total_unit",
+      "type": "int"
+    },
+    {
+      "name": "so_gm_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "bo_age0_7",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "bo_age8_14",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "bo_age15_21",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "bo_age21_up",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "so_age0_7",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "so_age8_14",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "so_age15_21",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "so_age21_up",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "rr_unit",
+      "type": "int"
+    },
+    {
+      "name": "rr_sales",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "rr_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "rr_gm",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "rr_ngm",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "rr_opl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "rr_cgp",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "rr_total_btl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "rr_tgm",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "ap_finance",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "inv_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "inv_reserve",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cr_risk_cterm",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "flr_synnex",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "direct_credit",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "csgn_edi_fee",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "corporate",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "sfs",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "scm_risk",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "flr_vendor",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cust_finance_sales",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cust_pmt_disc",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cvr_rm",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "ar_fin_recovery",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "mfg_oh",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cust_finance",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "rma",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "hc_sales",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "order_overhead",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "margin_share",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "ap_adj",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "pdt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "scm_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "infrastructure",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "marketing",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "coop",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "one_time_btl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "hbtl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "scm_profit_adj",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "hc_pm",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "hc_bd",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "btl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "btl_sales",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "btl_backout",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cust_rebate",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "mof",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "frt_out_load",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "frt_out_exp",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "whoh_pack",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "frt_ob_recovery",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "frt_ib_recovery",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "others",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "others_sales",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "scm_disc",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "scm_ndisc",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "frt_in",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "trans_btl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "trans_btl_sales",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp"
+    },
+    {
+      "name": "btl_sales_for_opl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "trans_btl_sales_for_opl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "pdt_for_opl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cust_rebate_for_opl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cvr_rm_for_opl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "btl_backout_for_opl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cust_pmt_disc_for_opl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cust_finance_sales_for_opl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "rma_for_opl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "ar_fin_recovery_for_opl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "order_overhead_for_opl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "frt_out_exp_for_opl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "frt_ob_recovery_for_opl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "b33_flag",
+      "type": "int"
+    },
+    {
+      "name": "fx_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "date_flag",
+      "type": "date"
+    },
+    {
+      "name": "bd_svp_id",
+      "type": "int"
+    },
+    {
+      "name": "bd_svp_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "oplgm_plus_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "rr_oplgm_plus_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "goal_oplgm_plus_amt",
+      "type": "numeric(20,8)"
+    }
+  ],
+  "column_count": 138,
+  "partition_keys": [
+    "month_no"
+  ],
+  "grain": null,
+  "ddl_source": {
+    "repo": "BREPORT-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/b-report-us/tables/dws_disty_brpt_bd_proj_task_mtd.md",
+    "commit": "b-report-contract-v2",
+    "fetched_at": "2026-07-02T07:57:29.378680+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/b-report-us/dws_disty_brpt_bd_proj_task_mtd.md"
+}

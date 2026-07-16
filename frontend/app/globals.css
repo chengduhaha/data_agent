@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg0: #eef2f5;
+  --bg1: #e4ebf1;
+  --surface: rgba(255, 255, 255, 0.78);
+  --stroke: rgba(36, 44, 52, 0.1);
+  --ink: #171c22;
+  --muted: #5a6b7c;
+  --accent: #0f6b66;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #d9ebe8 0%, transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, #dce4ef 0%, transparent 50%),
+    linear-gradient(165deg, var(--bg0), var(--bg1));
+  background-attachment: fixed;
+  min-height: 100%;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(36, 44, 52, 0.22);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+@layer components {
+  .panel {
+    @apply rounded-2xl border border-ink-200/70 bg-white/70 shadow-soft backdrop-blur-md;
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-3.5 py-2 text-sm font-medium transition;
+  }
+  .btn-primary {
+    @apply btn bg-accent text-white hover:bg-accent-strong;
+  }
+  .btn-ghost {
+    @apply btn border border-ink-200/80 bg-white/50 text-ink-800 hover:bg-white;
+  }
+  .input {
+    @apply w-full rounded-xl border border-ink-200 bg-white/80 px-3 py-2 text-sm outline-none transition focus:border-accent focus:ring-2 focus:ring-accent/20;
+  }
+  .chat-textarea {
+    @apply w-full min-h-[5.5rem] max-h-[40vh] resize-y leading-relaxed;
+  }
+  .slash-menu-grid {
+    @apply grid overflow-hidden rounded-2xl border border-ink-200/80 bg-white shadow-lg sm:grid-cols-[minmax(0,1fr)_220px];
+  }
+  .slash-menu {
+    @apply bg-white;
+  }
+  .slash-menu-item {
+    @apply block w-full px-3 py-2 text-left transition hover:bg-ink-50;
+  }
+  .slash-menu-item-active {
+    @apply bg-accent-soft/60;
+  }
+  .slash-menu-preview {
+    @apply border-l border-ink-200/60 bg-ink-50/80 px-3 py-3;
+  }
+  .markdown-body {
+    @apply text-sm leading-relaxed text-ink-800;
+  }
+  .markdown-body > *:first-child {
+    @apply mt-0;
+  }
+  .markdown-body > *:last-child {
+    @apply mb-0;
+  }
+  .label {
+    @apply mb-1.5 block text-xs font-medium uppercase tracking-wide text-ink-500;
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "seed_id": "knowledgebase.b-report-us.folder",
+  "layer": "l4_flow",
+  "domain": "b-report-us",
+  "flow_docs": [
+    "target/knowledgebase/b-report-us/dim_disty_bd_project_user.md",
+    "target/knowledgebase/b-report-us/dim_pub_customer_info.md",
+    "target/knowledgebase/b-report-us/dim_pub_date.md",
+    "target/knowledgebase/b-report-us/dim_pub_order_type.md",
+    "target/knowledgebase/b-report-us/dim_pub_part_info.md",
+    "target/knowledgebase/b-report-us/dim_pub_sales_cust_type.md",
+    "target/knowledgebase/b-report-us/dim_pub_sales_division.md",
+    "target/knowledgebase/b-report-us/dim_pub_sales_hierarchy_primary_role_by_terr_view.md",
+    "target/knowledgebase/b-report-us/dim_pub_sales_territory.md",
+    "target/knowledgebase/b-report-us/dim_pub_vendor_info.md",
+    "target/knowledgebase/b-report-us/dim_pub_vendor_segment.md",
+    "target/knowledgebase/b-report-us/dim_pub_vpl_hierarchy_info.md",
+    "target/knowledgebase/b-report-us/dim_pub_vpl_info.md",
+    "target/knowledgebase/b-report-us/dm_disty_brpt_bd_rep_1d.md",
+    "target/knowledgebase/b-report-us/dm_disty_brpt_bd_rep_comb_mtd.md",
+    "target/knowledgebase/b-report-us/dm_disty_brpt_bd_rep_mtd.md",
+    "target/knowledgebase/b-report-us/dm_disty_brpt_bd_rep_wtd.md",
+    "target/knowledgebase/b-report-us/dm_disty_brpt_buyer_1d.md",
+    "target/knowledgebase/b-report-us/dm_disty_brpt_buyer_comb_mtd.md",
+    "target/knowledgebase/b-report-us/dm_disty_brpt_buyer_mtd.md"
+  ],
+  "hub_doc": "target/knowledgebase/b-report-us/dim_disty_bd_project_user.md",
+  "orchestration_focus": [
+    "daily disty POS load dependency chain (contract L1 freshness)",
+    "POS hub to RDS report script consumption",
+    "dimension enrichment at POS load time",
+    "SPA/SCM one-to-many join caution"
+  ],
+  "notes": "Folder-level L4 orchestration seed for POS catalog documents."
+}

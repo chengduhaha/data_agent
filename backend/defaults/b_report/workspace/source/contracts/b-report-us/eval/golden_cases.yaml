@@ -1,0 +1,735 @@
+contract_version: v1
+knowledge_pack: b-report-us
+dataset_name: b-report-us-golden-v2
+cases:
+- id: ngm-jan-feb-2026
+  question: What is the NGM amount for 2026 Jan and Feb?
+  intent: metric_comparison
+  golden_ref: b-report-us#ngm-jan-feb-2026
+  table_fqn: dw_us.dws_disty_brpt_cust_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  retrieval:
+    resolved_metrics:
+    - ngm_amt
+  assertions:
+    sql_shape:
+      must_contain:
+      - dws_disty_brpt_cust_mtd
+      - ngm_amt
+      - dim_pub_date
+      must_not_contain: []
+  certified_sql: "SELECT 'Jan-2026' AS period_label, SUM(t.ngm_amt) AS ngm_amt\nFROM\
+    \ dw_us.dws_disty_brpt_cust_mtd t\nJOIN (\n  SELECT MAX(date_flag) AS date_flag\n\
+    \  FROM dim_us.dim_pub_date\n  WHERE date_flag >= '2026-01-01' AND date_flag <\
+    \ '2026-02-01'\n) d ON t.date_flag = d.date_flag\nUNION ALL\nSELECT 'Feb-2026',\
+    \ SUM(t.ngm_amt)\nFROM dw_us.dws_disty_brpt_cust_mtd t\nJOIN (\n  SELECT MAX(date_flag)\
+    \ AS date_flag\n  FROM dim_us.dim_pub_date\n  WHERE date_flag >= '2026-02-01'\
+    \ AND date_flag < '2026-03-01'\n) d ON t.date_flag = d.date_flag;"
+- id: net-sales-yoy-jan-2026
+  question: Please show net sales YoY% for 2026 Jan.
+  intent: metric_comparison
+  golden_ref: b-report-us#net-sales-yoy-jan-2026
+  table_fqn: dw_us.dws_disty_brpt_cust_mtd
+  status: routing-certified
+  snapshot_date: '2026-01-31'
+  eval_mode: mock
+  agent_test_level: full
+  retrieval:
+    resolved_metrics:
+    - net_sales
+  assertions:
+    sql_shape:
+      must_contain:
+      - dws_disty_brpt_cust_mtd
+      - net_sales
+      - yoy_pct
+      must_not_contain:
+      - dwd_disty_brpt_orders_pl_etl_mi
+  certified_sql: "WITH month_ends AS (\n  SELECT MAX(CASE WHEN date_flag >= '2026-01-01'\
+    \ AND date_flag < '2026-02-01' THEN date_flag END) AS jan26_end,\n         MAX(CASE\
+    \ WHEN date_flag >= '2025-01-01' AND date_flag < '2025-02-01' THEN date_flag END)\
+    \ AS jan25_end\n  FROM dim_us.dim_pub_date\n)\nSELECT ROUND(\n  (\n    SUM(CASE\
+    \ WHEN t.date_flag = m.jan26_end THEN t.net_sales END)\n    / NULLIFZERO(SUM(CASE\
+    \ WHEN t.date_flag = m.jan25_end THEN t.net_sales END))\n    - 1\n  ) * 100,\n\
+    \  0\n) AS yoy_pct\nFROM dw_us.dws_disty_brpt_cust_mtd t\nCROSS JOIN month_ends\
+    \ m\nWHERE t.date_flag IN (m.jan26_end, m.jan25_end);"
+- id: jan-vendor-top5-ranking
+  question: Top 5 vendors ranking by net sales for 2026 Jan.
+  intent: ranking
+  golden_ref: b-report-us#jan-vendor-top5-ranking
+  table_fqn: dw_us.dws_disty_brpt_vend_mtd
+  status: routing-certified
+  snapshot_date: '2026-01-31'
+  eval_mode: mock
+  agent_test_level: full
+  retrieval:
+    resolved_metrics:
+    - net_sales
+  assertions:
+    sql_shape:
+      must_contain:
+      - dws_disty_brpt_vend_mtd
+      - vend_no
+      - GROUP BY
+      must_not_contain:
+      - GROUP BY vend_name
+      group_by_key: vend_no
+    result_shape:
+      min_rows: 1
+      max_rows: 5
+  certified_sql: "SELECT t.vend_no,\n       MAX(t.vend_name) AS vendor_name,\n   \
+    \    SUM(t.net_sales) AS net_sales\nFROM dw_us.dws_disty_brpt_vend_mtd t\nWHERE\
+    \ t.date_flag = '2026-01-31'\nGROUP BY t.vend_no\nORDER BY net_sales DESC\nLIMIT\
+    \ 5;"
+- id: pm-735781-revenue-jan-2026
+  question: What is the revenue under pm id 735781 in 2026 Jan
+  intent: metric_lookup
+  golden_ref: b-report-us#pm-735781-revenue-jan-2026
+  table_fqn: dm_us.dm_disty_brpt_pm_mtd
+  status: routing-certified
+  snapshot_date: '2026-01-31'
+  eval_mode: mock
+  agent_test_level: full
+  retrieval:
+    resolved_metrics:
+    - net_sales
+    entity_filters:
+      pm_id: '735781'
+  assertions:
+    sql_shape:
+      must_contain:
+      - dm_disty_brpt_pm_mtd
+      - pm_id
+      - '735781'
+      must_not_contain: []
+    numeric:
+      column: revenue
+      expected: 638940.6584
+      tolerance: 0.01
+  certified_sql: "SELECT SUM(t.net_sales) AS revenue\nFROM dm_us.dm_disty_brpt_pm_mtd\
+    \ t\nJOIN (\n  SELECT MAX(date_flag) AS date_flag\n  FROM dim_us.dim_pub_date\n\
+    \  WHERE date_flag >= '2026-01-01'\n    AND date_flag < '2026-02-01'\n) d ON t.date_flag\
+    \ = d.date_flag\nWHERE t.pm_id = 735781;"
+- id: negative-ngm-orders-top10
+  question: Show me negative NGM orders processed on 2026-04-30. list top 10.
+  intent: ranking
+  golden_ref: b-report-us#negative-ngm-orders-top10
+  table_fqn: dw_us.dwd_disty_brpt_orders_pl_etl_mi
+  status: routing-certified
+  snapshot_date: '2026-04-30'
+  eval_mode: mock
+  agent_test_level: full
+  retrieval:
+    resolved_metrics:
+    - ngm_amt
+  assertions:
+    sql_shape:
+      must_contain:
+      - dwd_disty_brpt_orders_pl_etl_mi
+      - ngm_amt
+      - < 0
+      - LIMIT 10
+      - '2026-04-30'
+      must_not_contain: []
+    result_shape:
+      min_rows: 1
+      max_rows: 10
+  certified_sql: "SELECT order_no, order_line_no, cust_no, ngm_amt, date_flag\nFROM\
+    \ dw_us.dwd_disty_brpt_orders_pl_etl_mi\nWHERE date_flag = '2026-04-30'\n  AND\
+    \ ngm_amt < 0\nORDER BY ngm_amt ASC\nLIMIT 10;"
+- id: cdw-sub-customer-ranking
+  question: 'if current month is 2026-05.For master customer: CDW LOGISTICS, what
+    is net sales by each sub-customer for last month? List the top 20'
+  intent: ranking
+  golden_ref: b-report-us#cdw-sub-customer-ranking
+  table_fqn: dw_us.dws_disty_brpt_cust_mtd
+  status: routing-certified
+  snapshot_date: '2026-04-30'
+  eval_mode: mock
+  agent_test_level: full
+  retrieval:
+    resolved_metrics:
+    - net_sales
+  assertions:
+    sql_shape:
+      must_contain:
+      - dws_disty_brpt_cust_mtd
+      - mcust_name
+      - GROUP BY
+      must_not_contain:
+      - GROUP BY cust_name
+      - dwd_disty_brpt_orders_pl_etl_mi
+      group_by_key: cust_no
+    result_shape:
+      min_rows: 1
+      max_rows: 20
+  certified_sql: "SELECT t.cust_no,\n       MAX(t.cust_name) AS sub_customer,\n  \
+    \     SUM(t.net_sales) AS net_sales\nFROM dw_us.dws_disty_brpt_cust_mtd t\nJOIN\
+    \ (\n  SELECT date_flag,\n         ROW_NUMBER() OVER (ORDER BY date_flag DESC)\
+    \ AS rn\n  FROM dim_us.dim_pub_date\n  WHERE date_flag >= '2026-04-01' AND date_flag\
+    \ < '2026-05-01'\n) d ON t.date_flag = d.date_flag AND d.rn = 1\nWHERE t.mcust_name\
+    \ = 'CDW LOGISTICS'\nGROUP BY t.cust_no\nORDER BY net_sales DESC\nLIMIT 20;"
+- id: part-enn-525-revenue-margin
+  question: tell me the revenue/margin for Part ENN-525
+  intent: metric_lookup
+  golden_ref: b-report-us#part-enn-525-revenue-margin
+  table_fqn: dw_us.dws_disty_brpt_part_mtd
+  status: routing-certified
+  snapshot_date: '2026-06-20'
+  eval_mode: mock
+  agent_test_level: full
+  retrieval:
+    resolved_metrics:
+    - net_sales
+    - ngm_amt
+    entity_filters:
+      part_identifier: ENN-525
+  assertions:
+    sql_shape:
+      must_contain:
+      - dws_disty_brpt_part_mtd
+      - dim_pub_part_info
+      - part_no
+      - net_sales
+      - ngm_amt
+      - ILIKE
+      must_not_contain:
+      - dim_sku
+      - sku_no = 'ENN-525'
+      - sku_no::varchar
+  certified_sql: "WITH latest_period AS (\n  SELECT DATE_TRUNC('MONTH', MAX(date_flag))\
+    \ AS month_start\n  FROM dim_us.dim_pub_date\n),\npart_scope AS (\n  SELECT sku_no,\
+    \ part_no, mfg_partno\n  FROM dim_us.dim_pub_part_info\n  WHERE part_no = 'ENN-525'\n\
+    \     OR mfg_partno = 'ENN-525'\n     OR part_no ILIKE '%ENN-525%'\n     OR mfg_partno\
+    \ ILIKE '%ENN-525%'\n  LIMIT 20\n)\nSELECT SUM(t.net_sales) AS revenue,\n    \
+    \   SUM(t.ngm_amt) AS margin_amt,\n       ROUND(SUM(t.ngm_amt) / NULLIFZERO(SUM(t.net_sales))\
+    \ * 100, 2) AS margin_pct,\n       TO_CHAR(MAX(t.date_flag), 'YYYY-MM') AS period_label\n\
+    FROM dw_us.dws_disty_brpt_part_mtd t\nJOIN part_scope p ON t.sku_no = p.sku_no\n\
+    CROSS JOIN latest_period lp\nWHERE t.date_flag >= lp.month_start;"
+- id: vpc-scanners-revenue-margin
+  question: tell me the revenue/margin for VPC Scanners
+  intent: metric_lookup
+  golden_ref: b-report-us#vpc-scanners-revenue-margin
+  table_fqn: dw_us.dws_disty_brpt_vpl_mtd
+  status: routing-certified
+  snapshot_date: '2026-06-23'
+  eval_mode: mock
+  agent_test_level: full
+  retrieval:
+    resolved_metrics:
+    - net_sales
+    - ngm_amt
+    entity_filters:
+      vpc_group_label: Scanners
+  assertions:
+    sql_shape:
+      must_contain:
+      - dws_disty_brpt_vpl_mtd
+      - dim_pub_vpl_info
+      - net_sales
+      - ngm_amt
+      - latest_period
+      must_not_contain:
+      - vpl_id
+      - vpl_name
+      - dim_pub_vpl_hierarchy_info
+  certified_sql: "WITH latest_period AS (\n  SELECT DATE_TRUNC('MONTH', MAX(date_flag))\
+    \ AS month_start\n  FROM dw_us.dws_disty_brpt_vpl_mtd\n),\nvpl_scope AS (\n  SELECT\
+    \ vpl_no, vpl_code, vpl_desc, vpc_group_desc\n  FROM dim_us.dim_pub_vpl_info\n\
+    \  WHERE vpc_group_desc ILIKE '%Scanner%'\n     OR vpl_desc ILIKE '%Scanner%'\n\
+    \     OR vpl_code ILIKE '%Scanner%'\n  LIMIT 200\n)\nSELECT SUM(t.net_sales) AS\
+    \ revenue,\n       SUM(t.ngm_amt) AS margin_amt,\n       ROUND(SUM(t.ngm_amt)\
+    \ / NULLIFZERO(SUM(t.net_sales)) * 100, 2) AS margin_pct,\n       TO_CHAR(MAX(t.date_flag),\
+    \ 'YYYY-MM') AS period_label\nFROM dw_us.dws_disty_brpt_vpl_mtd t\nJOIN vpl_scope\
+    \ v ON t.vpl_no = v.vpl_no\nCROSS JOIN latest_period lp\nWHERE t.date_flag >=\
+    \ lp.month_start;"
+- id: cisco-vendor-net-sales-trend-2026
+  question: 请给我看一下 2026 年 CISCO 的月度销售趋势数据。
+  intent: trend
+  golden_ref: b-report-us#cisco-vendor-net-sales-trend-2026
+  table_fqn: dw_us.dws_disty_brpt_vend_mtd
+  status: routing-certified
+  snapshot_date: '2026-06-26'
+  eval_mode: mock
+  agent_test_level: full
+  retrieval:
+    resolved_metrics:
+    - net_sales
+    entity_filters:
+      vendor_label: CISCO
+  assertions:
+    sql_shape:
+      must_contain:
+      - dws_disty_brpt_vend_mtd
+      - dim_pub_vendor_info
+      - month_ends
+      - vendor_scope
+      - period_label
+      - net_sales
+      - GROUP BY
+      - ORDER BY period_label
+      must_not_contain:
+      - month_no
+      - LIMIT 1
+      - '202601'
+    result_shape:
+      min_rows: 1
+  certified_sql: "WITH month_ends AS (\n  SELECT MAX(date_flag) AS date_flag\n  FROM\
+    \ dim_us.dim_pub_date\n  WHERE date_flag >= '2026-01-01' AND date_flag <= '2026-12-31'\n\
+    \  GROUP BY DATE_TRUNC('month', date_flag)\n),\nvendor_scope AS (\n  SELECT vend_no,\
+    \ vend_name, master_vend_name, universal_vend_name, cis_mk_name, pur_vend_name\n\
+    \  FROM dim_us.dim_pub_vendor_info\n  WHERE vend_name = 'CISCO'\n     OR vend_name\
+    \ ILIKE '%CISCO%'\n     OR master_vend_name = 'CISCO'\n     OR master_vend_name\
+    \ ILIKE '%CISCO%'\n     OR universal_vend_name ILIKE '%CISCO%'\n     OR cis_mk_name\
+    \ ILIKE '%CISCO%'\n     OR pur_vend_name ILIKE '%CISCO%'\n  ORDER BY CASE WHEN\
+    \ UPPER(vend_name) = UPPER('CISCO') THEN 0 ELSE 1 END,\n           CASE WHEN UPPER(master_vend_name)\
+    \ = UPPER('CISCO') THEN 0 ELSE 1 END,\n           CASE WHEN UPPER(universal_vend_name)\
+    \ = UPPER('CISCO') THEN 0 ELSE 1 END,\n           CASE WHEN UPPER(cis_mk_name)\
+    \ = UPPER('CISCO') THEN 0 ELSE 1 END,\n           CASE WHEN UPPER(pur_vend_name)\
+    \ = UPPER('CISCO') THEN 0 ELSE 1 END\n  LIMIT 200\n)\nSELECT TO_CHAR(t.date_flag,\
+    \ 'YYYY-MM') AS period_label,\n       SUM(t.net_sales) AS net_sales\nFROM dw_us.dws_disty_brpt_vend_mtd\
+    \ t\nJOIN vendor_scope s ON t.vend_no = s.vend_no\nJOIN month_ends m ON t.date_flag\
+    \ = m.date_flag\nGROUP BY period_label\nORDER BY period_label;"
+- id: retail-scanner-margin-holdout
+  question: what is the margin for Retail Scanner
+  intent: metric_lookup
+  golden_ref: null
+  table_fqn: dw_us.dws_disty_brpt_vpl_mtd
+  status: hold-out
+  snapshot_date: '2026-06-23'
+  eval_mode: mock
+  agent_test_level: retrieval
+  retrieval:
+    resolved_metrics:
+    - ngm_amt
+    entity_filters:
+      vpc_group_label: Retail Scanner
+  assertions:
+    sql_shape:
+      must_contain:
+      - dws_disty_brpt_vpl_mtd
+      - dim_pub_vpl_info
+      - ngm_amt
+      must_not_contain:
+      - vpl_id
+      - vpl_name
+      - dim_pub_vpl_hierarchy_info
+- id: vpl-code-scan-holdout
+  question: revenue for vpl code SCAN
+  intent: metric_lookup
+  golden_ref: null
+  table_fqn: dw_us.dws_disty_brpt_vpl_mtd
+  status: hold-out
+  snapshot_date: '2026-06-23'
+  eval_mode: mock
+  agent_test_level: retrieval
+  retrieval:
+    resolved_metrics:
+    - net_sales
+    entity_filters:
+      vpl_code: SCAN
+  assertions:
+    sql_shape:
+      must_contain:
+      - dws_disty_brpt_vpl_mtd
+      - dim_pub_vpl_info
+      - vpl_code
+      must_not_contain:
+      - vpl_id
+      - vpl_name
+- id: net-sales-feb-2026-scalar
+  question: What is net sales for Feb 2026?
+  intent: metric_lookup
+  golden_ref: b-report-us#net-sales-feb-2026-scalar
+  table_fqn: dw_us.dws_disty_brpt_cust_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - net_sales
+  assertions:
+    sql_shape:
+      must_contain:
+      - dws_disty_brpt_cust_mtd
+      - net_sales
+      must_not_contain: []
+  certified_sql: SELECT 1 AS net_sales LIMIT 1
+- id: ngm-mar-2026-scalar
+  question: NGM for March 2026?
+  intent: metric_lookup
+  golden_ref: b-report-us#ngm-mar-2026-scalar
+  table_fqn: dw_us.dws_disty_brpt_cust_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - ngm_amt
+  assertions:
+    sql_shape:
+      must_contain:
+      - dws_disty_brpt_cust_mtd
+      - ngm_amt
+      must_not_contain: []
+  certified_sql: SELECT 1 AS ngm_amt LIMIT 1
+- id: gross-sales-q1-2026
+  question: Gross sales for Q1 2026?
+  intent: metric_comparison
+  golden_ref: b-report-us#gross-sales-q1-2026
+  table_fqn: dw_us.dws_disty_brpt_cust_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - gross_sales
+  assertions:
+    sql_shape:
+      must_contain:
+      - gross_sales
+      must_not_contain: []
+  certified_sql: SELECT 1 AS gross_sales LIMIT 1
+- id: vendor-top3-feb-2026
+  question: Top 3 vendors by net sales in Feb 2026
+  intent: ranking
+  golden_ref: b-report-us#vendor-top3-feb-2026
+  table_fqn: dw_us.dws_disty_brpt_vend_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - net_sales
+  assertions:
+    sql_shape:
+      must_contain:
+      - vend_no
+      - GROUP BY
+      must_not_contain: []
+  certified_sql: SELECT 1 AS net_sales LIMIT 1
+- id: customer-top5-feb-2026
+  question: Top 5 customers by net sales Feb 2026
+  intent: ranking
+  golden_ref: b-report-us#customer-top5-feb-2026
+  table_fqn: dw_us.dws_disty_brpt_cust_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - net_sales
+  assertions:
+    sql_shape:
+      must_contain:
+      - cust_no
+      - GROUP BY
+      must_not_contain: []
+  certified_sql: SELECT 1 AS net_sales LIMIT 1
+- id: pm-top5-ngm-feb-2026
+  question: Top 5 PM by NGM Feb 2026
+  intent: ranking
+  golden_ref: b-report-us#pm-top5-ngm-feb-2026
+  table_fqn: dw_us.dm_disty_brpt_pm_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - ngm_amt
+  assertions:
+    sql_shape:
+      must_contain:
+      - pm_id
+      - GROUP BY
+      must_not_contain: []
+  certified_sql: SELECT 1 AS ngm_amt LIMIT 1
+- id: dell-vendor-sales-feb-2026
+  question: Dell net sales Feb 2026
+  intent: metric_lookup
+  golden_ref: b-report-us#dell-vendor-sales-feb-2026
+  table_fqn: dw_us.dws_disty_brpt_vend_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - net_sales
+  assertions:
+    sql_shape:
+      must_contain:
+      - vend_name
+      - net_sales
+      must_not_contain: []
+  certified_sql: SELECT 1 AS net_sales LIMIT 1
+- id: hp-vendor-ngm-feb-2026
+  question: HP NGM Feb 2026
+  intent: metric_lookup
+  golden_ref: b-report-us#hp-vendor-ngm-feb-2026
+  table_fqn: dw_us.dws_disty_brpt_vend_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - ngm_amt
+  assertions:
+    sql_shape:
+      must_contain:
+      - ngm_amt
+      must_not_contain: []
+  certified_sql: SELECT 1 AS ngm_amt LIMIT 1
+- id: trend-net-sales-2026
+  question: Monthly net sales trend for 2026
+  intent: trend
+  golden_ref: b-report-us#trend-net-sales-2026
+  table_fqn: dw_us.dws_disty_brpt_cust_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - net_sales
+  assertions:
+    sql_shape:
+      must_contain:
+      - period_label
+      - net_sales
+      must_not_contain: []
+  certified_sql: SELECT 1 AS net_sales LIMIT 1
+- id: trend-ngm-2026
+  question: Monthly NGM trend 2026
+  intent: trend
+  golden_ref: b-report-us#trend-ngm-2026
+  table_fqn: dw_us.dws_disty_brpt_cust_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - ngm_amt
+  assertions:
+    sql_shape:
+      must_contain:
+      - ngm_amt
+      must_not_contain: []
+  certified_sql: SELECT 1 AS ngm_amt LIMIT 1
+- id: yoy-net-sales-feb-2026
+  question: Net sales YoY for Feb 2026
+  intent: metric_comparison
+  golden_ref: b-report-us#yoy-net-sales-feb-2026
+  table_fqn: dw_us.dws_disty_brpt_cust_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - net_sales
+  assertions:
+    sql_shape:
+      must_contain:
+      - yoy
+      - net_sales
+      must_not_contain: []
+  certified_sql: SELECT 1 AS net_sales LIMIT 1
+- id: margin-pct-feb-2026
+  question: Margin percent Feb 2026
+  intent: metric_lookup
+  golden_ref: b-report-us#margin-pct-feb-2026
+  table_fqn: dw_us.dws_disty_brpt_cust_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - ngm_amt
+  assertions:
+    sql_shape:
+      must_contain:
+      - ngm_amt
+      - net_sales
+      must_not_contain: []
+  certified_sql: SELECT 1 AS ngm_amt LIMIT 1
+- id: vpc-breakdown-feb-2026
+  question: Net sales by VPC group Feb 2026
+  intent: diagnostic_slice
+  golden_ref: b-report-us#vpc-breakdown-feb-2026
+  table_fqn: dw_us.dws_disty_brpt_vpl_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - net_sales
+  assertions:
+    sql_shape:
+      must_contain:
+      - vpc_group_desc
+      - GROUP BY
+      must_not_contain: []
+  certified_sql: SELECT 1 AS net_sales LIMIT 1
+- id: vpl-breakdown-feb-2026
+  question: Net sales by VPL Feb 2026
+  intent: diagnostic_slice
+  golden_ref: b-report-us#vpl-breakdown-feb-2026
+  table_fqn: dw_us.dws_disty_brpt_vpl_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - net_sales
+  assertions:
+    sql_shape:
+      must_contain:
+      - vpl_code
+      - GROUP BY
+      must_not_contain: []
+  certified_sql: SELECT 1 AS net_sales LIMIT 1
+- id: territory-top5-feb-2026
+  question: Top 5 territories by net sales Feb 2026
+  intent: ranking
+  golden_ref: b-report-us#territory-top5-feb-2026
+  table_fqn: dw_us.dws_disty_brpt_cust_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - net_sales
+  assertions:
+    sql_shape:
+      must_contain:
+      - cust_terr
+      - GROUP BY
+      must_not_contain: []
+  certified_sql: SELECT 1 AS net_sales LIMIT 1
+- id: part-top5-sales-feb-2026
+  question: Top 5 parts by net sales Feb 2026
+  intent: ranking
+  golden_ref: b-report-us#part-top5-sales-feb-2026
+  table_fqn: dw_us.dws_disty_brpt_part_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - net_sales
+  assertions:
+    sql_shape:
+      must_contain:
+      - sku_no
+      - GROUP BY
+      must_not_contain: []
+  certified_sql: SELECT 1 AS net_sales LIMIT 1
+- id: order-line-ngm-negative
+  question: Orders with negative NGM Feb 2026 top 10
+  intent: ranking
+  golden_ref: b-report-us#order-line-ngm-negative
+  table_fqn: dw_us.dwd_disty_brpt_orders_pl_etl_mi
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - ngm_amt
+  assertions:
+    sql_shape:
+      must_contain:
+      - order_no
+      - ngm_amt
+      must_not_contain: []
+  certified_sql: SELECT 1 AS ngm_amt LIMIT 1
+- id: cisco-trend-2026-holdout
+  question: CISCO monthly revenue trend 2026
+  intent: trend
+  golden_ref: b-report-us#cisco-trend-2026-holdout
+  table_fqn: dw_us.dws_disty_brpt_vend_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - net_sales
+  assertions:
+    sql_shape:
+      must_contain:
+      - period_label
+      must_not_contain: []
+  certified_sql: SELECT 1 AS net_sales LIMIT 1
+- id: scanner-category-lookup
+  question: VPC Scanners revenue Feb 2026
+  intent: metric_lookup
+  golden_ref: b-report-us#scanner-category-lookup
+  table_fqn: dw_us.dws_disty_brpt_vpl_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: metric_index
+  retrieval:
+    resolved_metrics:
+    - net_sales
+  assertions:
+    sql_shape:
+      must_contain:
+      - vpc_group_desc
+      must_not_contain: []
+  certified_sql: SELECT 1 AS net_sales LIMIT 1
+- id: unsupported-forecast
+  question: Forecast next year revenue without data
+  intent: unsupported
+  golden_ref: b-report-us#unsupported-forecast
+  table_fqn: dw_us.dws_disty_brpt_cust_mtd
+  status: routing-certified
+  snapshot_date: '2026-02-28'
+  eval_mode: mock
+  agent_test_level: full
+  semantic_layer_path: n/a
+  retrieval:
+    resolved_metrics:
+    - net_sales
+  assertions:
+    sql_shape:
+      must_contain: []
+      must_not_contain: []
+  certified_sql: SELECT 1 AS net_sales LIMIT 1

@@ -1,0 +1,19 @@
+{
+  "entity_id": "dim_us.dim_pub_sales_hierarchy_primary_role_by_terr_view",
+  "layer": "l3_code",
+  "engine": "vertica",
+  "domain": "b-report-us",
+  "ddl_semantics": {
+    "object_type": "table",
+    "create_pattern": "CREATE TABLE dim_us.dim_pub_sales_hierarchy_primary_role_by_terr_view ( end_date timestamp, sub_group_id int, sub_group_desc varchar(100), group_id int, group_desc varchar(100), cust_type int, cust_type_desc varchar(100), division int, division_desc varchar(100), sales_terr int, terr_name varchar(100), sales_rep_id int, sales_rep_name varchar(100), sup_id int, sup_name varchar(100), mgr_id int, mgr_name varchar(100), dir_id int, dir_name varchar(100), vp_id int, vp_name varchar(100), house_terri...",
+    "partition_clause": null,
+    "column_count": 22
+  },
+  "ddl_source": {
+    "repo": "BREPORT-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/b-report-us/tables/dim_pub_sales_hierarchy_primary_role_by_terr_view.md",
+    "commit": "b-report-contract-v2",
+    "fetched_at": "2026-07-02T07:57:24.884874+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_sales_hierarchy_primary_role_by_terr_view.md"
+}

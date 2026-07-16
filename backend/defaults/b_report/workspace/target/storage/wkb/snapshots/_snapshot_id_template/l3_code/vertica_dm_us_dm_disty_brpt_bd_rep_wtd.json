@@ -1,0 +1,19 @@
+{
+  "entity_id": "dm_us.dm_disty_brpt_bd_rep_wtd",
+  "layer": "l3_code",
+  "engine": "vertica",
+  "domain": "b-report-us",
+  "ddl_semantics": {
+    "object_type": "table",
+    "create_pattern": "CREATE TABLE dm_us.dm_disty_brpt_bd_rep_wtd ( week_no int, date_flag date, bd_rep_id int, bd_rep_name varchar(100), bd_mgr_id int, bd_mgr_name varchar(100), bd_dir_id int, bd_dir_name varchar(100), bd_vp_id int, bd_vp_name varchar(100), company_no int, gross_sales numeric(20,8), net_sales numeric(20,8), gross_cost numeric(20,8), net_cost numeric(20,8), scm_usage numeric(20,8), ds_sales numeric(20,8), stock_sales numeric(20,8), ds_cost numeric(20,8), stock_cost numeric(20,8), ds_scm_usage numeric...",
+    "partition_clause": "PARTITION BY date_flag;",
+    "column_count": 115
+  },
+  "ddl_source": {
+    "repo": "BREPORT-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/b-report-us/tables/dm_disty_brpt_bd_rep_wtd.md",
+    "commit": "b-report-contract-v2",
+    "fetched_at": "2026-07-02T07:57:25.856987+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/b-report-us/dm_disty_brpt_bd_rep_wtd.md"
+}

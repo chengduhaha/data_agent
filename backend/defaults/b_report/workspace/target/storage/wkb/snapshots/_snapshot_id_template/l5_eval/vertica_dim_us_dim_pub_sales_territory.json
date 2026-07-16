@@ -1,0 +1,43 @@
+{
+  "entity_id": "dim_us.dim_pub_sales_territory",
+  "layer": "l5_eval",
+  "domain": "b-report-us",
+  "validation_cases": [
+    {
+      "name": "row_count_by_partition",
+      "target": "dim_us.dim_pub_sales_territory",
+      "status": "template"
+    },
+    {
+      "name": "metric_sum_by_dimension",
+      "target": "dim_us.dim_pub_sales_territory",
+      "status": "template"
+    },
+    {
+      "name": "grain_duplicate_check",
+      "target": "dim_us.dim_pub_sales_territory",
+      "status": "template"
+    }
+  ],
+  "data_quality_checks": [
+    "Verify row count stability day-over-day on active Vertica snapshot (~2,800 territories; slow growth as CIS adds territories).",
+    "Monitor duplicate-key risk on `sales_terr` \u2014 must be unique per `date_flag` snapshot.",
+    "For `terr_name`, spot-check null rate (20 nulls observed) and duplicate labels mapping to multiple `sales_terr` values.",
+    "When joining from facts on `cust_terr`, validate match rate against `date_flag`-aligned `dim_pub_sales_territory_df` for historical months.",
+    "Not applicable \u2014 dimension tables carry no fact metrics. Validate attribute lookups by joining a sample of fact keys and comparing label coverage.",
+    "No active conflicts on dimension grain or key semantics as of 2026-06-26."
+  ],
+  "query_routing_rules": [
+    "Dimension load filters inactive/discontinued masters per CIS source rules; do not re-apply shipped-order filters (`dim_pub_order_type`) when querying this table directly.",
+    "For B Report metric questions, apply shipped-order scope on the fact/serving table, then join this dimension for labels.",
+    "Technical ETL predicates (partition sync, `date_flag` load guards on `*_df` snapshots) are not business filters on the base dimension."
+  ],
+  "known_unknowns": [
+    "ETL SQL and Azkaban .flow not in wiki repository",
+    "hive2vertica sync job file:line not verified",
+    "No active conflicts on dimension grain or key semantics as of 2026-06-26."
+  ],
+  "contract_source": "knowledge/b-report-us/tables/dim_pub_sales_territory.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_sales_territory.md",
+  "fetched_at": "2026-07-02T07:57:24.992065+00:00"
+}

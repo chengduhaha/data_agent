@@ -1,0 +1,102 @@
+version: 1
+skill: contract-guided-data-analysis
+
+defaults:
+  max_chars: 24000
+  bootstrap_max_chars: 2500
+
+# All progressive-load policies live in this references/ folder (local file: only).
+
+forbidden_paths:
+  - /knowledge/org/source/contracts/**/golden-questions.md
+  - /knowledge/org/source/contracts/b-report-us/tables/**
+  - /knowledge/org/source/contracts/pos/tables/**
+
+stages:
+  read_question:
+    files:
+      - file: local-research-first.md
+        sections:
+          - "## Forbidden for research"
+      - file: scope-guardrail.md
+        sections:
+          - "## Scope Guardrail (Non-bypassable)"
+      - file: question-shape.md
+        sections:
+          - "## Stage-1 Output Contract"
+          - "## Temporal Obligation"
+      - file: output-contract.md
+        sections:
+          - "## Ambiguity Handling"
+
+  local_research:
+    files:
+      - file: local-research-first.md
+
+  resolve_domain:
+    files:
+      - file: domain-routing.md
+
+  golden_cases_match:
+    files:
+      - file: golden-cases-match.md
+
+  special_logic_check:
+    files:
+      - file: special-logic-check.md
+
+  plan_queries:
+    always:
+      - file: scope-guardrail.md
+      - file: metric-table-routing.md
+      - file: sql-planning.md
+    by_intent:
+      metric_lookup:
+        - file: fiscal-calendar.md
+        - file: entity-resolution.md
+      ranking:
+        - file: fiscal-calendar.md
+        - file: output-contract.md
+      trend:
+        - file: fiscal-calendar.md
+      metric_comparison:
+        - file: fiscal-calendar.md
+        - file: output-contract.md
+      diagnostic_slice:
+        - file: fiscal-calendar.md
+        - file: dimension-scope.md
+      attribution:
+        - file: fiscal-calendar.md
+        - file: output-contract.md
+      _default:
+        - file: typo-tolerance.md
+        - file: fiscal-calendar.md
+
+  retrieve_tables:
+    files:
+      - file: special-logic-check.md
+      - file: wkb-retrieval.md
+      - file: domain-routing.md
+        sections:
+          - "## Sections to read per table (token budget)"
+
+  compile_sql:
+    files:
+      - file: local-research-first.md
+        sections:
+          - "## Gate before MCP"
+      - file: sql-planning.md
+      - file: metric-table-routing.md
+
+  execute_evidence:
+    files:
+      - file: vertica-query.md
+
+  synthesis:
+    files:
+      - file: output-contract.md
+        sections:
+          - "## Output Contract (Fixed)"
+      - file: confidence-provenance.md
+        sections:
+          - "## Source Tier"

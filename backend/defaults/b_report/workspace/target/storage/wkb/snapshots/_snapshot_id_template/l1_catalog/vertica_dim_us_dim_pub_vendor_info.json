@@ -1,0 +1,217 @@
+{
+  "entity_id": "dim_us.dim_pub_vendor_info",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "b-report-us",
+  "qualified_name": "dim_us.dim_pub_vendor_info",
+  "schema_name": "dim_us",
+  "table_name": "dim_pub_vendor_info",
+  "columns": [
+    {
+      "name": "vend_no",
+      "type": "int"
+    },
+    {
+      "name": "vend_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "primary_loc",
+      "type": "int"
+    },
+    {
+      "name": "pay_to_loc",
+      "type": "int"
+    },
+    {
+      "name": "purchase_loc",
+      "type": "int"
+    },
+    {
+      "name": "entry_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "entry_id",
+      "type": "int"
+    },
+    {
+      "name": "discontinued",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "restricted",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "buyer_no",
+      "type": "int"
+    },
+    {
+      "name": "rma_rep",
+      "type": "int"
+    },
+    {
+      "name": "ap_clerk",
+      "type": "int"
+    },
+    {
+      "name": "tolerance",
+      "type": "int"
+    },
+    {
+      "name": "po_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_pay_frt",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "fob",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "stock_rotation",
+      "type": "int"
+    },
+    {
+      "name": "restock_fee",
+      "type": "int"
+    },
+    {
+      "name": "ship_method",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "freight",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_category",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ap_hold_flag",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "company_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "universal_vend_no",
+      "type": "int"
+    },
+    {
+      "name": "universal_vend_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "master_vend_flag",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "master_vend_no",
+      "type": "int"
+    },
+    {
+      "name": "vend_company",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_currency",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_segment",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "pas_code",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp"
+    },
+    {
+      "name": "consign_flag",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "pur_vend_no",
+      "type": "int"
+    },
+    {
+      "name": "pur_vend_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "master_vend_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "smb_vend_image_flag",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "n_comp_brp_flag",
+      "type": "int"
+    },
+    {
+      "name": "vend_seg_code",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "prefix",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "diversity_status",
+      "type": "int"
+    },
+    {
+      "name": "diversity_status_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_seg_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cis_mk_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_rank",
+      "type": "int"
+    },
+    {
+      "name": "vend_pay_frt_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "discont_pur",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_terms",
+      "type": "varchar(100)"
+    }
+  ],
+  "column_count": 49,
+  "partition_keys": [],
+  "grain": null,
+  "ddl_source": {
+    "repo": "BREPORT-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/b-report-us/tables/dim_pub_vendor_info.md",
+    "commit": "b-report-contract-v2",
+    "fetched_at": "2026-07-02T07:57:25.034559+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_vendor_info.md"
+}

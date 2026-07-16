@@ -1,0 +1,26 @@
+{
+  "entity_id": "dim_us.dim_pub_part_info",
+  "layer": "l2_usage",
+  "domain": "b-report-us",
+  "reporting_target_vertica": "dim_us.dim_pub_part_info",
+  "downstream_consumers": [],
+  "business_purpose": "US product/part master \u2014 resolve `sku_no` from part numbers and enrich VPL/vendor hierarchy",
+  "primary_measure_columns": [
+    "weight",
+    "cu_height",
+    "cu_width",
+    "cu_length",
+    "po_cost",
+    "sug_retail_price",
+    "ave_cost",
+    "std_cost",
+    "fixed_price",
+    "std_whls_price",
+    "arr_flag"
+  ],
+  "expected_refresh_pattern": "Per POS contract",
+  "dimension_join_count": 0,
+  "contract_source": "knowledge/b-report-us/tables/dim_pub_part_info.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_part_info.md",
+  "fetched_at": "2026-07-02T07:57:24.699624+00:00"
+}

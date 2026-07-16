@@ -1,0 +1,48 @@
+{
+  "entity_id": "dw_us.dws_disty_brpt_cust_mtd",
+  "layer": "l5_eval",
+  "domain": "b-report-us",
+  "validation_cases": [
+    {
+      "name": "row_count_by_partition",
+      "target": "dw_us.dws_disty_brpt_cust_mtd",
+      "status": "template"
+    },
+    {
+      "name": "metric_sum_by_dimension",
+      "target": "dw_us.dws_disty_brpt_cust_mtd",
+      "status": "template"
+    },
+    {
+      "name": "grain_duplicate_check",
+      "target": "dw_us.dws_disty_brpt_cust_mtd",
+      "status": "template"
+    }
+  ],
+  "data_quality_checks": [
+    "Verify row counts and `date_flag` coverage after each monthly close (compare Hive vs Vertica tail dates).",
+    "Check `cust_no` / `mcust_no` match rates against `dim_us.dim_pub_customer_info` on sample `date_flag`.",
+    "Monitor null or sentinel `-3` rates on hierarchy keys (`sales_rep_id`, `terr_sub_group`) after dimension snapshot joins.",
+    "Monitor null rates on key measures (`ngm_amt`, `net_sales`).",
+    "Recompute `net_sales`, `ngm_amt`, `oplgm_amt` from DWD for sample `date_flag` and compare to serving table aggregates.",
+    "DWD gold validation (2026-06-09): 117,868 rows, zero mismatches at 0.01 tolerance."
+  ],
+  "query_routing_rules": [
+    "Upstream P&L already reflects shipped-order scope from `dws_disty_brpt_pl_extend_mtd` (sourced from order-line fact with `dim_pub_order_type.sales = 'Y'`).",
+    "Goal join: `goal_type = 'NORMAL'`, `period = month_no`, `cust_no <> 0`; full join preserves goal-only customers.",
+    "Goal join intentionally omits `terr_sub_group` / `terr_group` on join keys to avoid duplicate rows from dirty goal data (ETL comment in script).",
+    "`mcust_no` for goal rows comes from `dim_pub_customer_info_df`, not the goal table.",
+    "Technical sync: `hive2vertica` uses `where date_flag = '${date_flag}'` only \u2014 not a business filter."
+  ],
+  "known_unknowns": [
+    "ETL SQL and Azkaban .flow not in wiki repository",
+    "hive2vertica sync job file:line not verified",
+    "Conflict item:",
+    "claim_a: Multiple pre-aggregated tables may serve same metric at different slices/grains.",
+    "claim_b: Routing precedence across sibling tables not explicitly documented.",
+    "status: Needs Clarification"
+  ],
+  "contract_source": "knowledge/b-report-us/tables/dws_disty_brpt_cust_mtd.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dws_disty_brpt_cust_mtd.md",
+  "fetched_at": "2026-07-02T07:57:36.659341+00:00"
+}

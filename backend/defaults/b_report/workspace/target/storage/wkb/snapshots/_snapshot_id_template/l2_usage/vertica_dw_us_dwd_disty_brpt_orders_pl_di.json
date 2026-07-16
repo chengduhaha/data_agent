@@ -1,0 +1,30 @@
+{
+  "entity_id": "dw_us.dwd_disty_brpt_orders_pl_di",
+  "layer": "l2_usage",
+  "domain": "b-report-us",
+  "reporting_target_vertica": "dw_us.dwd_disty_brpt_orders_pl_di",
+  "downstream_consumers": [],
+  "business_purpose": "US B Report shipped-order profitability and performance analytics",
+  "primary_measure_columns": [
+    "base_cost",
+    "sales_cost",
+    "ship_qty",
+    "u_price",
+    "u_cost",
+    "u_sum_expense",
+    "l_weight",
+    "sales_total",
+    "ap_finance",
+    "inv_cost",
+    "inv_reserve",
+    "cr_risk_cterm",
+    "flr_synnex",
+    "direct_credit",
+    "csgn_edi_fee"
+  ],
+  "expected_refresh_pattern": "Per POS contract",
+  "dimension_join_count": 0,
+  "contract_source": "knowledge/b-report-us/tables/dwd_disty_brpt_orders_pl_di.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dwd_disty_brpt_orders_pl_di.md",
+  "fetched_at": "2026-07-02T07:57:27.194275+00:00"
+}

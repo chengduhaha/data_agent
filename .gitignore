@@ -1,0 +1,53 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / Next.js
+node_modules/
+frontend/.next/
+frontend/out/
+frontend/dist/
+*.tsbuildinfo
+.nvm/
+
+# Env & secrets
+.env
+.env.local
+.env.secrets
+*.pem
+
+# Committed capability defaults (skills, knowledge, WKB, fragments)
+!backend/defaults/
+!backend/defaults/**
+
+# Runtime per-user workspace (repo root)
+workspace/*/threads.sqlite
+workspace/*/threads.sqlite-*
+workspace/*/files/**
+!workspace/*/files/.gitkeep
+workspace/*/mcp.json
+workspace/*/config.json
+workspace/*/threads_meta.json
+
+# Legacy runtime path (pre-migration)
+backend/app/users/*/threads.sqlite
+backend/app/users/*/threads.sqlite-*
+backend/app/users/*/files/**
+!backend/app/users/*/files/.gitkeep
+backend/app/users/*/mcp.json
+backend/app/users/*/config.json
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Logs
+*.log
+npm-debug.log*

@@ -1,0 +1,17 @@
+{
+  "entity_id": "dw_us.dwd_disty_brpt_orders_pl_etl_mi",
+  "layer": "l4_flow",
+  "domain": "b-report-us",
+  "lineage": {
+    "upstream": "`dw_us.dwd_disty_brpt_orders_pl_di`, `dw_us.dwd_disty_brpt_orders_pl_mi` (hop 1, read_from via disty_b_rpt_addition_task_us)",
+    "downstream": "all DWS/DM disty_brpt serving aggregations"
+  },
+  "freshness": {
+    "expected_window": "03:00-03:20 PT (America/Los_Angeles) for core disty B-report daily/addition flows",
+    "load_pattern": "Azkaban-scheduled Spark SQL ETL with Hive write and Vertica sync"
+  },
+  "orchestration_note": "ETL/Azkaban flow not verified in wiki repo for POS catalog tables",
+  "contract_source": "knowledge/b-report-us/tables/dwd_disty_brpt_orders_pl_etl_mi.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dwd_disty_brpt_orders_pl_etl_mi.md",
+  "fetched_at": "2026-07-02T07:57:27.309760+00:00"
+}

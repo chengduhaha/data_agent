@@ -1,0 +1,219 @@
+{
+  "entity_id": "dw_us.dwd_disty_tm_order_frt_detail_di",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dw_us.dwd_disty_tm_order_frt_detail_di",
+  "schema_name": "dw_us",
+  "table_name": "dwd_disty_tm_order_frt_detail_di",
+  "columns": [
+    {
+      "name": "header_oid",
+      "type": "int"
+    },
+    {
+      "name": "order_type",
+      "type": "int"
+    },
+    {
+      "name": "order_no",
+      "type": "int"
+    },
+    {
+      "name": "ship_method",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "u_version",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "actual_frt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "customer_frt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "as_weight",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "service_days",
+      "type": "int"
+    },
+    {
+      "name": "eta_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "expect_ship_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "am_pm",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "insurance",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cartons",
+      "type": "int"
+    },
+    {
+      "name": "cod_chg",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "hide_flag",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "inside_chg",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "pallet_chg",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "oad_chg",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "low_wgt_rate",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "high_wgt_rate",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "min_charge",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "asr_chg",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "over_size_chg",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "fadd",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "fds",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "res_chg",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "fuel_chg",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "dsr_chg",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "h_version",
+      "type": "int"
+    },
+    {
+      "name": "disc_ins",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "disc_cost_bump",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cost_bump_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "appt_chg",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "man_chg",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "after_hrs_chg",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "govt_school_fee_chg",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "mcp_chg",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "mfc_chg",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "lac_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "ship_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "scac",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "carrier_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "edi_carrier_code",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_no",
+      "type": "int"
+    },
+    {
+      "name": "official_carrier_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "mode_of_transport",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "entry_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "date_flag",
+      "type": "date"
+    }
+  ],
+  "column_count": 49,
+  "partition_keys": [
+    "date_flag"
+  ],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dwd_disty_tm_order_frt_detail_di.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:52.207723+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dwd_disty_tm_order_frt_detail_di.md"
+}

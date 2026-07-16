@@ -1,0 +1,17 @@
+{
+  "entity_id": "dw_us.dws_disty_brpt_cust_mtd",
+  "layer": "l4_flow",
+  "domain": "b-report-us",
+  "lineage": {
+    "upstream": null,
+    "downstream": null
+  },
+  "freshness": {
+    "expected_window": "`06:00-08:30 PT` after daily B-report common load; goal columns may refresh on `08:30-18:30 PT` hourly cadence from `refresh_goal_hourly_us`.",
+    "load_pattern": "Spark SQL overwrite partition `date_flag`; Vertica sync via `hive2vertica_dws_disty_brpt_cust_mtd`."
+  },
+  "orchestration_note": "ETL/Azkaban flow not verified in wiki repo for POS catalog tables",
+  "contract_source": "knowledge/b-report-us/tables/dws_disty_brpt_cust_mtd.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dws_disty_brpt_cust_mtd.md",
+  "fetched_at": "2026-07-02T07:57:36.659341+00:00"
+}

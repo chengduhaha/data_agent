@@ -1,0 +1,43 @@
+{
+  "entity_id": "dim_us.dim_pub_vendor_info",
+  "layer": "l5_eval",
+  "domain": "b-report-us",
+  "validation_cases": [
+    {
+      "name": "row_count_by_partition",
+      "target": "dim_us.dim_pub_vendor_info",
+      "status": "template"
+    },
+    {
+      "name": "metric_sum_by_dimension",
+      "target": "dim_us.dim_pub_vendor_info",
+      "status": "template"
+    },
+    {
+      "name": "grain_duplicate_check",
+      "target": "dim_us.dim_pub_vendor_info",
+      "status": "template"
+    }
+  ],
+  "data_quality_checks": [
+    "Verify row count stability day-over-day; expect slow growth as new customers/vendors/parts onboard.",
+    "Monitor duplicate-key risk on business keys (`cust_no`, `vend_no`, `sku_no`, `vpl_no`) \u2014 each should be unique at stated grain.",
+    "For label columns used in user search (`*_name`, `part_no`, `vpl_code`), spot-check null rate and trim/whitespace anomalies.",
+    "When joining to facts, validate match rate on integer FK columns; unmatched keys often indicate inactive master or cross-company scope mismatch.",
+    "Not applicable \u2014 dimension tables carry no fact metrics. Validate attribute lookups by joining a sample of fact keys and comparing label coverage.",
+    "No active conflicts on dimension grain or key semantics as of 2026-06-25."
+  ],
+  "query_routing_rules": [
+    "Dimension load filters inactive/discontinued masters per CIS source rules; do not re-apply shipped-order filters (`dim_pub_order_type`) when querying this table directly.",
+    "For B Report metric questions, apply shipped-order scope on the fact/serving table, then join this dimension for labels.",
+    "Technical ETL predicates (partition sync, `date_flag` load guards on `*_df` snapshots) are not business filters on the base dimension."
+  ],
+  "known_unknowns": [
+    "ETL SQL and Azkaban .flow not in wiki repository",
+    "hive2vertica sync job file:line not verified",
+    "No active conflicts on dimension grain or key semantics as of 2026-06-25."
+  ],
+  "contract_source": "knowledge/b-report-us/tables/dim_pub_vendor_info.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_vendor_info.md",
+  "fetched_at": "2026-07-02T07:57:25.063255+00:00"
+}

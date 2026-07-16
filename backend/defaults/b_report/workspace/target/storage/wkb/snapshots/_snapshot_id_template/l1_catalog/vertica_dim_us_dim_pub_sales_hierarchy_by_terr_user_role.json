@@ -1,0 +1,109 @@
+{
+  "entity_id": "dim_us.dim_pub_sales_hierarchy_by_terr_user_role",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dim_us.dim_pub_sales_hierarchy_by_terr_user_role",
+  "schema_name": "dim_us",
+  "table_name": "dim_pub_sales_hierarchy_by_terr_user_role",
+  "columns": [
+    {
+      "name": "sales_terr",
+      "type": "int"
+    },
+    {
+      "name": "terr_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "end_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "user_id",
+      "type": "int"
+    },
+    {
+      "name": "user_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "user_role",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "user_end_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "is_primary",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "sub_group_id",
+      "type": "int"
+    },
+    {
+      "name": "sub_group_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "group_id",
+      "type": "int"
+    },
+    {
+      "name": "group_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cust_type",
+      "type": "int"
+    },
+    {
+      "name": "cust_type_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "division",
+      "type": "int"
+    },
+    {
+      "name": "division_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "terr_cred_analyst",
+      "type": "int"
+    },
+    {
+      "name": "terr_reviewer",
+      "type": "int"
+    },
+    {
+      "name": "terr_region",
+      "type": "int"
+    },
+    {
+      "name": "terr_house",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "sales_rep_pct",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "site_no",
+      "type": "int"
+    }
+  ],
+  "column_count": 22,
+  "partition_keys": [],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dim_pub_sales_hierarchy_by_terr_user_role.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:45.628985+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dim_pub_sales_hierarchy_by_terr_user_role.md"
+}

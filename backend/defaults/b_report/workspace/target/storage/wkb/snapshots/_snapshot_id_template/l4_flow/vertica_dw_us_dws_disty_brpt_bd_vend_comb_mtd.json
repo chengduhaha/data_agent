@@ -1,0 +1,17 @@
+{
+  "entity_id": "dw_us.dws_disty_brpt_bd_vend_comb_mtd",
+  "layer": "l4_flow",
+  "domain": "b-report-us",
+  "lineage": {
+    "upstream": null,
+    "downstream": null
+  },
+  "freshness": {
+    "expected_window": "03:00-03:20 PT (America/Los_Angeles) for core disty B-report daily/addition flows",
+    "load_pattern": "Azkaban-scheduled Spark SQL ETL with Hive write and Vertica sync"
+  },
+  "orchestration_note": "ETL/Azkaban flow not verified in wiki repo for POS catalog tables",
+  "contract_source": "knowledge/b-report-us/tables/dws_disty_brpt_bd_vend_comb_mtd.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dws_disty_brpt_bd_vend_comb_mtd.md",
+  "fetched_at": "2026-07-02T07:57:29.816481+00:00"
+}

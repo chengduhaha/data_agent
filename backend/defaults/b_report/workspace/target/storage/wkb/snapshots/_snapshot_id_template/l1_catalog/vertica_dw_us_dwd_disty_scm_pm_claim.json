@@ -1,0 +1,225 @@
+{
+  "entity_id": "dw_us.dwd_disty_scm_pm_claim",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dw_us.dwd_disty_scm_pm_claim",
+  "schema_name": "dw_us",
+  "table_name": "dwd_disty_scm_pm_claim",
+  "columns": [
+    {
+      "name": "project_no",
+      "type": "int"
+    },
+    {
+      "name": "claim_no",
+      "type": "int"
+    },
+    {
+      "name": "claim_descr",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "claim_type",
+      "type": "int"
+    },
+    {
+      "name": "budget_amount",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "actual_amount",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "expect_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "posting_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "vend_no",
+      "type": "int"
+    },
+    {
+      "name": "loc_no",
+      "type": "int"
+    },
+    {
+      "name": "pm_code",
+      "type": "int"
+    },
+    {
+      "name": "pri_approv_ref_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "pri_approv_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "doc_terms",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "entry_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "entry_id",
+      "type": "int"
+    },
+    {
+      "name": "entry_obj",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "delete_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "delete_id",
+      "type": "int"
+    },
+    {
+      "name": "delete_obj",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "contact_no",
+      "type": "int"
+    },
+    {
+      "name": "inv_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "vend_comments",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "foreign_bug_amount",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "foreign_act_amount",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "vpl_no",
+      "type": "int"
+    },
+    {
+      "name": "vpc_group_id",
+      "type": "int"
+    },
+    {
+      "name": "last_claim",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "exp_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "claim_start_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "claim_end_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "credit_note",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "foreign_exp_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "foreign_approv_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "accrual_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "claim_code",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "claim_curr",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_src",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_src_ref_no",
+      "type": "int"
+    },
+    {
+      "name": "cust_no",
+      "type": "int"
+    },
+    {
+      "name": "descr",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "revenue_acct_no",
+      "type": "int"
+    },
+    {
+      "name": "receive_acct_no",
+      "type": "int"
+    },
+    {
+      "name": "pm_class",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "program_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "active",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "dept",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "percentage",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "discretionary_fund",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "profit_acct_no",
+      "type": "int"
+    },
+    {
+      "name": "internal",
+      "type": "varchar(100)"
+    }
+  ],
+  "column_count": 51,
+  "partition_keys": [],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dwd_disty_scm_pm_claim.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:52.125113+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dwd_disty_scm_pm_claim.md"
+}

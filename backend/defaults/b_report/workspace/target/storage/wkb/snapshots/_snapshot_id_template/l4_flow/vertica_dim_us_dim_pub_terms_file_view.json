@@ -1,0 +1,17 @@
+{
+  "entity_id": "dim_us.dim_pub_terms_file_view",
+  "layer": "l4_flow",
+  "domain": "pos",
+  "lineage": {
+    "upstream": "Curated DWD/DIM/ODS load jobs in disty common pipeline",
+    "downstream": "Vertica RDS POS report scripts (`rds_*_rtv`), ad-hoc POS exports"
+  },
+  "freshness": {
+    "expected_window": "05:00-07:30 PT (daily disty load dependency chain)",
+    "load_pattern": "Daily incremental by `date_flag`"
+  },
+  "orchestration_note": "ETL/Azkaban flow not verified in wiki repo for POS catalog tables",
+  "contract_source": "knowledge/POS/tables/dim_pub_terms_file_view.md",
+  "evidence_doc": "target/knowledgebase/pos/dim_pub_terms_file_view.md",
+  "fetched_at": "2026-06-29T08:25:46.268805+00:00"
+}

@@ -1,0 +1,271 @@
+{
+  "entity_id": "dw_us.dwd_disty_common_cpo_header",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dw_us.dwd_disty_common_cpo_header",
+  "schema_name": "dw_us",
+  "table_name": "dwd_disty_common_cpo_header",
+  "columns": [
+    {
+      "name": "cpo_id",
+      "type": "int"
+    },
+    {
+      "name": "mcust_no",
+      "type": "int"
+    },
+    {
+      "name": "mcust_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cust_no",
+      "type": "int"
+    },
+    {
+      "name": "cust_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_sales_terr",
+      "type": "int"
+    },
+    {
+      "name": "cpo_priority",
+      "type": "int"
+    },
+    {
+      "name": "cpo_status",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "cpo_pay_terms",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_total_taxable",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_total_notax",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_sales_tax",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_freight",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_other",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_from_ref_type",
+      "type": "int"
+    },
+    {
+      "name": "cpo_entry_id",
+      "type": "int"
+    },
+    {
+      "name": "created_by",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_entry_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "cpo_change_id",
+      "type": "int"
+    },
+    {
+      "name": "cpo_change_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "cpo_delete_id",
+      "type": "int"
+    },
+    {
+      "name": "cpo_delete_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "cpo_so_total",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_bo_total",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cpo_ship_method",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_ship_loc_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "end_user_po_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "special_handle",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "po_total",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "ship_name1",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_addr1",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_addr2",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_zipcode",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_country",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_city",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_contact",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "frt_pay_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "frt_collect_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_state",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_loc_no",
+      "type": "int"
+    },
+    {
+      "name": "ship_loc_no",
+      "type": "int"
+    },
+    {
+      "name": "convert_flag",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "convert_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "convert_user",
+      "type": "int"
+    },
+    {
+      "name": "sales_model",
+      "type": "int"
+    },
+    {
+      "name": "reseller_cust_no",
+      "type": "int"
+    },
+    {
+      "name": "shopping_mode",
+      "type": "int"
+    },
+    {
+      "name": "end_user_no",
+      "type": "int"
+    },
+    {
+      "name": "cpo_swl_flag",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_phone",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_spa_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "quote_id",
+      "type": "int"
+    },
+    {
+      "name": "quote_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "fx_currency",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "trans_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "system_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "main_vend_no",
+      "type": "int"
+    },
+    {
+      "name": "main_vend_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp"
+    },
+    {
+      "name": "date_flag",
+      "type": "date"
+    }
+  ],
+  "column_count": 62,
+  "partition_keys": [
+    "date_flag"
+  ],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dwd_disty_common_cpo_header.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:48.638682+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dwd_disty_common_cpo_header.md"
+}

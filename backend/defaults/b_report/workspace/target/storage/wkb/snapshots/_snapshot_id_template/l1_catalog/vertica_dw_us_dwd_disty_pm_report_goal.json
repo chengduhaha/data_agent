@@ -1,0 +1,165 @@
+{
+  "entity_id": "dw_us.dwd_disty_pm_report_goal",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dw_us.dwd_disty_pm_report_goal",
+  "schema_name": "dw_us",
+  "table_name": "dwd_disty_pm_report_goal",
+  "columns": [
+    {
+      "name": "oid",
+      "type": "int"
+    },
+    {
+      "name": "country_code",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "company_no",
+      "type": "int"
+    },
+    {
+      "name": "period",
+      "type": "int"
+    },
+    {
+      "name": "seg_code",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vp",
+      "type": "int"
+    },
+    {
+      "name": "director",
+      "type": "int"
+    },
+    {
+      "name": "manager",
+      "type": "int"
+    },
+    {
+      "name": "pm",
+      "type": "int"
+    },
+    {
+      "name": "vend_no",
+      "type": "int"
+    },
+    {
+      "name": "vpl_no",
+      "type": "int"
+    },
+    {
+      "name": "net_sales",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "gm",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "ngm",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "tgm",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "btl",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "pdt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "current_dos",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "dos",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "inv_forecast",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "buy_in",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "net_sales_local_currency",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "current_dos_local_currency",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "dos_local_currency",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "inv_forecast_local_currency",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "buy_in_local_currency",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "exchange_rate",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "local_currency",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "input_goal_currency",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "entry_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "entry_id",
+      "type": "int"
+    },
+    {
+      "name": "delete_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "delete_id",
+      "type": "int"
+    },
+    {
+      "name": "update_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "update_id",
+      "type": "int"
+    },
+    {
+      "name": "h_version",
+      "type": "int"
+    }
+  ],
+  "column_count": 36,
+  "partition_keys": [],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dwd_disty_pm_report_goal.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:50.675812+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dwd_disty_pm_report_goal.md"
+}

@@ -1,0 +1,16 @@
+{
+  "entity_id": "dim_us.dim_pub_vendor_info",
+  "layer": "l2_usage",
+  "domain": "b-report-us",
+  "reporting_target_vertica": "dim_us.dim_pub_vendor_info",
+  "downstream_consumers": [],
+  "business_purpose": "US vendor master \u2014 resolve `vend_no` from vendor names and enrich segment/master-vendor hierarchy",
+  "primary_measure_columns": [
+    "vend_pay_frt_amt"
+  ],
+  "expected_refresh_pattern": "Per POS contract",
+  "dimension_join_count": 0,
+  "contract_source": "knowledge/b-report-us/tables/dim_pub_vendor_info.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_vendor_info.md",
+  "fetched_at": "2026-07-02T07:57:25.063255+00:00"
+}

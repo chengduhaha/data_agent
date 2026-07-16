@@ -1,0 +1,22 @@
+{
+  "seed_id": "knowledgebase.b-report-us.folder",
+  "layer": "l2_usage",
+  "domain": "b-report-us",
+  "usage_hints": {
+    "document_count": 101,
+    "hub_table": "dw_us.dwd_disty_brpt_orders_pl_etl_mi",
+    "priority_topics": [
+      "US shipped POS order-line reporting",
+      "Vertica RDS POS custom reports",
+      "customer/product/vendor enrichment joins",
+      "SPA/SCM and margin metrics on POS hub"
+    ],
+    "recommended_for_intents": [
+      "find_table_schema",
+      "nl2sql_metric",
+      "POS report troubleshooting",
+      "dimension join path discovery"
+    ]
+  },
+  "notes": "Folder-level L2 usage seed for POS knowledgebase corpus (contract-derived)."
+}

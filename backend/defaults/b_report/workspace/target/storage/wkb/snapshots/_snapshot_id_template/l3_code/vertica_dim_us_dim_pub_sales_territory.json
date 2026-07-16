@@ -1,0 +1,19 @@
+{
+  "entity_id": "dim_us.dim_pub_sales_territory",
+  "layer": "l3_code",
+  "engine": "vertica",
+  "domain": "b-report-us",
+  "ddl_semantics": {
+    "object_type": "table",
+    "create_pattern": "CREATE TABLE dim_us.dim_pub_sales_territory ( sales_terr int, terr_name varchar(100), region int, start_date timestamp, end_date timestamp, reviewer int, entry_datetime timestamp, entry_id int, cust_type int, group_id int, primary_id int, backup_id1 int, backup_id2 int, backup_id3 int, primary_pcnt numeric(20,8), backup_pcnt1 numeric(20,8), backup_pcnt2 numeric(20,8), backup_pcnt3 numeric(20,8), sub_group_id int, cred_analyst int, backup_id4 int, backup_id5 int, backup_id6 int, backup_id7 int, b...",
+    "partition_clause": "PARTITION BY date_flag;",
+    "column_count": 33
+  },
+  "ddl_source": {
+    "repo": "BREPORT-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/b-report-us/tables/dim_pub_sales_territory.md",
+    "commit": "b-report-contract-v2",
+    "fetched_at": "2026-07-02T07:57:24.968863+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_sales_territory.md"
+}

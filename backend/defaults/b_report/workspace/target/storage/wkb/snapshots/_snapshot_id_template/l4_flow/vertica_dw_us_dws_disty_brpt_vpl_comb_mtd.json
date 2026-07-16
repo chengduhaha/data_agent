@@ -1,0 +1,17 @@
+{
+  "entity_id": "dw_us.dws_disty_brpt_vpl_comb_mtd",
+  "layer": "l4_flow",
+  "domain": "b-report-us",
+  "lineage": {
+    "upstream": null,
+    "downstream": null
+  },
+  "freshness": {
+    "expected_window": "04:30-07:00 PT after `vpl_mtd` and `vpl_1d` complete.",
+    "load_pattern": "Spark overwrite partition `date_flag`; used by PM/buyer combined marts and consolidate reporting."
+  },
+  "orchestration_note": "ETL/Azkaban flow not verified in wiki repo for POS catalog tables",
+  "contract_source": "knowledge/b-report-us/tables/dws_disty_brpt_vpl_comb_mtd.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dws_disty_brpt_vpl_comb_mtd.md",
+  "fetched_at": "2026-07-02T07:57:44.507689+00:00"
+}

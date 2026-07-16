@@ -1,0 +1,30 @@
+{
+  "entity_id": "dw_us.dws_disty_brpt_bd_part_comb_mtd",
+  "layer": "l2_usage",
+  "domain": "b-report-us",
+  "reporting_target_vertica": "dw_us.dws_disty_brpt_bd_part_comb_mtd",
+  "downstream_consumers": [],
+  "business_purpose": "B Report combined-month profitability serving slice (bd_part_comb_mtd)",
+  "primary_measure_columns": [
+    "d_sales",
+    "d_cost",
+    "d_unit",
+    "d_gm",
+    "d_ngm",
+    "d_opl",
+    "d_scm_usage",
+    "d_tgm",
+    "d_cgp",
+    "d_total_btl",
+    "w_sales",
+    "w_cost",
+    "w_unit",
+    "w_gm",
+    "w_ngm"
+  ],
+  "expected_refresh_pattern": "Azkaban-scheduled Spark SQL ETL with Hive write and Vertica sync",
+  "dimension_join_count": 0,
+  "contract_source": "knowledge/b-report-us/tables/dws_disty_brpt_bd_part_comb_mtd.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dws_disty_brpt_bd_part_comb_mtd.md",
+  "fetched_at": "2026-07-02T07:57:28.847812+00:00"
+}

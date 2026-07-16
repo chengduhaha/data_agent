@@ -1,0 +1,17 @@
+{
+  "entity_id": "dim_us.dim_pub_customer_info",
+  "layer": "l4_flow",
+  "domain": "b-report-us",
+  "lineage": {
+    "upstream": null,
+    "downstream": null
+  },
+  "freshness": {
+    "expected_window": "02:00-04:00 PT (before B Report common load).",
+    "load_pattern": null
+  },
+  "orchestration_note": "ETL/Azkaban flow not verified in wiki repo for POS catalog tables",
+  "contract_source": "knowledge/b-report-us/tables/dim_pub_customer_info.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_customer_info.md",
+  "fetched_at": "2026-07-02T07:57:24.484949+00:00"
+}

@@ -1,0 +1,65 @@
+{
+  "entity_id": "dm_us.dm_disty_sales_rio_sku_inv_loc",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dm_us.dm_disty_sales_rio_sku_inv_loc",
+  "schema_name": "dm_us",
+  "table_name": "dm_disty_sales_rio_sku_inv_loc",
+  "columns": [
+    {
+      "name": "sku_no",
+      "type": "int"
+    },
+    {
+      "name": "inv_type",
+      "type": "int"
+    },
+    {
+      "name": "loc_no",
+      "type": "int"
+    },
+    {
+      "name": "prod_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bundle_kit",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "alloc_so",
+      "type": "int"
+    },
+    {
+      "name": "alloc_rio",
+      "type": "int"
+    },
+    {
+      "name": "alloc_kwo",
+      "type": "int"
+    },
+    {
+      "name": "avail_qty",
+      "type": "int"
+    },
+    {
+      "name": "rio_qty",
+      "type": "int"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp"
+    }
+  ],
+  "column_count": 11,
+  "partition_keys": [],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dm_disty_sales_rio_sku_inv_loc.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:47.266021+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dm_disty_sales_rio_sku_inv_loc.md"
+}

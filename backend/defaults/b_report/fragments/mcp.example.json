@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "gateway-vertica-prod": {
+      "transport": "streamable_http",
+      "url": "https://ai-gateway.synnex.org/mcp-gateway/api/v1/mcp/vertica",
+      "headers": {
+        "x-api-key": "REPLACE_WITH_VERTICA_API_KEY",
+        "X-Vertica-Host": "REPLACE_WITH_VERTICA_HOST",
+        "X-Vertica-Port": "5433",
+        "X-Vertica-Database": "REPLACE_WITH_VERTICA_DATABASE",
+        "X-Vertica-User": "REPLACE_WITH_VERTICA_USER",
+        "X-Vertica-Password": "REPLACE_WITH_VERTICA_PASSWORD",
+        "X-Vertica-SSL": "false",
+        "X-Vertica-SSL-Reject-Unauthorized": "true"
+      },
+      "enabled": true
+    }
+  }
+}

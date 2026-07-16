@@ -1,0 +1,22 @@
+{
+  "seed_id": "knowledgebase.b-report-us.folder",
+  "layer": "l5_eval",
+  "domain": "b-report-us",
+  "eval_scope": {
+    "document_count": 101,
+    "hub_table": "dw_us.dwd_disty_brpt_orders_pl_etl_mi",
+    "core_eval_cases": [
+      "POS hub table discovery and schema retrieval",
+      "grain and partition key validation (date_flag)",
+      "standard POS filters (Comp lines, order_type 114)",
+      "dimension join template extraction from contract L2",
+      "validation SQL template bundle per table"
+    ],
+    "known_gaps": [
+      "ETL step-by-step logic not in wiki repository",
+      "Azkaban flow names unverified for most POS tables",
+      "Bitbucket DDL not ingested for POS batch (synthetic L1 from contract)"
+    ]
+  },
+  "notes": "Folder-level L5 eval seed for POS KB corpus."
+}

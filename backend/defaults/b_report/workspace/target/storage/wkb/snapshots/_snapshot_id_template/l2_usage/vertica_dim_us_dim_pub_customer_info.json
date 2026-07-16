@@ -1,0 +1,18 @@
+{
+  "entity_id": "dim_us.dim_pub_customer_info",
+  "layer": "l2_usage",
+  "domain": "b-report-us",
+  "reporting_target_vertica": "dim_us.dim_pub_customer_info",
+  "downstream_consumers": [],
+  "business_purpose": "US customer master \u2014 resolve `cust_no`/`mcust_no` from customer names and enrich territory/credit hierarchy",
+  "primary_measure_columns": [
+    "outside_sales_rep",
+    "pending_amt",
+    "terr_email"
+  ],
+  "expected_refresh_pattern": "Per POS contract",
+  "dimension_join_count": 0,
+  "contract_source": "knowledge/b-report-us/tables/dim_pub_customer_info.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_customer_info.md",
+  "fetched_at": "2026-07-02T07:57:24.484949+00:00"
+}

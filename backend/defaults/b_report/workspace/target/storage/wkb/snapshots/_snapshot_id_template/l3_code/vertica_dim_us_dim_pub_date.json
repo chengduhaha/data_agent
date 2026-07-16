@@ -1,0 +1,19 @@
+{
+  "entity_id": "dim_us.dim_pub_date",
+  "layer": "l3_code",
+  "engine": "vertica",
+  "domain": "b-report-us",
+  "ddl_semantics": {
+    "object_type": "table",
+    "create_pattern": "CREATE TABLE dim_us.dim_pub_date ( date_flag date, u_version char, q int, fq int, m int, w int, d int, year int, qtr int, month int, week int, day int, doy int, fyear int, fqtr int, fdoy int, dow int, dname char, bonuswk int, holiday numeric(20,8), payroll numeric(20,8), sales numeric(20,8), comment varchar(100), weekday int, week_flag varchar(100), month_flag varchar(100), quarter_flag varchar(100), f_quarter_flag varchar(100), month_name varchar(100), week_flag2 varchar(100), w2 int, week2 int...",
+    "partition_clause": "PARTITION BY date_flag;",
+    "column_count": 32
+  },
+  "ddl_source": {
+    "repo": "BREPORT-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/b-report-us/tables/dim_pub_date.md",
+    "commit": "b-report-contract-v2",
+    "fetched_at": "2026-07-02T07:57:24.534968+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_date.md"
+}

@@ -1,0 +1,155 @@
+{
+  "entity_id": "dim_us.dim_pub_sales_territory",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "b-report-us",
+  "qualified_name": "dim_us.dim_pub_sales_territory",
+  "schema_name": "dim_us",
+  "table_name": "dim_pub_sales_territory",
+  "columns": [
+    {
+      "name": "sales_terr",
+      "type": "int"
+    },
+    {
+      "name": "terr_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "region",
+      "type": "int"
+    },
+    {
+      "name": "start_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "end_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "reviewer",
+      "type": "int"
+    },
+    {
+      "name": "entry_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "entry_id",
+      "type": "int"
+    },
+    {
+      "name": "cust_type",
+      "type": "int"
+    },
+    {
+      "name": "group_id",
+      "type": "int"
+    },
+    {
+      "name": "primary_id",
+      "type": "int"
+    },
+    {
+      "name": "backup_id1",
+      "type": "int"
+    },
+    {
+      "name": "backup_id2",
+      "type": "int"
+    },
+    {
+      "name": "backup_id3",
+      "type": "int"
+    },
+    {
+      "name": "primary_pcnt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "backup_pcnt1",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "backup_pcnt2",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "backup_pcnt3",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "sub_group_id",
+      "type": "int"
+    },
+    {
+      "name": "cred_analyst",
+      "type": "int"
+    },
+    {
+      "name": "backup_id4",
+      "type": "int"
+    },
+    {
+      "name": "backup_id5",
+      "type": "int"
+    },
+    {
+      "name": "backup_id6",
+      "type": "int"
+    },
+    {
+      "name": "backup_id7",
+      "type": "int"
+    },
+    {
+      "name": "backup_pcnt4",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "backup_pcnt5",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "backup_pcnt6",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "backup_pcnt7",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "house",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp"
+    },
+    {
+      "name": "sub_group_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "group_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "date_flag",
+      "type": "date"
+    }
+  ],
+  "column_count": 33,
+  "partition_keys": [
+    "date_flag"
+  ],
+  "grain": null,
+  "ddl_source": {
+    "repo": "BREPORT-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/b-report-us/tables/dim_pub_sales_territory.md",
+    "commit": "b-report-contract-v2",
+    "fetched_at": "2026-07-02T07:57:24.968863+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_sales_territory.md"
+}

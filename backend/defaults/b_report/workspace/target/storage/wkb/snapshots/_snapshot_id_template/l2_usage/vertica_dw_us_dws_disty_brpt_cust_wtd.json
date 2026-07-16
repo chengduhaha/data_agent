@@ -1,0 +1,30 @@
+{
+  "entity_id": "dw_us.dws_disty_brpt_cust_wtd",
+  "layer": "l2_usage",
+  "domain": "b-report-us",
+  "reporting_target_vertica": "dw_us.dws_disty_brpt_cust_wtd",
+  "downstream_consumers": [],
+  "business_purpose": "B Report profitability serving aggregation (wtd) by business slice",
+  "primary_measure_columns": [
+    "terr_sub_group",
+    "terr_group",
+    "gross_sales",
+    "net_sales",
+    "gross_cost",
+    "net_cost",
+    "scm_usage",
+    "ds_sales",
+    "stock_sales",
+    "ds_cost",
+    "stock_cost",
+    "ds_scm_usage",
+    "stock_scm_usage",
+    "total_unit",
+    "total_weight"
+  ],
+  "expected_refresh_pattern": "Azkaban-scheduled Spark SQL ETL with Hive write and Vertica sync",
+  "dimension_join_count": 0,
+  "contract_source": "knowledge/b-report-us/tables/dws_disty_brpt_cust_wtd.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dws_disty_brpt_cust_wtd.md",
+  "fetched_at": "2026-07-02T07:57:38.479690+00:00"
+}

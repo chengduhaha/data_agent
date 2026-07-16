@@ -1,0 +1,17 @@
+{
+  "entity_id": "dim_us.dim_pub_sales_hierarchy_primary_role_by_terr_view",
+  "layer": "l4_flow",
+  "domain": "b-report-us",
+  "lineage": {
+    "upstream": null,
+    "downstream": null
+  },
+  "freshness": {
+    "expected_window": "02:30-04:00 PT.",
+    "load_pattern": null
+  },
+  "orchestration_note": "ETL/Azkaban flow not verified in wiki repo for POS catalog tables",
+  "contract_source": "knowledge/b-report-us/tables/dim_pub_sales_hierarchy_primary_role_by_terr_view.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_sales_hierarchy_primary_role_by_terr_view.md",
+  "fetched_at": "2026-07-02T07:57:24.921813+00:00"
+}

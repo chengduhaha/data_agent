@@ -1,0 +1,17 @@
+{
+  "entity_id": "dim_us.dim_pub_inv_type_view",
+  "layer": "l2_usage",
+  "domain": "pos",
+  "reporting_target_vertica": "dim_us.dim_pub_inv_type_view",
+  "downstream_consumers": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "business_purpose": "Shared dimension for POS attribute enrichment",
+  "primary_measure_columns": [],
+  "expected_refresh_pattern": "Daily incremental by `date_flag`",
+  "dimension_join_count": 1,
+  "contract_source": "knowledge/POS/tables/dim_pub_inv_type_view.md",
+  "evidence_doc": "target/knowledgebase/pos/dim_pub_inv_type_view.md",
+  "fetched_at": "2026-06-29T08:25:45.438404+00:00"
+}

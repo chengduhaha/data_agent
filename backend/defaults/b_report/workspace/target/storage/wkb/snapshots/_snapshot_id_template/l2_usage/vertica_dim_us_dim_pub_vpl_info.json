@@ -1,0 +1,18 @@
+{
+  "entity_id": "dim_us.dim_pub_vpl_info",
+  "layer": "l2_usage",
+  "domain": "b-report-us",
+  "reporting_target_vertica": "dim_us.dim_pub_vpl_info",
+  "downstream_consumers": [],
+  "business_purpose": "Vendor product line (VPL) reference \u2014 resolve `vpl_no` from `vpl_code` and link vendor/VPC group",
+  "primary_measure_columns": [
+    "bid_factor",
+    "retail_factor",
+    "dsv_min_amt"
+  ],
+  "expected_refresh_pattern": "Per POS contract",
+  "dimension_join_count": 0,
+  "contract_source": "knowledge/b-report-us/tables/dim_pub_vpl_info.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_vpl_info.md",
+  "fetched_at": "2026-07-02T07:57:25.499548+00:00"
+}

@@ -1,0 +1,39 @@
+{
+  "entity_id": "dim_us.dim_pub_sales_hierarchy_by_terr_user_role",
+  "layer": "l5_eval",
+  "domain": "pos",
+  "validation_cases": [
+    {
+      "name": "row_count_by_partition",
+      "target": "dim_us.dim_pub_sales_hierarchy_by_terr_user_role",
+      "status": "template"
+    },
+    {
+      "name": "metric_sum_by_dimension",
+      "target": "dim_us.dim_pub_sales_hierarchy_by_terr_user_role",
+      "status": "template"
+    },
+    {
+      "name": "grain_duplicate_check",
+      "target": "dim_us.dim_pub_sales_hierarchy_by_terr_user_role",
+      "status": "template"
+    }
+  ],
+  "data_quality_checks": [
+    "Verify grain keys (`order_no`, `order_type`, `order_line_no`) not null for fact joins when applicable.",
+    "For one-to-many partners (SPA/SCM, serial), validate row counts before joining to hub.",
+    "Hub: `extend_net_price` should align with `(unit_net_price * ship_qty)` within rounding tolerance when both populated.",
+    "Validate join cardinality to POS hub before production report use."
+  ],
+  "query_routing_rules": [
+    "Standard POS filters inherited from domain-knowledge.md when joining to hub."
+  ],
+  "known_unknowns": [
+    "ETL SQL and Azkaban .flow not in wiki repository",
+    "hive2vertica sync job file:line not verified",
+    "Validate join cardinality to POS hub before production report use."
+  ],
+  "contract_source": "knowledge/POS/tables/dim_pub_sales_hierarchy_by_terr_user_role.md",
+  "evidence_doc": "target/knowledgebase/pos/dim_pub_sales_hierarchy_by_terr_user_role.md",
+  "fetched_at": "2026-06-29T08:25:45.678851+00:00"
+}

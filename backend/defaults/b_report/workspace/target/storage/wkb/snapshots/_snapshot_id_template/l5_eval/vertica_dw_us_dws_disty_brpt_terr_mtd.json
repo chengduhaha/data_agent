@@ -1,0 +1,46 @@
+{
+  "entity_id": "dw_us.dws_disty_brpt_terr_mtd",
+  "layer": "l5_eval",
+  "domain": "b-report-us",
+  "validation_cases": [
+    {
+      "name": "row_count_by_partition",
+      "target": "dw_us.dws_disty_brpt_terr_mtd",
+      "status": "template"
+    },
+    {
+      "name": "metric_sum_by_dimension",
+      "target": "dw_us.dws_disty_brpt_terr_mtd",
+      "status": "template"
+    },
+    {
+      "name": "grain_duplicate_check",
+      "target": "dw_us.dws_disty_brpt_terr_mtd",
+      "status": "template"
+    }
+  ],
+  "data_quality_checks": [
+    "Verify row counts and `date_flag` coverage after each monthly close.",
+    "Check dimension key match rates for `cust_no`, `vend_no`, `sku_no` joins.",
+    "Monitor null rates on key measures (`ngm_amt`, `net_sales`).",
+    "Recompute `net_sales`, `ngm_amt`, `oplgm_amt` from DWD for sample `date_flag` and compare to serving table aggregates.",
+    "DWD gold validation (2026-06-09): 117,868 rows, zero mismatches at 0.01 tolerance.",
+    "Conflict item:"
+  ],
+  "query_routing_rules": [
+    "Shipped-order scope: inner join `dim_us.dim_pub_order_type` where `sales = 'Y'`.",
+    "Virtual line filter: `virtual_type = 0` for normal order lines unless virtual analysis is explicit.",
+    "Technical sync predicates (partition/date load guards) are not business filters."
+  ],
+  "known_unknowns": [
+    "ETL SQL and Azkaban .flow not in wiki repository",
+    "hive2vertica sync job file:line not verified",
+    "Conflict item:",
+    "claim_a: Multiple pre-aggregated tables may serve same metric at different slices/grains.",
+    "claim_b: Routing precedence across sibling tables not explicitly documented.",
+    "status: Needs Clarification"
+  ],
+  "contract_source": "knowledge/b-report-us/tables/dws_disty_brpt_terr_mtd.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dws_disty_brpt_terr_mtd.md",
+  "fetched_at": "2026-07-02T07:57:42.967942+00:00"
+}

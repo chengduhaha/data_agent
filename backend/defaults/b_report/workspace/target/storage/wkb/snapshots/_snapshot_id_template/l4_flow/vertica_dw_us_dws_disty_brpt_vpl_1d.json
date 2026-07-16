@@ -1,0 +1,17 @@
+{
+  "entity_id": "dw_us.dws_disty_brpt_vpl_1d",
+  "layer": "l4_flow",
+  "domain": "b-report-us",
+  "lineage": {
+    "upstream": null,
+    "downstream": null
+  },
+  "freshness": {
+    "expected_window": "04:00-06:00 PT after common `pl_extend_1d` load.",
+    "load_pattern": "Spark SQL overwrite partition `date_flag`; Vertica sync via hive2vertica product flow."
+  },
+  "orchestration_note": "ETL/Azkaban flow not verified in wiki repo for POS catalog tables",
+  "contract_source": "knowledge/b-report-us/tables/dws_disty_brpt_vpl_1d.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dws_disty_brpt_vpl_1d.md",
+  "fetched_at": "2026-07-02T07:57:44.389856+00:00"
+}

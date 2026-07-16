@@ -1,0 +1,19 @@
+{
+  "entity_id": "dim_us.dim_pub_ship_method",
+  "layer": "l3_code",
+  "engine": "vertica",
+  "domain": "pos",
+  "ddl_semantics": {
+    "object_type": "table",
+    "create_pattern": "CREATE TABLE dim_us.dim_pub_ship_method ( ship_method varchar(100), carrier_no int, u_version varchar(100), ship_desc varchar(100), entry_datetime timestamp, entry_id int, atm_code varchar(100), scac varchar(100) ) ;",
+    "partition_clause": null,
+    "column_count": 8
+  },
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dim_pub_ship_method.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:45.891399+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dim_pub_ship_method.md"
+}

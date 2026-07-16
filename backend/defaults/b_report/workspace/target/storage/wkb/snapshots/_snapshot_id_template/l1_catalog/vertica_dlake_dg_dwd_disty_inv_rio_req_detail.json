@@ -1,0 +1,61 @@
+{
+  "entity_id": "dlake_dg.dwd_disty_inv_rio_req_detail",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dlake_dg.dwd_disty_inv_rio_req_detail",
+  "schema_name": "dlake_dg",
+  "table_name": "dwd_disty_inv_rio_req_detail",
+  "columns": [
+    {
+      "name": "rio_req_no",
+      "type": "int"
+    },
+    {
+      "name": "rio_req_line",
+      "type": "int"
+    },
+    {
+      "name": "inproc_ref_type",
+      "type": "int"
+    },
+    {
+      "name": "inproc_ref_no",
+      "type": "int"
+    },
+    {
+      "name": "hold_qty",
+      "type": "int"
+    },
+    {
+      "name": "entry_id",
+      "type": "int"
+    },
+    {
+      "name": "entry_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "inproc_ref_line",
+      "type": "int"
+    },
+    {
+      "name": "fixed",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "region_no",
+      "type": "int"
+    }
+  ],
+  "column_count": 10,
+  "partition_keys": [],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dwd_disty_inv_rio_req_detail.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:49.765912+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dwd_disty_inv_rio_req_detail.md"
+}

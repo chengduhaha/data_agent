@@ -1,0 +1,17 @@
+{
+  "entity_id": "dw_us.dws_disty_brpt_pl_extend_wtd",
+  "layer": "l4_flow",
+  "domain": "b-report-us",
+  "lineage": {
+    "upstream": null,
+    "downstream": null
+  },
+  "freshness": {
+    "expected_window": "03:00-03:30 PT after daily `pl_extend_1d` load.",
+    "load_pattern": "Spark SQL overwrite Hive partition `dt_week`; incremental Vertica sync by week partition."
+  },
+  "orchestration_note": "ETL/Azkaban flow not verified in wiki repo for POS catalog tables",
+  "contract_source": "knowledge/b-report-us/tables/dws_disty_brpt_pl_extend_wtd.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dws_disty_brpt_pl_extend_wtd.md",
+  "fetched_at": "2026-07-02T07:57:41.911425+00:00"
+}

@@ -1,0 +1,21 @@
+{
+  "entity_id": "dim_us.dim_pub_date",
+  "layer": "l2_usage",
+  "domain": "b-report-us",
+  "reporting_target_vertica": "dim_us.dim_pub_date",
+  "downstream_consumers": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "business_purpose": "Shared calendar dimension for B Report date_flag and fiscal joins",
+  "primary_measure_columns": [
+    "holiday",
+    "payroll",
+    "sales"
+  ],
+  "expected_refresh_pattern": "Daily incremental by `date_flag`",
+  "dimension_join_count": 0,
+  "contract_source": "knowledge/b-report-us/tables/dim_pub_date.md",
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_date.md",
+  "fetched_at": "2026-07-02T07:57:24.552021+00:00"
+}

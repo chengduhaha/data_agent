@@ -1,0 +1,19 @@
+{
+  "entity_id": "dw_us.dws_disty_brpt_pl_extend_1d",
+  "layer": "l3_code",
+  "engine": "vertica",
+  "domain": "b-report-us",
+  "ddl_semantics": {
+    "object_type": "table",
+    "create_pattern": "CREATE TABLE dw_us.dws_disty_brpt_pl_extend_1d ( cust_no int, cust_name varchar(100), mcust_no int, mcust_name varchar(100), cust_terr int, terr_name varchar(100), cust_type int, cust_type_desc varchar(100), division int, division_desc varchar(100), terr_sub_group int, sub_group_desc varchar(100), terr_group int, terr_group_desc varchar(100), sales_rep_id int, sales_sup_id int, sales_mgr_id int, sales_dir_id int, sales_vp_id int, sku_no int, part_no varchar(100), mfg_partno varchar(100), vpl_no ...",
+    "partition_clause": "PARTITION BY date_flag;",
+    "column_count": 142
+  },
+  "ddl_source": {
+    "repo": "BREPORT-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/b-report-us/tables/dws_disty_brpt_pl_extend_1d.md",
+    "commit": "b-report-contract-v2",
+    "fetched_at": "2026-07-02T07:57:41.254727+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/b-report-us/dws_disty_brpt_pl_extend_1d.md"
+}
