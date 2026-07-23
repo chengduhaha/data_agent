@@ -11,6 +11,7 @@ from langchain_core.messages import SystemMessage, ToolMessage
 from app.agent.harness.config import HarnessConfig, step_limit, step_warn_threshold
 from app.agent.harness.context import get_harness_context
 from app.agent.harness.middleware import get_segment_state, reset_segment_state
+from app.agent.harness.phases import get_run_phase
 
 _STEP_BUDGET_SUFFIX = (
     "\n\n[Harness: tool-step budget is nearly exhausted. "
@@ -96,16 +97,18 @@ def get_segment_budget() -> dict[str, Any]:
     limit = step_limit(extended_run=extended)
     used = state.tool_step_count
     warn_at = step_warn_threshold(extended_run=extended)
-    phase = "ok"
+    step_phase = "ok"
     if used >= limit:
-        phase = "exhausted"
+        step_phase = "exhausted"
     elif used >= warn_at:
-        phase = "warn"
+        step_phase = "warn"
     return {
         "steps_used": used,
         "steps_limit": limit,
         "steps_warn_at": warn_at,
-        "phase": phase,
+        "phase": step_phase,
+        "run_phase": get_run_phase(thread_id, run_segment),
+        "tool_calls_used": dict(state.tool_call_counts),
         "run_segment": run_segment,
         "thread_id": thread_id,
     }

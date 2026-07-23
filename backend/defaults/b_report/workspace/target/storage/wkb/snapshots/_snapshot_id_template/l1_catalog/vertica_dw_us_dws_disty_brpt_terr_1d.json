@@ -9,471 +9,709 @@
   "columns": [
     {
       "name": "cust_terr",
-      "type": "int"
+      "type": "int",
+      "semantic_role": "technical",
+      "dimension_reference": "dim_us.dim_pub_sales_territory",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "terr_name",
-      "type": "varchar(100)"
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "terr_sub_group",
-      "type": "int"
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "sub_group_desc",
-      "type": "varchar(100)"
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "terr_group",
-      "type": "int"
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "terr_group_desc",
-      "type": "varchar(100)"
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "cust_type",
-      "type": "int"
+      "type": "int",
+      "semantic_role": "technical",
+      "dimension_reference": "dim_us.dim_pub_sales_cust_type",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "cust_type_desc",
-      "type": "varchar(100)"
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "division",
-      "type": "int"
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "division_desc",
-      "type": "varchar(100)"
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "sales_rep_id",
-      "type": "int"
+      "type": "int",
+      "semantic_role": "dimension",
+      "dimension_reference": "dim_us.dim_pub_manager",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "sales_sup_id",
-      "type": "int"
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "sales_mgr_id",
-      "type": "int"
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "sales_dir_id",
-      "type": "int"
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "sales_vp_id",
-      "type": "int"
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "company_no",
-      "type": "int"
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "gross_sales",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "net_sales",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "measure",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "gross_cost",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "net_cost",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "scm_usage",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "ds_sales",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "stock_sales",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "ds_cost",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "stock_cost",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "ds_scm_usage",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "stock_scm_usage",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "total_unit",
-      "type": "int"
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "total_weight",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "cgp",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "total_btl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "tgm_amt",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "measure",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "gm_amt",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "measure",
+      "business_definition": "Gross margin amount"
     },
     {
       "name": "ngm_amt",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "measure",
+      "business_definition": "Net gross margin amount"
     },
     {
       "name": "oplgm_amt",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "measure",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "bo_gross_sales",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "bo_gross_cost",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "bo_total_unit",
-      "type": "int"
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "bo_gm_amt",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "measure",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "so_gross_sales",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "so_gross_cost",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "so_total_unit",
-      "type": "int"
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "so_gm_amt",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "measure",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "bo_age0_7",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "bo_age8_14",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "bo_age15_21",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "bo_age21_up",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "so_age0_7",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "so_age8_14",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "so_age15_21",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "so_age21_up",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "ap_finance",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "inv_cost",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "inv_reserve",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "cr_risk_cterm",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "flr_synnex",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "direct_credit",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "csgn_edi_fee",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "corporate",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "sfs",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "scm_risk",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "flr_vendor",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "cust_finance_sales",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "cust_pmt_disc",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "cvr_rm",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "ar_fin_recovery",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "mfg_oh",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "cust_finance",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "rma",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "hc_sales",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "order_overhead",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "margin_share",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "ap_adj",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "pdt",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "scm_cost",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "infrastructure",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "marketing",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "coop",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "one_time_btl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "hbtl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "scm_profit_adj",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "hc_pm",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "hc_bd",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "btl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "btl_sales",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "btl_backout",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "cust_rebate",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "mof",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "frt_out_load",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "frt_out_exp",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "whoh_pack",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "frt_ob_recovery",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "frt_ib_recovery",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "others",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "others_sales",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "scm_disc",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "scm_ndisc",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "frt_in",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "trans_btl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "trans_btl_sales",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "etl_timestamp",
-      "type": "timestamp"
+      "type": "timestamp",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "fx_cost",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "date_flag",
-      "type": "date"
+      "type": "date",
+      "semantic_role": "partition",
+      "dimension_reference": "dim_us.dim_pub_date",
+      "business_definition": "Daily business date partition"
     },
     {
       "name": "btl_sales_for_opl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "trans_btl_sales_for_opl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "pdt_for_opl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "cust_rebate_for_opl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "cvr_rm_for_opl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "btl_backout_for_opl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "cust_pmt_disc_for_opl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "cust_finance_sales_for_opl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "rma_for_opl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "ar_fin_recovery_for_opl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "order_overhead_for_opl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "frt_out_exp_for_opl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "frt_ob_recovery_for_opl",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
     },
     {
       "name": "oplgm_plus_amt",
-      "type": "numeric(20,8)"
+      "type": "numeric(20,8)",
+      "semantic_role": "measure",
+      "business_definition": "Not documented in repository"
     }
   ],
   "column_count": 117,
@@ -483,9 +721,10 @@
   "grain": null,
   "ddl_source": {
     "repo": "BREPORT-CONTRACT/data_analysis_agent_brpt",
-    "file_path": "knowledge/b-report-us/tables/dws_disty_brpt_terr_1d.md",
+    "file_path": "C:\\Users\\T154858D.TDSNX\\Desktop\\git_repo_backup\\bigdata_wiki_llm_1\\source\\contracts\\b-report-us\\tables\\dws_disty_brpt_terr_1d.md",
     "commit": "b-report-contract-v2",
-    "fetched_at": "2026-07-02T07:57:42.351479+00:00"
+    "fetched_at": "2026-07-20T07:49:39.389360+00:00"
   },
-  "evidence_doc": "target/knowledgebase/b-report-us/dws_disty_brpt_terr_1d.md"
+  "evidence_doc": "target/knowledgebase/b-report-us/dws_disty_brpt_terr_1d.md",
+  "semantic_enriched": true
 }

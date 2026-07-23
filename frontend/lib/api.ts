@@ -220,6 +220,13 @@ export type ChatMessage = {
   statusText?: string;
   tools?: ToolCall[];
   subagents?: SubagentEvent[];
+  /** Executed queries kept as structured data, never concatenated into `content`. */
+  queryAppendix?: QueryAppendixItem[];
+};
+
+export type QueryAppendixItem = {
+  sql: string;
+  tool: string;
 };
 
 export type ToolCall = {
@@ -256,6 +263,9 @@ export type BudgetPayload = {
   steps_limit?: number;
   steps_warn_at?: number;
   phase?: "ok" | "warn" | "exhausted";
+  run_phase?: "research" | "execute" | "synthesize";
+  sql_queries_used?: number;
+  tool_calls_used?: Record<string, number>;
   run_segment?: number;
   thread_id?: string;
 };

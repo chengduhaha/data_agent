@@ -11,6 +11,8 @@ from fastapi.responses import StreamingResponse
 from langchain_core.messages import HumanMessage
 from langgraph.types import Command
 
+from app.agent.extensions.registry import capability_registry
+from app.agent.extensions.subagent_routing import detect_active_skills_from_message
 from app.agent.factory import create_user_agent, get_checkpointer
 from app.agent.harness.config import load_harness_config, recursion_limit
 from app.agent.harness.context import reset_harness_context, set_harness_context
@@ -130,11 +132,27 @@ async def chat_stream(body: ChatStreamRequest, user_id: str = Depends(get_user_i
     async def event_gen():
         from app.agent.streaming import sse
 
+        cfg = None
+        wrapup_model = None
+        require_synthesis = False
+        try:
+            cfg = await load_user_config(uid)
+            active_skills = detect_active_skills_from_message(body.message or "")
+            capabilities = await capability_registry.resolve(
+                uid,
+                cfg,
+                active_skills=active_skills or None,
+            )
+            require_synthesis = bool(capabilities.harness.require_synthesis)
+        except Exception:
+            logger.debug("capability resolve for harness context failed", exc_info=True)
+
         ctx_token = set_harness_context(
             thread_id=thread_id,
             run_segment=run_segment,
             user_id=uid,
             extended_run=body.extended_run,
+            require_synthesis=require_synthesis,
         )
         yield sse(
             "meta",
@@ -161,13 +179,14 @@ async def chat_stream(body: ChatStreamRequest, user_id: str = Depends(get_user_i
                 yield sse("topic_hint", relation)
 
         yield sse("status", {"text": "Initializing agent…", "phase": "init"})
-        cfg = None
-        wrapup_model = None
         try:
-            cfg = await load_user_config(uid)
+            if cfg is None:
+                cfg = await load_user_config(uid)
             wrapup_model = build_model(cfg)
             yield sse("status", {"text": "Loading tools & MCP…", "phase": "init"})
-            agent = await create_user_agent(uid, cfg, extended_run=body.extended_run)
+            agent = await create_user_agent(
+                uid, cfg, extended_run=body.extended_run, message=body.message
+            )
         except ValueError as exc:
             yield sse("error", {"message": str(exc)})
             reset_harness_context(ctx_token)
@@ -237,17 +256,27 @@ async def chat_resume(body: ChatResumeRequest, user_id: str = Depends(get_user_i
     async def event_gen():
         from app.agent.streaming import sse
 
+        cfg = None
+        wrapup_model = None
+        require_synthesis = False
+        try:
+            cfg = await load_user_config(uid)
+            capabilities = await capability_registry.resolve(uid, cfg)
+            require_synthesis = bool(capabilities.harness.require_synthesis)
+        except Exception:
+            logger.debug("capability resolve for resume harness context failed", exc_info=True)
+
         ctx_token = set_harness_context(
             thread_id=thread_id,
             run_segment=run_segment,
             user_id=uid,
+            require_synthesis=require_synthesis,
         )
         yield sse("meta", {"thread_id": thread_id, "user_id": uid, "resumed": True})
         yield sse("status", {"text": "Resuming after approval…", "phase": "init"})
-        cfg = None
-        wrapup_model = None
         try:
-            cfg = await load_user_config(uid)
+            if cfg is None:
+                cfg = await load_user_config(uid)
             wrapup_model = build_model(cfg)
             agent = await create_user_agent(uid, cfg)
         except ValueError as exc:

@@ -56,6 +56,8 @@ async def load_user_config(user_id: str) -> UserConfig:
 
 
 def _load_org_config_patch() -> dict[str, Any]:
+    if ORG_BUNDLE_DIR is None:
+        return {}
     patch_path = ORG_BUNDLE_DIR / "fragments" / "config.patch.json"
     if not patch_path.exists():
         return {}
@@ -137,21 +139,41 @@ async def save_rules(user_id: str, content: str) -> str:
 
 
 def _parse_skill_frontmatter(content: str) -> tuple[str, str]:
-    name = ""
-    description = ""
-    if content.startswith("---"):
-        parts = content.split("---", 2)
-        if len(parts) >= 3:
-            for line in parts[1].splitlines():
-                line = line.strip()
-                if line.startswith("name:"):
-                    name = line.split(":", 1)[1].strip().strip("\"'")
-                elif line.startswith("description:"):
-                    description = line.split(":", 1)[1].strip().strip("\"'")
-    return name, description
+    """Legacy (name, description) shape — use `_skill_info_from_content` for extensions."""
+    from app.agent.extensions.manifest import parse_skill_frontmatter
+
+    return parse_skill_frontmatter(content)
 
 
-def _list_skills_in_dir(root: Path, source: str) -> list[SkillInfo]:
+def _skill_info_from_content(
+    content: str,
+    *,
+    fallback_name: str,
+    source: str,
+    path: Path,
+    with_content: bool,
+    disabled_skills: set[str] | None = None,
+) -> SkillInfo:
+    from app.agent.extensions.manifest import parse_skill_manifest
+
+    manifest = parse_skill_manifest(content)
+    name = manifest.name or fallback_name
+    return SkillInfo(
+        name=name,
+        description=manifest.description,
+        source=source,  # type: ignore[arg-type]
+        path=str(path),
+        content=content if with_content else None,
+        editable=source == "user",
+        disabled=name in (disabled_skills or set()),
+        extensions=manifest.extensions,
+        harness=manifest.harness,
+    )
+
+
+def _list_skills_in_dir(
+    root: Path, source: str, *, disabled_skills: set[str] | None = None
+) -> list[SkillInfo]:
     skills: list[SkillInfo] = []
     if not root.exists():
         return skills
@@ -159,25 +181,25 @@ def _list_skills_in_dir(root: Path, source: str) -> list[SkillInfo]:
         skill_md = child / "SKILL.md"
         if child.is_dir() and skill_md.exists():
             content = skill_md.read_text(encoding="utf-8")
-            name, description = _parse_skill_frontmatter(content)
             skills.append(
-                SkillInfo(
-                    name=name or child.name,
-                    description=description,
-                    source=source,  # type: ignore[arg-type]
-                    path=str(skill_md),
-                    content=None,
-                    editable=source == "user",
+                _skill_info_from_content(
+                    content,
+                    fallback_name=child.name,
+                    source=source,
+                    path=skill_md,
+                    with_content=False,
+                    disabled_skills=disabled_skills,
                 )
             )
     return skills
 
 
-async def list_skills(user_id: str) -> list[SkillInfo]:
+async def list_skills(user_id: str, cfg: UserConfig | None = None) -> list[SkillInfo]:
     ensure_user_layout(user_id)
-    builtin = _list_skills_in_dir(BUILTIN_SKILLS_DIR, "builtin")
-    org = _list_skills_in_dir(ORG_SKILLS_DIR, "org")
-    user = _list_skills_in_dir(skills_dir(user_id), "user")
+    disabled = set(cfg.disabled_skills) if cfg else None
+    builtin = _list_skills_in_dir(BUILTIN_SKILLS_DIR, "builtin", disabled_skills=disabled)
+    org = _list_skills_in_dir(ORG_SKILLS_DIR, "org", disabled_skills=disabled)
+    user = _list_skills_in_dir(skills_dir(user_id), "user", disabled_skills=disabled)
     return builtin + org + user
 
 
@@ -198,14 +220,14 @@ async def get_skill(user_id: str, name: str, source: str = "user") -> SkillInfo 
         else:
             return None
     content = skill_md.read_text(encoding="utf-8")
-    parsed_name, description = _parse_skill_frontmatter(content)
-    return SkillInfo(
-        name=parsed_name or name,
-        description=description,
-        source=source,  # type: ignore[arg-type]
-        path=str(skill_md),
-        content=content,
-        editable=source == "user",
+    cfg = await load_user_config(user_id)
+    return _skill_info_from_content(
+        content,
+        fallback_name=name,
+        source=source,
+        path=skill_md,
+        with_content=True,
+        disabled_skills=set(cfg.disabled_skills),
     )
 
 

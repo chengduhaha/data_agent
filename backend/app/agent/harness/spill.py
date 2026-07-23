@@ -78,6 +78,12 @@ class LargeResultSpillMiddleware(AgentMiddleware):
         path.write_text(text, encoding="utf-8")
 
         preview = text[: min(2000, max_chars)]
+        if tool == "task" and "Command(update=" in text:
+            from app.agent.harness.task_output import extract_command_messages_text
+
+            extracted = extract_command_messages_text(text, limit=min(2000, max_chars))
+            if extracted:
+                preview = extracted[: min(2000, max_chars)]
         notice = (
             f"Tool result too large ({len(text)} chars). "
             f"Full output saved at /workspace/{rel}.\n"

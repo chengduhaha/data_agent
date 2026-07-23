@@ -17,7 +17,6 @@ All progressive-load policies for this skill live **in this folder**. Load files
 | `local-research-first.md` | Local-first gate; forbidden MCP discovery |
 | `scope-guardrail.md` | Non-bypassable contract scope |
 | `domain-routing.md` | Domain resolution and KB path map |
-| `golden-cases-match.md` | Optional `eval/golden_cases.md` matching |
 | `special-logic-check.md` | `/knowledge/org/source/ref/{domain}/special_logic.txt` procedure |
 | `sql-planning.md` | SQL compile plan and time defaults |
 | `wkb-retrieval.md` | Storage-layer / WKB short-list |

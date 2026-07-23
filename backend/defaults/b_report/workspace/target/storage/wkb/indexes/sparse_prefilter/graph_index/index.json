@@ -1,0 +1,138 @@
+{
+  "dim_us.dim_disty_bd_project_cust": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "Vertica RDS POS report scripts (`rds_*_rtv`)": [
+    "dim_us.dim_disty_bd_project_cust",
+    "dim_us.dim_disty_bd_project_sku",
+    "dim_us.dim_pub_bd_hierarchy",
+    "dim_us.dim_pub_cust_profile_all",
+    "dim_us.dim_pub_cust_xref_all",
+    "dim_us.dim_pub_customer_info_rt",
+    "dim_us.dim_pub_date",
+    "dim_us.dim_pub_eu_custom_map_view",
+    "dim_us.dim_pub_inv_type_view",
+    "dim_us.dim_pub_part_info_rt",
+    "dim_us.dim_pub_project_info",
+    "dim_us.dim_pub_sales_hierarchy_by_terr_user_role",
+    "dim_us.dim_pub_ship_method",
+    "dim_us.dim_pub_sku_profile_rt",
+    "dim_us.dim_pub_sku_xref_all",
+    "dim_us.dim_pub_terms_file_view",
+    "dim_us.dim_pub_vendor_info_rt",
+    "dim_us.dim_pub_vendor_xref",
+    "dim_us.dim_pub_vpc_group_view",
+    "dim_us.dim_pub_vpc_group_xref_view",
+    "dw_us.dwd_disty_brpt_bo_detail_df"
+  ],
+  "ad-hoc POS exports": [
+    "dim_us.dim_disty_bd_project_cust",
+    "dim_us.dim_disty_bd_project_sku",
+    "dim_us.dim_pub_bd_hierarchy",
+    "dim_us.dim_pub_cust_profile_all",
+    "dim_us.dim_pub_cust_xref_all",
+    "dim_us.dim_pub_customer_info_rt",
+    "dim_us.dim_pub_date",
+    "dim_us.dim_pub_eu_custom_map_view",
+    "dim_us.dim_pub_inv_type_view",
+    "dim_us.dim_pub_part_info_rt",
+    "dim_us.dim_pub_project_info",
+    "dim_us.dim_pub_sales_hierarchy_by_terr_user_role",
+    "dim_us.dim_pub_ship_method",
+    "dim_us.dim_pub_sku_profile_rt",
+    "dim_us.dim_pub_sku_xref_all",
+    "dim_us.dim_pub_terms_file_view",
+    "dim_us.dim_pub_vendor_info_rt",
+    "dim_us.dim_pub_vendor_xref",
+    "dim_us.dim_pub_vpc_group_view",
+    "dim_us.dim_pub_vpc_group_xref_view",
+    "dw_us.dwd_disty_brpt_bo_detail_df"
+  ],
+  "dim_us.dim_disty_bd_project_sku": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_bd_hierarchy": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_cust_profile_all": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_cust_xref_all": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_customer_info_rt": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_date": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_eu_custom_map_view": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_inv_type_view": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_part_info_rt": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_project_info": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_sales_hierarchy_by_terr_user_role": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_ship_method": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_sku_profile_rt": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_sku_xref_all": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_terms_file_view": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_vendor_info_rt": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_vendor_xref": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_vpc_group_view": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dim_us.dim_pub_vpc_group_xref_view": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dw_us.dwd_disty_brpt_bo_detail_df": [
+    "Vertica RDS POS report scripts (`rds_*_rtv`)",
+    "ad-hoc POS exports"
+  ],
+  "dw_us.dwd_disty_brpt_orders_pl_etl_mi": [
+    "all DWS/DM disty_brpt serving aggregations"
+  ],
+  "all DWS/DM disty_brpt serving aggregations": [
+    "dw_us.dwd_disty_brpt_orders_pl_etl_mi"
+  ]
+}

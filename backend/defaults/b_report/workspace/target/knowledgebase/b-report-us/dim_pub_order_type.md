@@ -1,61 +1,189 @@
 # DIM: Shared dimension for B Report attribute enrichment and join lookups (`dim_us.dim_pub_order_type`)
 
-**Domain:** b-report-us  
-**Source contract:** `source/contracts/b-report-us/tables/dim_pub_order_type.md`  
-**Knowledgebase path:** `target/knowledgebase/b-report-us/dim_pub_order_type.md`
+- artifact_type: etl_table
+- artifact_id: dim_us.dim_pub_order_type
+- domain: b-report-us
+- one_line_purpose: Shared dimension for B Report attribute enrichment and join lookups
+- layer_type: DIM
+- source_kind: contract_v2
+- evidence_source: source/contracts/b-report-us/tables/dim_pub_order_type.md
+- knowledgebase_path: target/knowledgebase/b-report-us/dim_pub_order_type.md
+- contract_source: source/contracts/b-report-us/tables/dim_pub_order_type.md
 
-## Business purpose
+---
 
+## L1 Data Foundation
+
+### Identity and physical mapping
+- **Table:** `dim_us.dim_pub_order_type`
+- **Layer type:** DIM
+- **Canonical / derived:** Canonical shared dimension (B Report contract catalog)
+- **Owner team:** not registered in metadata catalog
+
+### Grain, scope, exclusions
+- **Grain:** dimension key level (one row per business key)
+- **Scope:** US disty B Report shipped-order P&L and performance metrics.
+- **Partition:** None explicit — full-table dimension or non-partitioned object per contract.
+- **Natural key:** `entry_id`, `rec_tran_no`, `rec_void_no`, `ship_tran_no`, `ship_void_no`, `issue_tran_no`
+- **Exclusions:** Non-US schemas, backup/temp table variants (`_bkp`, `_temp`), and non-shipped-order scenarios.
+
+### Cross-engine presence
+| Engine | Present | Canonical FQN | Notes |
+|--------|---------|---------------|-------|
+| Hive | yes | `dim_${country}.dim_pub_order_type` | Documented in B Report contract v2 |
+| Vertica | yes | `dim_us.dim_pub_order_type` | Contract marks Vertica verified |
+
+### Physical schema reference
+| Field | Value |
+|-------|-------|
+| **Authoritative catalog** | WKB L1 storage seed (not duplicated in this file) |
+| **entity_id** | `dim_us.dim_pub_order_type` |
+| **l1_catalog_seed** | `target/storage/wkb/snapshots/_snapshot_id_template/l1_catalog/vertica_dim_us_dim_pub_order_type.json` |
+| **column_count** | 18 |
+| **partition_keys** | `none` |
+| **ddl_source** | B Report contract catalog — `source/contracts/b-report-us/tables/dim_pub_order_type.md` |
+| **retrieval** | `python -m tools.wkb.indexing.run_query --query "b-report-us dim_pub_order_type schema" --intent find_table_schema` |
+
+### Lineage
+- **upstream:** Curated DIM/ODS load jobs (per contract) — `source/contracts/b-report-us/tables/dim_pub_order_type.md:L1`
+- **downstream:** B Report fact/DM serving tables and dashboards — `source/contracts/b-report-us/tables/dim_pub_order_type.md:L1`
+
+### Freshness and load path
+| Item | Value |
+|------|-------|
+| Load pattern | Not documented in repository |
+| Schedule | Not documented in repository |
+| Expected completion | 02:00-03:30 PT. |
+
+---
+
+## L2 Declarative Knowledge
+
+### Business purpose
 Shared dimension for B Report attribute enrichment and join lookups
 
-This document is derived from the B Report US table contract catalog. ETL script lineage for load jobs is **not documented in this repository** unless listed under verified dependencies below.
+This Knowledgebase entry is derived from the B Report US table contract catalog (`contract_v2`). ETL SQL for the pub_dw dimension load is **not in the b-report-us Bitbucket ETL snapshot**; see cross-domain Knowledgebase references when listed under Related scripts.
 
----
-
-## What the process does (high level)
-
-| Stage | Business meaning |
-|-------|------------------|
-| **Catalog object** | `dim_us.dim_pub_order_type` — DIM layer table used in US B Report analytics (`US B Report baseline`). |
-| **Consumption** | Queried from Vertica/Hive for profitability, P&L, and operating performance reporting. |
-
-**Parameters:** Country schema pattern `dim_us` (US baseline documented as `dw_us` / `dm_us` / `dim_us`).
-
----
-
-## Who it helps and how
-
+### Audience and use cases
 | Audience | How they benefit |
 |----------|-----------------|
 | **B Report / P&L analytics** | Consumers: B Report semantic layer, dashboard queries, and BI users. |
-| **Sales / PM / finance** | Shipped-order metrics, margin components, and dimension attributes at documented grain. |
-| **Data engineering** | Stable table contract for joins to B Report hub `dw_us.dwd_disty_brpt_orders_pl_etl_mi`. |
+| **Sales / PM / finance** | Lookup attributes joined to `dw_us.dwd_disty_brpt_orders_pl_etl_mi` and serving DM/DWS tables. |
+| **Data engineering** | Stable dimension contract for join keys and attribute definitions. |
+
+### Identifier search profile
+- Primary lookup keys: `entry_id`, `rec_tran_no`, `rec_void_no`, `ship_tran_no`, `ship_void_no`, `issue_tran_no`, `change_tran_no`, `delete_tran_no`
+- Join hub facts on documented key columns; use `date_flag` snapshot partitions on `_df` variants when applicable.
+
+### Time field semantics
+- **`date_flag`:** primary filter when table is partitioned; otherwise use hub `date_flag` for as-of reporting.
+- **Period semantics:** per ETL partition scope.
+
+
+
+
+
+### Metrics served
+
+| Category | Column | Logical metric | Business reading |
+|----------|--------|----------------|------------------|
+| Governed profitability | `sales` | `net_sales` | net_sales at unspecified grain |
+
+### Metric serving map
+
+**Formula authority:** [`source/contracts/b-report-us/metric-index.md`](../../source/contracts/b-report-us/metric-index.md)
+
+| Logical metric | Period scope | Physical column | Formula reference |
+|----------------|--------------|-----------------|-------------------|
+| `net_sales` | unspecified | `sales` | `source/contracts/b-report-us/metric-index.md#net_sales` |
+
+### etl_metrics
+
+Formulas below are sourced from [`source/contracts/b-report-us/metric-index.md`](../../source/contracts/b-report-us/metric-index.md) for logical metrics present on this table.
+Index formulas are canonical: this enricher copies them into KB and never overwrites `final_effective_formula_sql` in the metric-index.
+
+#### `net_sales`
+- **Source:** [metric-index.md](../../source/contracts/b-report-us/metric-index.md#net_sales)
+- **Business definition:** Shipped quantity times unit price plus per-unit sum expense (net of returns scope per order_type filter).
+```sql
+nvl(ship_qty,0) * (nvl(u_price,0) + nvl(u_sum_expense,0))
+```
 
 ---
 
-## Business query tables (Vertica)
+## L3 Procedural Knowledge
 
-| Role | Hive object | Vertica object | Sync mode | Evidence | MCP verified |
-|------|-------------|----------------|-----------|----------|--------------|
-| **Query for reporting** | `dim_us.dim_pub_order_type` | `dim_us.dim_pub_order_type` | overwrite / incremental | B Report contract `dim_pub_order_type.md:L1` | yes (B Report contract v2 — Vertica verified in source catalog) |
-| **Hive alternative** | `dim_us.dim_pub_order_type` | same as reporting table | - | B Report contract cross-engine note | - |
-| **ETL internal** | n/a | n/a | - | ETL not in wiki repo | - |
+### Query and routing rules
+- Prefer this table when required dimensions and time suffix match the question grain.
+- Fall back to `dw_us.dwd_disty_brpt_orders_pl_etl_mi` for order-line recalculation or missing dimensions.
+- Do not mix `1d`/`wtd`/`mtd`/`comb_mtd` grains in one aggregation step.
 
-Business users should query **`dim_us.dim_pub_order_type`** in Vertica for B Report reporting aligned to this contract.
+### Dimension join patterns
+- Primary keys: —
+- Common join keys: dimension business key fields referenced by DWD/DWS/DM tables
+- High-risk join pitfalls: Key type mismatch and duplicate-key expansion.
+
+### Key filters and ETL business logic
+- By default, do **not** apply `dim_us.dim_pub_order_type.sales = 'Y'`, `virtual_type = 0`, or `order_type = 1`.
+- Apply the order-type / shipped-order join (`sales = 'Y'`) **only when the question explicitly says shipped orders only** (or equivalent).
+- Apply `virtual_type = 0` or a specific `order_type` **only when the question explicitly requests that scope**.
+- For profitability metrics on this table, always filter `segment_exclude = 'N'` (see `source/ref/b-report-us/special_logic.txt`).
+- Technical sync predicates (partition/date load guards) are not business filters.
+
+### Standard time-filter SQL
+```sql
+-- See contract L3 Standard Time-Filter SQL in source/contracts/b-report-us/tables/dim_pub_order_type.md
+```
+
+### End-to-end flow
+1. Upstream DIM/ODS load populates `dim_us.dim_pub_order_type` (ETL not in b-report-us Bitbucket snapshot).
+2. B Report fact and serving jobs join this dimension for attribute enrichment.
+3. Vertica consumers query `dim_us.dim_pub_order_type` for reporting.
+
+```mermaid
+flowchart LR
+  upstream["Upstream DIM/ODS loads"]
+  dim["dim_us.dim_pub_order_type"]
+  hub["dw_us.dwd_disty_brpt_orders_pl_etl_mi"]
+  dm["B Report DM/DWS serving"]
+  upstream --> dim
+  dim --> hub
+  hub --> dm
+```
+
+### Base tables register
+| Object | Role in this job |
+|--------|------------------|
+| `dim_us.dim_pub_order_type` | Primary dimension catalog object (contract v2) |
+
+### Step-by-step logic
+N/A — catalog-only. Procedural ETL steps for this pub_dw dimension are not present in `source/contracts/b-report-us/bitbicket_etl/`. See cross-domain Knowledgebase paths under L6 Related scripts when available.
+
+### Sentinel and code values
+| Value | Type | Meaning |
+|-------|------|---------|
+| — | — | See contract `domain-knowledge.md` and `metric-index.md` for coded fields |
 
 ---
 
-## Grain and keys
+## L4 Validation
 
-- **Grain:** See natural key columns from B Report contract column catalog.
-- **Partition:** None explicit — full-table dimension or non-partitioned object per contract.
-- **Natural key:** `entry_id`, `rec_tran_no`, `rec_void_no`, `ship_tran_no`, `ship_void_no`, `issue_tran_no`
-- **Exclusions (reporting):** None documented in B Report contract.
+### Resolved partition value
+| Step | Source | How `partition` is determined |
+|------|--------|-----------------------------------------------------|
+| 1 | B Report contract L1 | None explicit — full-table dimension or non-partitioned object per contract. |
 
----
+**Plain language:** Non-partitioned dimension — full-table or as-of join via hub `date_flag`.
 
-## Validation SQL (Vertica)
+### Data quality checks
+- Verify row counts and `date_flag` coverage after each monthly close.
+- Check dimension key match rates for `cust_no`, `vend_no`, `sku_no` joins.
+- Monitor null rates on key measures (`ngm_amt`, `net_sales`).
+- Recompute `net_sales`, `ngm_amt`, `oplgm_amt` from DWD for sample `date_flag` and compare to serving table aggregates.
+- DWD gold validation (2026-06-09): 117,868 rows, zero mismatches at 0.01 tolerance.
+- Conflict item:
 
+### Validation SQL
 ```sql
 -- 1) Row count by partition
 SELECT date_flag, COUNT(*) AS row_cnt
@@ -79,130 +207,86 @@ GROUP BY entry_id, rec_tran_no, rec_void_no, date_flag
 HAVING COUNT(*) > 1;
 ```
 
-Replace `${partition_value}` with the resolved business date or period from the report scope.
+### Caveats for interpretation
+- Contract-derived catalog; pub_dw ETL script path not verified in b-report-us Bitbucket snapshot.
+- Cross-engine parity: compare Hive vs Vertica row counts when auditing.
+- Conflict item:
+- claim_a: —
+- claim_b: —
+- status: Needs Clarification
+
+### Conflicts and open questions
+- pub_dw Bitbucket ETL path: Not documented in repository (dimension maintained in pub_dw project).
+- hive2vertica sync job file:line evidence: Not documented in repository.
 
 ---
 
-## Data you can fetch and use downstream
+## L5 Runtime View
 
-### Core measures
+### Query path and engine preference
+| Role | Hive object | Vertica object | Sync mode | Evidence | MCP verified |
+|------|-------------|----------------|-----------|----------|--------------|
+| **Query for reporting** | `dim_us.dim_pub_order_type` | `dim_us.dim_pub_order_type` | overwrite / incremental | `source/contracts/b-report-us/tables/dim_pub_order_type.md:L5` | yes |
+| **Hive alternative** | `dim_us.dim_pub_order_type` | same as reporting table | — | B Report contract | — |
 
-- No measure-role columns tagged in contract; table may be dimension-only.
+- Primary: Vertica `dw_us`/`dm_us` for BI dashboards (fresher on detail facts).
+- Fallback: Hive for reconciliation or when Vertica unavailable.
+- Metadata: domain table docs and `metric-index.md` for routing.
 
-### Dimension and key columns
+### Access constraints
+- Standard `dw_us`/`dm_us`/`dim_us` role-based access applies.
+- No table-specific ACL exceptions documented.
 
-- `order_type` — order type
-- `order_type_descr` — order type descr
-- `order_source` — order source
-- `entry_datetime` — entry datetime
-- `entry_id` — entry id
-- `rec_tran_no` — rec tran no
-- `rec_void_no` — rec void no
-- `ship_tran_no` — ship tran no
-- `ship_void_no` — ship void no
-- `module` — module
-- `issue_tran_no` — issue tran no
-- `change_tran_no` — change tran no
-- `delete_tran_no` — delete tran no
-- `sales` — sales
-- `autocred_type` — autocred type
-- `invoice_type` — invoice type
-- `order_type_descr_alt` — order type descr alt
-- `pl_flag` — pl flag
+### Query risk profile
+| Field | Value |
+|-------|-------|
+| requires_date_predicate | no |
+| scan_risk_tier | low |
 
 ---
 
-## Metrics business users typically care about
+## L6 Access and Consumption
 
-When exposing this table to the business, lead with measure and key columns from the B Report contract catalog (see **Data you can fetch** above). See also `source/contracts/b-report-us/metric-index.md` for metric definitions.
+### Primary consumers and use cases
+| Consumer | Use case |
+|----------|----------|
+| Consumers: B Report semantic layer, dashboard queries, and BI users. | B Report / POS dimension enrichment |
+| Use cases: profitability tracking, vendor/customer ranking, PM performance, YoY trend analysis, executive dashboards. | B Report / POS dimension enrichment |
 
----
-
-## End-to-end flow (summary)
-
-**Target table:** `dim_us.dim_pub_order_type`  
-**Load pattern:** Not documented in repository
-
-1. Upstream: Not documented in repository
-2. Table available in Hive and Vertica for B Report consumption.
-3. Downstream: B Report serving tables, dashboards, and exports
-
-```mermaid
-flowchart LR
-  upstream[Upstream B Report or DIM loads]
-  tgt["dim_us.dim_pub_order_type"]
-  brpt[B Report consumers]
-  upstream --> tgt
-  tgt --> brpt
+### Representative query patterns
+```sql
+SELECT date_flag, SUM(ngm_amt) AS ngm_amt, SUM(net_sales) AS net_sales
+FROM dim_us.dim_pub_order_type
+WHERE date_flag >= '2026-01-01' AND date_flag < '2026-02-01'
+GROUP BY date_flag
+ORDER BY date_flag;
 ```
 
----
+### Dependencies and notes
 
-## Base tables register
-
-| Object | Role in this job |
-|--------|-----------------|
-| `dim_us.dim_pub_order_type` | Primary catalog table documented from B Report contract |
-
----
-
-## Step-by-step logic
-
-Not applicable — this Knowledgebase entry is a **table catalog** converted from B Report contract v2. ETL step-by-step logic is not present in this wiki repository.
-
-**Default analysis filters (important):**
-
-- By default, do **not** apply `dim_us.dim_pub_order_type.sales = 'Y'`, `virtual_type = 0`, or `order_type = 1`.
-- Apply the order-type / shipped-order join (`sales = 'Y'`) **only when the question explicitly says shipped orders only** (or equivalent).
-- Apply `virtual_type = 0` or a specific `order_type` **only when the question explicitly requests that scope**.
-- For `dw_us.dwd_disty_brpt_orders_pl_etl_mi` profitability pulls, still apply `segment_exclude = 'N'` (see `source/ref/b-report-us/special_logic.txt`).
-- Technical sync predicates (partition/date load guards) are not business filters.
-
----
-
-## Caveats for interpretation
-
-- Derived from B Report contract v2; ETL SQL and Azkaban flow names are not verified in this repository unless cited below.
-- US schema `dim_us` documented as baseline.
-- Entity disambiguation (vendor vs customer vs VPL): see `source/contracts/b-report-us/domain-knowledge.md`.
-- Verify row counts and `date_flag` coverage after each monthly close.
-- Check dimension key match rates for `cust_no`, `vend_no`, `sku_no` joins.
-- Monitor null rates on key measures (`ngm_amt`, `net_sales`).
-- Recompute `net_sales`, `ngm_amt`, `oplgm_amt` from DWD for sample `date_flag` and compare to serving table aggregates.
-- DWD gold validation (2026-06-09): 117,868 rows, zero mismatches at 0.01 tolerance.
-- Conflict item:
-
----
-
-## Dependencies and notes (verified only)
-
-### Upstream objects (verified)
-
+#### Upstream objects (verified)
 | Object | Usage | Evidence |
 |--------|-------|----------|
-| B Report contract source | Table metadata, grain, columns | `source/contracts/b-report-us/tables/dim_pub_order_type.md` |
+| B Report contract | Table metadata, grain, columns | `source/contracts/b-report-us/tables/dim_pub_order_type.md` |
 
-### Downstream consumers (verified)
-
+#### Downstream consumers (verified)
 | Object / script | Evidence |
 |-----------------|----------|
-| B Report consumers | `dim_pub_order_type.md:L6` — see contract L6 |
+| B Report hub and serving tables | `source/contracts/b-report-us/tables/dim_pub_order_type.md:L6` — see contract L6 |
 
-### Operational detail (verified)
-
-- Freshness: Not documented in repository
+#### Operational detail (verified)
+- Load pattern: Not documented in repository — `source/contracts/b-report-us/tables/dim_pub_order_type.md:L1`
 - Column count: 18 (B Report contract catalog)
 
-### Not documented in repository
-
-- ETL SQL load script and Azkaban `.flow` for this table
+#### Not documented in repository
+- pub_dw ETL SQL and Azkaban `.flow` for this dimension
 - hive2vertica sync job file:line evidence
 - Schedule, owner, SLA
 
-### Related scripts (verified)
-
-None identified in repository.
+#### Related scripts (verified)
+- `dim_pub_order_type.md` — B Report contract source — `source/contracts/b-report-us/tables/dim_pub_order_type.md`
+- `target/knowledgebase/order/dim_pub_order_type.md` — cross-domain Knowledgebase entry for same table object
 
 ---
 
-*Document generated from B Report contract `source/contracts/b-report-us/tables/dim_pub_order_type.md`.*
+*Document generated from `source/contracts/b-report-us/tables/dim_pub_order_type.md` (contract_v2).*

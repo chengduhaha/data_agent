@@ -1,0 +1,291 @@
+project_domain: b_report
+version: 1.0.44
+description: 'TD SYNNEX NextGen B Report (Distributor Business P&L / Profitability
+  Analysis). v5.0.0: Unified Connected Domain Model. Ensures zero isolated objects
+  by linking all personnel (Sales, PM, Buyer), projects (BD), and master data (Customer,
+  Product, Vendor) through the ShippedOrderLine hub.'
+metrics:
+- name: NET_SALES
+  aliases:
+  - revenue
+  description: The company's "verified and confirmed sales revenue", the amount after
+    deducting various revenue deductions, NET_SALES = nvl(ship_qty,0) * (nvl(u_price,0)
+    + nvl(u_sum_expense,0))
+  physical_source:
+  - type: table
+    measure: ShippedOrderLine.netSales
+  relation_objects:
+  - Vendor
+  - Date
+  - Territory
+  - CustomerType
+  - Division
+  - VendorProductLine
+  - Customer
+  - MasterCustomer
+  - PM
+  - PMManager
+  - PMDirector
+  - PMVP
+  - ShippedOrderLine
+  - BDProject
+  dimensions:
+  - name: vendNo
+    mapping: Vendor.vendNo
+    description: vendor
+  - name: custNo
+    mapping: Customer.custNo
+  - name: salesTerr
+    mapping: Territory.salesTerr
+  - name: custType
+    mapping: CustomerType.custType
+  - name: division
+    mapping: Division.division
+  - name: vplNo
+    mapping: VendorProductLine.vplNo
+    description: Vendor product line
+  filter:
+  - name: custNo
+    mapping: ShippedOrderLine.custNo
+    description: Ship-to customer on order line (line-grain filter)
+  - name: dimVendNo
+    mapping: ShippedOrderLine.dimVendNo
+    description: Fact ETL vendor key on order line
+  - name: dimVplNo
+    mapping: ShippedOrderLine.dimVplNo
+    description: Fact ETL VPL key on order line
+  - name: dimCustType
+    mapping: ShippedOrderLine.dimCustType
+    description: Fact ETL customer type key on order line
+  - name: dimDivision
+    mapping: ShippedOrderLine.dimDivision
+    description: Fact ETL division key on order line
+  - name: dimMcustNo
+    mapping: ShippedOrderLine.dimMcustNo
+    description: Fact ETL master customer key on order line
+  date:
+  - name: dateFlag
+    mapping: Date.dateFlag
+    description: dateFlag
+    date_format: yyyy-mm-dd
+    operator_enum_values:
+    - 'BETWEEN'
+- name: NGM
+  aliases:
+  - Net Gross Margin
+  description: "NGM is the margin derived from product transactions after accounting\
+    \ for cost, vendor funding (e.g., rebates, MDF, price protection,etc.), and other\
+    \ deal-related adjustments, divided by net sales.\nIt is composed of multiple\
+    \ P&L items and the formula is as followsï¼š\nngm_amt=\nnvl(STANDARD_GM,0)\n+\
+    \ nvl(BTL,0)+nvl(TRANS_BTL,0)\n+ nvl(ONE_TIME_BTL,0)\n+ nvl(HBTL,0)\n+ nvl(SCM_PROFIT_ADJ,0)\n\
+    + nvl(BTL_BACKOUT,0)\n+ nvl(PDT,0)\n+ nvl(AP_FINANCE,0)\n+ nvl(SCM_COST,0)\n+\
+    \ nvl(SCM_RISK,0)\n+ nvl(INV_COST,0)\n+ nvl(INV_RESERVE,0)\n+ nvl(INFRASTRUCTURE,0)\n\
+    + nvl(MARKETING,0)\n+ nvl(FRT_OUT_LOAD,0)\n+ nvl(FRT_OUT_EXP,0) + nvl(FRT_OB_RECOVERY,0)\n\
+    + nvl(FRT_IB_RECOVERY,0)\n+ nvl(WHOH_PACK ,0)\n+ nvl(CSGN_EDI_FEE,0)\n+ nvl(CUST_FINANCE,0)\
+    \ \n+ nvl(AR_FIN_RECOVERY,0)\n + nvl(CR_RISK_CTERM,0)\n+ nvl(CUST_PMT_DISC,0)\n\
+    + nvl(CUST_REBATE,0)+nvl(CVR_RM,0)\n+ nvl(DIRECT_CREDIT,0)\n+ nvl(FLR_SYNNEX,0)\n\
+    + nvl(RMA,0)\n+ nvl(MOF,0)\n+ nvl(MARGIN_SHARE,0)\n+ nvl(AP_ADJ,0)\n+ nvl(CORPORATE,0)\n\
+    + nvl(HC_PM,0)\n+ nvl(HC_BD,0)\n+ nvl(HC_SALES,0)\n+ nvl(ORDER_OVERHEAD,0)\n+\
+    \ nvl(OTHERS,0)\n+ nvl(MFG_OH,0)\n+ nvl(SFS,0)\n)"
+  physical_source:
+  - type: table
+    measure: ShippedOrderLine.ngmAmt
+  relation_objects:
+  - Vendor
+  - VendorProductLine
+  - Territory
+  - Division
+  - CustomerType
+  - Customer
+  - MasterCustomer
+  - Date
+  - ShippedOrderLine
+  - Part
+  dimensions:
+  - name: vendNo
+    mapping: Vendor.vendNo
+  - name: custNo
+    mapping: Customer.custNo
+  - name: division
+    mapping: Division.division
+  - name: custType
+    mapping: CustomerType.custType
+  - name: salesTerr
+    mapping: Territory.salesTerr
+  - name: mcustNo
+    mapping: MasterCustomer.mcustNo
+  - name: vplNo
+    mapping: VendorProductLine.vplNo
+  filter:
+  - name: custNo
+    mapping: ShippedOrderLine.custNo
+    description: Ship-to customer on order line (line-grain filter)
+  - name: dimVendNo
+    mapping: ShippedOrderLine.dimVendNo
+    description: Fact ETL vendor key on order line
+  - name: dimVplNo
+    mapping: ShippedOrderLine.dimVplNo
+    description: Fact ETL VPL key on order line
+  - name: dimCustType
+    mapping: ShippedOrderLine.dimCustType
+    description: Fact ETL customer type key on order line
+  - name: dimDivision
+    mapping: ShippedOrderLine.dimDivision
+    description: Fact ETL division key on order line
+  - name: dimMcustNo
+    mapping: ShippedOrderLine.dimMcustNo
+    description: Fact ETL master customer key on order line
+  date:
+  - name: dateFlag
+    mapping: Date.dateFlag
+    description: dateFlag
+- name: OPL
+  aliases:
+  - oplgm_amount
+  - Operating Gross Margin
+  description: "opl_amt = ( (nvl(u_price,0)-nvl(if(sales_cost is null,u_cost,sales_cost),0))*nvl(ship_qty,0)\n\
+    \            + nvl(btl_backout_for_opl,0)\n            + nvl(btl_sales_for_opl,0)\
+    \ + nvl(trans_btl_sales_for_opl,0)          \n            + nvl(pdt_for_opl,0)\
+    \        \n            + nvl(cust_pmt_disc_for_opl,0)     \n            + nvl(cust_rebate_for_opl,0)\
+    \ + nvl(cvr_rm_for_opl,0)\n            + nvl(FRT_OUT_LOAD,0)\n            + nvl(frt_out_exp_for_opl,0)\
+    \ + nvl(frt_ob_recovery_for_opl,0)\n            + nvl(MOF,0)\n            + nvl(cust_finance_sales_for_opl,0)\
+    \   \n            + nvl(ar_fin_recovery_for_opl,0)\n            + nvl(CR_RISK_CTERM,0)\n\
+    \            + nvl(FLR_SYNNEX,0)\n            + nvl(DIRECT_CREDIT,0)\n       \
+    \     + nvl(WHOH_PACK ,0)\n            + nvl(rma_for_opl,0)   \n            +\
+    \ nvl(order_overhead_for_opl,0)\n            + nvl(CSGN_EDI_FEE,0)\n         \
+    \   + nvl(FRT_IB_RECOVERY,0)\n            + nvl(OTHERS_SALES,0)\n            +\
+    \ nvl(SFS,0)\n            + (nvl(u_price,0)+nvl(u_sum_expense,0))*nvl(ship_qty,0)\
+    \ \n            )"
+  physical_source:
+  - type: table
+    measure: ShippedOrderLine.oplgmAmt
+  relation_objects:
+  - Customer
+  - ShippedOrderLine
+  - Vendor
+  - Part
+  - VendorProductLine
+  - MasterCustomer
+  - Territory
+  - CustomerType
+  - Division
+  - Date
+  - BDProject
+  filter:
+  - name: custNo
+    mapping: ShippedOrderLine.custNo
+    description: Ship-to customer on order line (line-grain filter)
+  - name: skuNo
+    mapping: ShippedOrderLine.skuNo
+    description: SKU on order line (line-grain filter)
+  - name: dimVendNo
+    mapping: ShippedOrderLine.dimVendNo
+    description: Fact ETL vendor key on order line
+  - name: dimVplNo
+    mapping: ShippedOrderLine.dimVplNo
+    description: Fact ETL VPL key on order line
+  - name: dimCustType
+    mapping: ShippedOrderLine.dimCustType
+    description: Fact ETL customer type key on order line
+  - name: dimDivision
+    mapping: ShippedOrderLine.dimDivision
+    description: Fact ETL division key on order line
+  - name: dimMcustNo
+    mapping: ShippedOrderLine.dimMcustNo
+    description: Fact ETL master customer key on order line
+  date:
+  - name: dateFlag
+    mapping: Date.dateFlag
+- name: GM
+  aliases:
+  - Gross Margin
+  - SALES GM
+  description: |-
+    It reflects the actual costs incurred in the sales process (including known cost deductions).
+    SALES_GM=nvl(ship_qty,0) * (nvl(u_price,0) - coalesce(sales_cost,u_cost,0))
+  physical_source:
+  - type: table
+    measure: ShippedOrderLine.salesGm
+  relation_objects:
+  - Customer
+  - Vendor
+  - Part
+  - VendorProductLine
+  - MasterCustomer
+  - Territory
+  - CustomerType
+  - Division
+  - Date
+  - BDProject
+  - ShippedOrderLine
+  filter:
+  - name: custNo
+    mapping: ShippedOrderLine.custNo
+    description: Ship-to customer on order line (line-grain filter)
+  - name: skuNo
+    mapping: ShippedOrderLine.skuNo
+    description: SKU on order line (line-grain filter)
+  - name: dimVendNo
+    mapping: ShippedOrderLine.dimVendNo
+    description: Fact ETL vendor key on order line
+  - name: dimVplNo
+    mapping: ShippedOrderLine.dimVplNo
+    description: Fact ETL VPL key on order line
+  - name: dimCustType
+    mapping: ShippedOrderLine.dimCustType
+    description: Fact ETL customer type key on order line
+  - name: dimDivision
+    mapping: ShippedOrderLine.dimDivision
+    description: Fact ETL division key on order line
+  - name: dimMcustNo
+    mapping: ShippedOrderLine.dimMcustNo
+    description: Fact ETL master customer key on order line
+  date:
+  - name: dateFlag
+    mapping: Date.dateFlag
+- name: NGM_PCT
+  aliases:
+  - NGM Percent
+  - NGM Rate
+  description: Net Gross Margin Percentage, calculated as total NGM amount divided
+    by total Net Sales
+  physical_source:
+  - type: table
+    measure: ShippedOrderLine.ngmPct
+  relation_objects:
+  - ShippedOrderLine
+  - Customer
+  - Vendor
+  - Part
+  - VendorProductLine
+  - MasterCustomer
+  - Territory
+  - CustomerType
+  - Division
+  - Date
+  - BDProject
+  filter:
+  - name: custNo
+    mapping: ShippedOrderLine.custNo
+    description: Ship-to customer on order line (line-grain filter)
+  - name: skuNo
+    mapping: ShippedOrderLine.skuNo
+    description: SKU on order line (line-grain filter)
+  - name: dimVendNo
+    mapping: ShippedOrderLine.dimVendNo
+    description: Fact ETL vendor key on order line
+  - name: dimVplNo
+    mapping: ShippedOrderLine.dimVplNo
+    description: Fact ETL VPL key on order line
+  - name: dimCustType
+    mapping: ShippedOrderLine.dimCustType
+    description: Fact ETL customer type key on order line
+  - name: dimDivision
+    mapping: ShippedOrderLine.dimDivision
+    description: Fact ETL division key on order line
+  - name: dimMcustNo
+    mapping: ShippedOrderLine.dimMcustNo
+    description: Fact ETL master customer key on order line
+  date:
+  - name: dateFlag
+    mapping: Date.dateFlag

@@ -53,3 +53,9 @@ async def mcp_tools(user_id: str = Depends(get_user_id)):
         ],
         "org_servers": org_mcp_summary(),
     }
+
+
+@router.get("/health")
+async def mcp_health(user_id: str = Depends(get_user_id)):
+    """Per-server MCP reachability (cached ~30s)."""
+    return {"servers": await mcp_manager.health_check(user_id)}

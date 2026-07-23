@@ -13,6 +13,8 @@ from langgraph.errors import GraphRecursionError
 from app.agent.harness.config import recursion_limit
 from app.agent.harness.context import reset_harness_context, set_harness_context
 from app.agent.harness.middleware import ToolGovernanceMiddleware, reset_segment_state
+from app.agent.harness.phases import RunPhaseMiddleware, get_run_phase
+from app.agent.harness.tool_budget import ToolBudgetMiddleware
 from app.agent.streaming import sse, stream_agent_events
 from app.store import paths
 
@@ -91,6 +93,19 @@ def test_task_limit_per_segment() -> None:
     assert "task subagent limit" in str(second.content).lower()
 
 
+def test_blocks_task_when_require_synthesis() -> None:
+    token = set_harness_context(thread_id="t-harness", run_segment=1, require_synthesis=True)
+    try:
+        mw = ToolGovernanceMiddleware()
+        blocked = mw._check(_mock_request("task", {"description": "delegate vertica"}))
+        assert blocked is not None
+        assert "contract-guided" in str(blocked.content).lower()
+        assert "run_query_safely" in str(blocked.content).lower()
+    finally:
+        reset_harness_context(token)
+        set_harness_context(thread_id="t-harness", run_segment=1)
+
+
 def test_stream_emits_continue_prompt_on_recursion_error() -> None:
     agent = MagicMock()
 
@@ -129,3 +144,29 @@ def test_sse_format() -> None:
     out = sse("continue_prompt", {"thread_id": "x"})
     assert out.startswith("event: continue_prompt\n")
     assert "data:" in out
+
+
+def test_contract_skill_budget_forces_synthesis_after_12_sql() -> None:
+    """Simulates the contract skill's `run_query_safely: 12` budget end-to-end."""
+    budget_mw = ToolBudgetMiddleware({"run_query_safely": 12})
+    phase_mw = RunPhaseMiddleware(tool_budgets={"run_query_safely": 12})
+    req = _mock_request("run_query_safely", {"query": "select 1"})
+
+    async def _handler(_request):
+        return SimpleNamespace(content="1 row")
+
+    async def _run_once():
+        blocked_by_budget = await budget_mw.awrap_tool_call(req, _handler)
+        return blocked_by_budget
+
+    for _ in range(12):
+        result = asyncio.run(_run_once())
+        assert "Blocked" not in str(result.content)
+
+    # 13th call is blocked by the tool budget itself.
+    result_13 = asyncio.run(_run_once())
+    assert "Blocked" in str(result_13.content)
+
+    # RunPhase sees the same exhausted count and forces synthesize.
+    asyncio.run(phase_mw.awrap_tool_call(req, _handler))
+    assert get_run_phase("t-harness", 1) == "synthesize"

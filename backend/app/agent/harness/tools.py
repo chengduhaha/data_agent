@@ -193,3 +193,21 @@ def make_wkb_query_tool() -> BaseTool:
         ),
         args_schema=WkbQueryInput,
     )
+
+
+def wkb_available() -> bool:
+    """True when the current org bundle ships a WKB retrieval index."""
+    return ORG_KNOWLEDGE_DIR.exists()
+
+
+# Registry of org/extension tool factories keyed by the tool name a skill can
+# declare in its `extensions.tools` frontmatter list. Agent Core never
+# hardcodes these names; `factory.py` only instantiates a tool here when a
+# non-disabled skill's manifest requests it (see `CapabilityRegistry`).
+EXTENSION_TOOL_FACTORIES: dict[str, Any] = {
+    "wkb_query": make_wkb_query_tool,
+}
+
+EXTENSION_TOOL_AVAILABILITY: dict[str, Any] = {
+    "wkb_query": wkb_available,
+}

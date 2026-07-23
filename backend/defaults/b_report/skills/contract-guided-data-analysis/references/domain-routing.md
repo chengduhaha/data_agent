@@ -36,7 +36,6 @@ Read `/knowledge/org/source/contracts/{domain}/README.md` when domain is ambiguo
 source/contracts/{domain}/
   domain-knowledge.md
   metric-index.md
-  eval/golden_cases.md          # optional; not in all domains
 ```
 
 Table-level detail is read from `/knowledge/org/target/knowledgebase/{domain}/{stem}.md`.

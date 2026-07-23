@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
+import time
 from typing import Any
 
 from langchain_core.tools import BaseTool
 
 from app.agent.harness.config import load_harness_config
+from app.org.mcp import org_mcp_allowed_tools
 from app.store.io import load_effective_mcp_config
 from app.store.schemas import McpConfig, McpServerConfig
 
@@ -19,20 +22,22 @@ except ImportError:  # pragma: no cover
     MultiServerMCPClient = None  # type: ignore[misc, assignment]
 
 
-# Vertica MCP tools exposed to the agent (execution-only; metadata tools filtered).
-VERTICA_ALLOWED_TOOLS = frozenset({
-    "run_query_safely",
-    "execute_query_paginated",
-})
-
-
 class McpManager:
-    """Cache MultiServerMCPClient instances per user and expose tools."""
+    """Cache MultiServerMCPClient instances per user and expose tools.
 
-    def __init__(self) -> None:
+    Adds basic MCP resilience (LibreChat-style): bounded retries when the
+    initial `get_tools()` call fails (e.g. transient gateway hiccup) and a
+    lightweight health-check cache so Settings can show server status
+    without re-connecting on every page load.
+    """
+
+    def __init__(self, *, max_retries: int = 2, retry_backoff: float = 0.5) -> None:
         self._clients: dict[str, Any] = {}
         self._tool_cache: dict[str, list[BaseTool]] = {}
         self._config_fingerprint: dict[str, str] = {}
+        self._health_cache: dict[str, dict[str, Any]] = {}
+        self.max_retries = max_retries
+        self.retry_backoff = retry_backoff
 
     def _fingerprint(self, cfg: McpConfig) -> str:
         return cfg.model_dump_json()
@@ -108,32 +113,75 @@ class McpManager:
         if client is None:
             self._tool_cache[user_id] = []
             return []
-        try:
-            tools = await client.get_tools()
-        except Exception:
-            logger.exception("Failed to load MCP tools for user=%s", user_id)
+
+        tools: list[BaseTool] = []
+        last_exc: Exception | None = None
+        for attempt in range(self.max_retries + 1):
+            try:
+                tools = await client.get_tools()
+                break
+            except Exception as exc:  # pragma: no cover - network path
+                last_exc = exc
+                if attempt < self.max_retries:
+                    logger.warning(
+                        "MCP get_tools failed for user=%s (attempt %d/%d): %s",
+                        user_id,
+                        attempt + 1,
+                        self.max_retries + 1,
+                        exc,
+                    )
+                    await asyncio.sleep(self.retry_backoff * (attempt + 1))
+                else:
+                    logger.exception("MCP get_tools exhausted retries for user=%s", user_id)
+        if last_exc is not None and not tools:
             tools = []
+
         tools = self._filter_tools(tools, cfg)
         self._tool_cache[user_id] = list(tools)
         return self._tool_cache[user_id]
 
     def _filter_tools(self, tools: list[BaseTool], cfg: McpConfig) -> list[BaseTool]:
-        """Hide Vertica metadata/discovery tools when a Vertica MCP server is enabled."""
-        has_vertica = any(
-            server.enabled and "vertica" in name.lower()
-            for name, server in cfg.mcpServers.items()
-        )
-        if not has_vertica:
+        """Apply each enabled server's `allowed_tools` manifest allowlist, if declared."""
+        allowlists: dict[str, frozenset[str]] = {}
+        for name, server in cfg.mcpServers.items():
+            if not server.enabled:
+                continue
+            allowed = org_mcp_allowed_tools(name)
+            if allowed:
+                allowlists[name] = allowed
+        if not allowlists:
             return list(tools)
+
         kept: list[BaseTool] = []
         for tool in tools:
             name = getattr(tool, "name", "") or ""
-            base = name.split("__")[-1] if "__" in name else name
-            if base not in VERTICA_ALLOWED_TOOLS:
-                logger.info("MCP tool filtered (vertica allowlist): %s", name)
+            server_prefix, _, base = name.partition("__") if "__" in name else ("", "", name)
+            base = base or name
+            matched_server = server_prefix or next(iter(allowlists), None)
+            allowed = allowlists.get(matched_server) if matched_server else None
+            if allowed is not None and base not in allowed:
+                logger.info("MCP tool filtered (manifest allowlist): %s", name)
                 continue
             kept.append(tool)
         return kept
+
+    async def health_check(self, user_id: str, *, ttl: float = 30.0) -> dict[str, Any]:
+        """Cached per-server reachability summary for Settings → MCP."""
+        now = time.monotonic()
+        cached = self._health_cache.get(user_id)
+        if cached and now - cached.get("_checked_at", 0) < ttl:
+            return {k: v for k, v in cached.items() if k != "_checked_at"}
+
+        cfg = await load_effective_mcp_config(user_id)
+        result: dict[str, Any] = {}
+        for name, server in cfg.mcpServers.items():
+            if not server.enabled:
+                result[name] = {"ok": False, "error": "disabled"}
+                continue
+            result[name] = await self.test_connection(server)
+        result["_checked_at"] = now
+        self._health_cache[user_id] = result
+        return {k: v for k, v in result.items() if k != "_checked_at"}
 
     async def test_connection(self, server: McpServerConfig) -> dict[str, Any]:
         if MultiServerMCPClient is None:

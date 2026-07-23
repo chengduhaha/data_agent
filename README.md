@@ -31,16 +31,74 @@ If upgrading from an older layout:
 ./scripts/migrate_workspace.sh
 ```
 
+## Core vs Org Pack
+
+Data Agent is split into two layers so the platform stays usable without any
+enterprise content installed:
+
+| Layer | What it is | Assumes org content? |
+|-------|-----------|----------------------|
+| **Agent Core** | `backend/app/agent/`, `backend/app/store/`, `backend/app/api/`, the harness middleware chain, streaming/SSE protocol, and the chat UI shell | **No.** Core never hardcodes `wkb_query`, Vertica, or `contract-guided-data-analysis`. |
+| **Org Pack** (extension) | `backend/defaults/b_report/` — skills, a WKB knowledge index, rule fragments, and an MCP server manifest | Optional. Swappable via `DATA_AGENT_ORG_BUNDLE`; can be empty. |
+
+**How the two connect** — `backend/app/agent/extensions/` (`CapabilityRegistry`):
+every extra tool, MCP server, rule fragment, or harness budget a skill needs is
+declared in that skill's own `SKILL.md` frontmatter (see
+[`extensions/manifest.py`](backend/app/agent/extensions/manifest.py)):
+
+```yaml
+---
+name: contract-guided-data-analysis
+extensions:
+  rules: [/rules/org/AGENTS.contract-skill.md]
+  tools: [wkb_query]
+  mcp: [gateway-vertica-prod]
+harness:
+  phases: [research, execute, synthesize]
+  tool_budgets: { run_query_safely: 12, wkb_query: 8 }
+  require_synthesis: true
+---
+```
+
+`factory.py` calls `CapabilityRegistry.resolve(...)` and only instantiates
+`wkb_query` (or connects `gateway-vertica-prod`) when a non-disabled skill
+actually asks for it — with **zero org bundle** (`DATA_AGENT_ORG_BUNDLE=`
+unset/empty, or the skill disabled via Settings), the agent runs with builtin
+tools + any user-added MCP servers only.
+
+**Swapping org packs**: set `DATA_AGENT_ORG_BUNDLE=<name>` and drop a
+`backend/defaults/<name>/` directory with the same shape as `b_report/`
+(`skills/`, `workspace/`, `fragments/`, `extensions/*.yaml`, and an optional
+top-level `pack.manifest.yaml` describing the bundle). See
+[`backend/defaults/b_report/pack.manifest.yaml`](backend/defaults/b_report/pack.manifest.yaml)
+for a worked example, and
+[`backend/defaults/b_report/extensions/vertica_mcp.yaml`](backend/defaults/b_report/extensions/vertica_mcp.yaml)
+for the generic `${ENV_VAR}` MCP server template consumed by
+[`app/org/mcp.py`](backend/app/org/mcp.py).
+
+**User-level overrides** (`UserConfig`, editable from Settings):
+
+| Field | Effect |
+|-------|--------|
+| `disabled_skills` | Hides a skill from the slash menu and excludes its `extensions.tools`/`extensions.mcp` from the agent. |
+| `disabled_mcp_servers` | Excludes an MCP server (including org-managed ones) at agent-build time. |
+| `feature_flags` | e.g. `show_sql_appendix`, `extended_run_default`. |
+
+Debug endpoint: `GET /api/capabilities` returns exactly what was resolved for
+the current user (tools, MCP servers, rule fragments, harness budgets).
+
 ## Storage model
 
 ```
 data_agent/
   backend/
     skills_builtin/           # platform built-in skills (read-only)
-    defaults/b_report/        # organization shared bundle (read-only)
+    defaults/b_report/        # organization shared bundle (read-only), a.k.a. "Org Pack"
+      pack.manifest.yaml      # bundle metadata (skills, extensions, required env)
       skills/
       workspace/              # org knowledge (mounted as /knowledge/org/)
       fragments/              # org rules (mounted as /rules/org/)
+      extensions/             # MCP server manifests (e.g. vertica_mcp.yaml)
     app/config/llm_catalog.json
   workspace/
     {userid}/                 # personal isolated workspace
@@ -99,6 +157,7 @@ create_deep_agent(...)
 - Auth: `/api/auth/*`
 - Chat: `/api/chat/stream`, `/api/chat/resume`, `/api/chat/threads`
 - Settings: `/api/config`, `/api/mcp`, `/api/skills`, `/api/rules`, `/api/files`, …
+- Capabilities (debug/UI): `/api/capabilities` — tools/MCP/rules/harness actually resolved for the current user
 
 Interactive docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 

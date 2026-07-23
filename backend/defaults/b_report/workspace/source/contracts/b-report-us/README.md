@@ -10,13 +10,14 @@ US B Report (distributor P&L / profitability) table contracts, domain knowledge,
 
 ```
 source/contracts/b-report-us/
-├── domain-knowledge.md    # Entity ontology, disambiguation rules, layer naming
-├── golden-questions.md    # Representative business questions
-├── metric-index.md        # Metric catalog and definitions
-├── tables/                # Per-table v2 contracts (101 tables)
+├── domain-knowledge.md              # Entity ontology, disambiguation rules, layer naming
+├── order-type-pnl-adjustments.md    # Virtual/negative order types for P&L allocation
+├── golden-questions.md              # Representative business questions
+├── metric-index.md                  # Metric catalog and definitions
+├── tables/                          # Per-table v2 contracts (101 tables)
 └── eval/
-    ├── golden_cases.yaml  # Golden evaluation cases (machine-readable)
-    └── golden_cases.md    # Golden evaluation cases (human-readable)
+    ├── golden_cases.yaml            # Golden evaluation cases (machine-readable)
+    └── golden_cases.md              # Golden evaluation cases (human-readable)
 ```
 
 Maintenance scripts from the source package live under [`tools/ingest/b-report-us/scripts/`](../../../tools/ingest/b-report-us/scripts/).
@@ -31,6 +32,7 @@ Maintenance scripts from the source package live under [`tools/ingest/b-report-u
 | Need | Read |
 |------|------|
 | Vendor vs customer vs VPL vs territory disambiguation | `domain-knowledge.md` |
+| Virtual/negative order types and Adj P&L allocation | `order-type-pnl-adjustments.md` |
 | Table grain, columns, filters | `tables/<table_stem>.md` |
 | Metric meaning | `metric-index.md` |
 | POS physical join paths | `source/ref/pos/table relationship.txt` |

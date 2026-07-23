@@ -1,61 +1,180 @@
 # DIM: Shared calendar dimension for B Report date_flag and fiscal joins (`dim_us.dim_pub_date`)
 
-**Domain:** b-report-us  
-**Source contract:** `source/contracts/b-report-us/tables/dim_pub_date.md`  
-**Knowledgebase path:** `target/knowledgebase/b-report-us/dim_pub_date.md`
+- artifact_type: etl_table
+- artifact_id: dim_us.dim_pub_date
+- domain: b-report-us
+- one_line_purpose: Shared calendar dimension for B Report date_flag and fiscal joins
+- layer_type: DIM
+- source_kind: contract_v2
+- evidence_source: source/contracts/b-report-us/tables/dim_pub_date.md
+- knowledgebase_path: target/knowledgebase/b-report-us/dim_pub_date.md
+- contract_source: source/contracts/b-report-us/tables/dim_pub_date.md
 
-## Business purpose
+---
 
+## L1 Data Foundation
+
+### Identity and physical mapping
+- **Table:** `dim_us.dim_pub_date`
+- **Layer type:** DIM
+- **Canonical / derived:** Canonical shared dimension (B Report contract catalog)
+- **Owner team:** Disty analytics / POS reporting
+
+### Grain, scope, exclusions
+- **Grain:** dimension key level
+- **Scope:** US POS reporting (`dim_us` baseline)
+- **Partition:** `date_flag` — business date filter per B Report contract.
+- **Natural key:** `key`, `level`
+- **Exclusions:** Component lines (`order_line_type = 'Comp'`) excluded by default in standard POS revenue reports; credit order_type 114 excluded unless adjustment report
+
+### Cross-engine presence
+| Engine | Present | Canonical FQN | Notes |
+|--------|---------|---------------|-------|
+| Hive | yes | `dim_${country}.dim_pub_date` | Documented in B Report contract v2 |
+| Vertica | yes | `dim_us.dim_pub_date` | Contract marks Vertica verified |
+
+### Physical schema reference
+| Field | Value |
+|-------|-------|
+| **Authoritative catalog** | WKB L1 storage seed (not duplicated in this file) |
+| **entity_id** | `dim_us.dim_pub_date` |
+| **l1_catalog_seed** | `target/storage/wkb/snapshots/_snapshot_id_template/l1_catalog/vertica_dim_us_dim_pub_date.json` |
+| **column_count** | 32 |
+| **partition_keys** | `date_flag` |
+| **ddl_source** | B Report contract catalog — `source/contracts/b-report-us/tables/dim_pub_date.md` |
+| **retrieval** | `python -m tools.wkb.indexing.run_query --query "b-report-us dim_pub_date schema" --intent find_table_schema` |
+
+### Lineage
+- **upstream:** Curated DWD/DIM/ODS load jobs in disty common pipeline — `source/contracts/b-report-us/tables/dim_pub_date.md:L1`
+- **downstream:** Vertica RDS POS report scripts (`rds_*_rtv`), ad-hoc POS exports — `source/contracts/b-report-us/tables/dim_pub_date.md:L1`
+
+### Freshness and load path
+| Item | Value |
+|------|-------|
+| Load pattern | Daily incremental by `date_flag` |
+| Schedule | Not documented in repository |
+| Expected completion | 05:00-07:30 PT (daily disty load dependency chain) |
+
+---
+
+## L2 Declarative Knowledge
+
+### Business purpose
 Shared calendar dimension for B Report date_flag and fiscal joins
 
-This document is derived from the B Report US table contract catalog. ETL script lineage for load jobs is **not documented in this repository** unless listed under verified dependencies below.
+This Knowledgebase entry is derived from the B Report US table contract catalog (`contract_v2`). ETL SQL for the pub_dw dimension load is **not in the b-report-us Bitbucket ETL snapshot**; see cross-domain Knowledgebase references when listed under Related scripts.
 
----
-
-## What the process does (high level)
-
-| Stage | Business meaning |
-|-------|------------------|
-| **Catalog object** | `dim_us.dim_pub_date` — DIM layer table used in US B Report analytics (`US B Report baseline`). |
-| **Consumption** | Queried from Vertica/Hive for profitability, P&L, and operating performance reporting. |
-
-**Parameters:** Country schema pattern `dim_us` (US baseline documented as `dw_us` / `dm_us` / `dim_us`).
-
----
-
-## Who it helps and how
-
+### Audience and use cases
 | Audience | How they benefit |
 |----------|-----------------|
 | **B Report / P&L analytics** | Vertica RDS POS custom reports (499 scripts scanned: US 367, CA 124, MX 7, BR 1) |
-| **Sales / PM / finance** | Shipped-order metrics, margin components, and dimension attributes at documented grain. |
-| **Data engineering** | Stable table contract for joins to B Report hub `dw_us.dwd_disty_brpt_orders_pl_etl_mi`. |
+| **Sales / PM / finance** | Lookup attributes joined to `dw_us.dwd_disty_brpt_orders_pl_etl_mi` and serving DM/DWS tables. |
+| **Data engineering** | Stable dimension contract for join keys and attribute definitions. |
+
+### Identifier search profile
+- Primary lookup keys: `date_flag`
+- Join hub facts on documented key columns; use `date_flag` snapshot partitions on `_df` variants when applicable.
+
+### Time field semantics
+- **`date_flag`:** primary filter when table is partitioned; otherwise use hub `date_flag` for as-of reporting.
+- **Period semantics:** per ETL partition scope.
+
+
+
+
+
+### Metrics served
+
+| Category | Column | Logical metric | Business reading |
+|----------|--------|----------------|------------------|
+| Governed profitability | `sales` | `net_sales` | net_sales at unspecified grain |
+
+### Metric serving map
+
+**Formula authority:** [`source/contracts/b-report-us/metric-index.md`](../../source/contracts/b-report-us/metric-index.md)
+
+| Logical metric | Period scope | Physical column | Formula reference |
+|----------------|--------------|-----------------|-------------------|
+| `net_sales` | unspecified | `sales` | `source/contracts/b-report-us/metric-index.md#net_sales` |
+
+### etl_metrics
+
+Formulas below are sourced from [`source/contracts/b-report-us/metric-index.md`](../../source/contracts/b-report-us/metric-index.md) for logical metrics present on this table.
+Index formulas are canonical: this enricher copies them into KB and never overwrites `final_effective_formula_sql` in the metric-index.
+
+#### `net_sales`
+- **Source:** [metric-index.md](../../source/contracts/b-report-us/metric-index.md#net_sales)
+- **Business definition:** Shipped quantity times unit price plus per-unit sum expense (net of returns scope per order_type filter).
+```sql
+nvl(ship_qty,0) * (nvl(u_price,0) + nvl(u_sum_expense,0))
+```
 
 ---
 
-## Business query tables (Vertica)
+## L3 Procedural Knowledge
 
-| Role | Hive object | Vertica object | Sync mode | Evidence | MCP verified |
-|------|-------------|----------------|-----------|----------|--------------|
-| **Query for reporting** | `dim_us.dim_pub_date` | `dim_us.dim_pub_date` | overwrite / incremental | B Report contract `dim_pub_date.md:L1` | yes (B Report contract v2 — Vertica verified in source catalog) |
-| **Hive alternative** | `dim_us.dim_pub_date` | same as reporting table | - | B Report contract cross-engine note | - |
-| **ETL internal** | n/a | n/a | - | ETL not in wiki repo | - |
+### Query and routing rules
+- Prefer this table when POS report requires its attributes at documented grain.
+- For metric questions on sales amount/qty, route to hub unless SPA/SCM enrichment explicitly needed.
 
-Business users should query **`dim_us.dim_pub_date`** in Vertica for B Report reporting aligned to this contract.
+### Dimension join patterns
+- See domain-knowledge.md join graph when used with POS hub.
+
+### Key filters and ETL business logic
+- Standard POS filters inherited from domain-knowledge.md when joining to hub.
+
+### Standard time-filter SQL
+```sql
+-- See contract L3 Standard Time-Filter SQL in source/contracts/b-report-us/tables/dim_pub_date.md
+```
+
+### End-to-end flow
+1. Upstream DIM/ODS load populates `dim_us.dim_pub_date` (ETL not in b-report-us Bitbucket snapshot).
+2. B Report fact and serving jobs join this dimension for attribute enrichment.
+3. Vertica consumers query `dim_us.dim_pub_date` for reporting.
+
+```mermaid
+flowchart LR
+  upstream["Upstream DIM/ODS loads"]
+  dim["dim_us.dim_pub_date"]
+  hub["dw_us.dwd_disty_brpt_orders_pl_etl_mi"]
+  dm["B Report DM/DWS serving"]
+  upstream --> dim
+  dim --> hub
+  hub --> dm
+```
+
+### Base tables register
+| Object | Role in this job |
+|--------|------------------|
+| `dim_us.dim_pub_date` | Primary dimension catalog object (contract v2) |
+
+### Step-by-step logic
+N/A — catalog-only. Procedural ETL steps for this pub_dw dimension are not present in `source/contracts/b-report-us/bitbicket_etl/`. See cross-domain Knowledgebase paths under L6 Related scripts when available.
+
+### Sentinel and code values
+| Value | Type | Meaning |
+|-------|------|---------|
+| — | — | See contract `domain-knowledge.md` and `metric-index.md` for coded fields |
 
 ---
 
-## Grain and keys
+## L4 Validation
 
-- **Grain:** See natural key columns from B Report contract column catalog.
-- **Partition:** `date_flag` — business date filter for B Report reporting (per contract).
-- **Natural key:** Not documented in repository
-- **Exclusions (reporting):** None documented in B Report contract.
+### Resolved partition value
+| Step | Source | How `date_flag` is determined |
+|------|--------|-----------------------------------------------------|
+| 1 | B Report contract L1 | `date_flag` — business date filter per B Report contract. |
 
----
+**Plain language:** Partitioned dimension — filter reports on `date_flag` per contract.
 
-## Validation SQL (Vertica)
+### Data quality checks
+- Verify grain keys (`order_no`, `order_type`, `order_line_no`) not null for fact joins when applicable.
+- For one-to-many partners (SPA/SCM, serial), validate row counts before joining to hub.
+- Hub: `extend_net_price` should align with `(unit_net_price * ship_qty)` within rounding tolerance when both populated.
+- Validate join cardinality to POS hub before production report use.
 
+### Validation SQL
 ```sql
 -- 1) Row count by partition
 SELECT date_flag, COUNT(*) AS row_cnt
@@ -64,158 +183,94 @@ WHERE date_flag = '${partition_value}'
 GROUP BY date_flag;
 
 -- 2) Metric sum by business dimension (top N)
-SELECT order_no, COUNT(*) AS row_cnt
+SELECT key, COUNT(*) AS row_cnt
 FROM dim_us.dim_pub_date
 WHERE date_flag = '${partition_value}'
-GROUP BY order_no
+GROUP BY key
 ORDER BY COUNT(*) DESC
 LIMIT 20;
 
 -- 3) Grain duplicate check
-SELECT order_no, order_type, order_line_no, date_flag, COUNT(*) AS cnt
+SELECT key, level, order_line_no, date_flag, COUNT(*) AS cnt
 FROM dim_us.dim_pub_date
 WHERE date_flag = '${partition_value}'
-GROUP BY order_no, order_type, order_line_no, date_flag
+GROUP BY key, level, order_line_no, date_flag
 HAVING COUNT(*) > 1;
 ```
 
-Replace `${partition_value}` with the resolved business date or period from the report scope.
-
----
-
-## Data you can fetch and use downstream
-
-### Core measures
-
-- `holiday` — holiday
-- `payroll` — payroll
-- `sales` — sales
-
-### Dimension and key columns
-
-- `date_flag` — date flag
-- `u_version` — u version
-- `q` — q
-- `fq` — fq
-- `m` — m
-- `w` — w
-- `d` — d
-- `year` — year
-- `qtr` — qtr
-- `month` — month
-- `week` — week
-- `day` — day
-- `doy` — doy
-- `fyear` — fyear
-- `fqtr` — fqtr
-- `fdoy` — fdoy
-- `dow` — dow
-- `dname` — dname
-- `bonuswk` — bonuswk
-- `comment` — comment
-- `weekday` — weekday
-- `week_flag` — week flag
-- `month_flag` — month flag
-- `quarter_flag` — quarter flag
-- `f_quarter_flag` — f quarter flag
-- `month_name` — month name
-- `week_flag2` — week flag2
-- `w2` — w2
-- `week2` — week2
-
----
-
-## Metrics business users typically care about
-
-When exposing this table to the business, lead with measure and key columns from the B Report contract catalog (see **Data you can fetch** above). See also `source/contracts/b-report-us/metric-index.md` for metric definitions.
-
----
-
-## End-to-end flow (summary)
-
-**Target table:** `dim_us.dim_pub_date`  
-**Load pattern:** Not documented in repository
-
-1. Upstream: Curated DWD/DIM/ODS load jobs in disty common pipeline
-2. Table available in Hive and Vertica for B Report consumption.
-3. Downstream: Vertica RDS POS report scripts (`rds_*_rtv`), ad-hoc POS exports
-
-```mermaid
-flowchart LR
-  upstream[Upstream B Report or DIM loads]
-  tgt["dim_us.dim_pub_date"]
-  brpt[B Report consumers]
-  upstream --> tgt
-  tgt --> brpt
-```
-
----
-
-## Base tables register
-
-| Object | Role in this job |
-|--------|-----------------|
-| `dim_us.dim_pub_date` | Primary catalog table documented from B Report contract |
-
----
-
-## Step-by-step logic
-
-Not applicable — this Knowledgebase entry is a **table catalog** converted from B Report contract v2. ETL step-by-step logic is not present in this wiki repository.
-
-**Default analysis filters (important):**
-
-- By default, do **not** apply `dim_us.dim_pub_order_type.sales = 'Y'`, `virtual_type = 0`, or `order_type = 1`.
-- Apply the order-type / shipped-order join (`sales = 'Y'`) **only when the question explicitly says shipped orders only** (or equivalent).
-- Apply `virtual_type = 0` or a specific `order_type` **only when the question explicitly requests that scope**.
-- For `dw_us.dwd_disty_brpt_orders_pl_etl_mi` profitability pulls, still apply `segment_exclude = 'N'` (see `source/ref/b-report-us/special_logic.txt`).
-- Technical sync predicates (partition/date load guards) are not business filters.
-
-- Standard POS filters inherited from domain-knowledge.md when joining to hub.
-
----
-
-## Caveats for interpretation
-
-- Derived from B Report contract v2; ETL SQL and Azkaban flow names are not verified in this repository unless cited below.
-- US schema `dim_us` documented as baseline.
-- Entity disambiguation (vendor vs customer vs VPL): see `source/contracts/b-report-us/domain-knowledge.md`.
-- Verify grain keys (`order_no`, `order_type`, `order_line_no`) not null for fact joins when applicable.
-- For one-to-many partners (SPA/SCM, serial), validate row counts before joining to hub.
-- Hub: `extend_net_price` should align with `(unit_net_price * ship_qty)` within rounding tolerance when both populated.
+### Caveats for interpretation
+- Contract-derived catalog; pub_dw ETL script path not verified in b-report-us Bitbucket snapshot.
+- Cross-engine parity: compare Hive vs Vertica row counts when auditing.
 - Validate join cardinality to POS hub before production report use.
 
+### Conflicts and open questions
+- pub_dw Bitbucket ETL path: Not documented in repository (dimension maintained in pub_dw project).
+- hive2vertica sync job file:line evidence: Not documented in repository.
+
 ---
 
-## Dependencies and notes (verified only)
+## L5 Runtime View
 
-### Upstream objects (verified)
+### Query path and engine preference
+| Role | Hive object | Vertica object | Sync mode | Evidence | MCP verified |
+|------|-------------|----------------|-----------|----------|--------------|
+| **Query for reporting** | `dim_us.dim_pub_date` | `dim_us.dim_pub_date` | overwrite / incremental | `source/contracts/b-report-us/tables/dim_pub_date.md:L5` | yes |
+| **Hive alternative** | `dim_us.dim_pub_date` | same as reporting table | — | B Report contract | — |
 
+- Primary consumption: Vertica (`dim_us.dim_pub_date`)
+- Hive available for reconciliation and Spark-side debugging
+
+### Access constraints
+- Standard disty US schema access policies apply
+
+### Query risk profile
+| Field | Value |
+|-------|-------|
+| requires_date_predicate | yes |
+| scan_risk_tier | low |
+
+---
+
+## L6 Access and Consumption
+
+### Primary consumers and use cases
+| Consumer | Use case |
+|----------|----------|
+| Vertica RDS POS custom reports (499 scripts scanned: US 367, CA 124, MX 7, BR 1) | B Report / POS dimension enrichment |
+| Vendor/customer POS exports, SPA/SCM claim detail, serial/RMA tracing reports | B Report / POS dimension enrichment |
+
+### Representative query patterns
+```sql
+SELECT *
+FROM dim_us.dim_pub_date
+LIMIT 100;
+```
+
+### Dependencies and notes
+
+#### Upstream objects (verified)
 | Object | Usage | Evidence |
 |--------|-------|----------|
-| B Report contract source | Table metadata, grain, columns | `source/contracts/b-report-us/tables/dim_pub_date.md` |
+| B Report contract | Table metadata, grain, columns | `source/contracts/b-report-us/tables/dim_pub_date.md` |
 
-### Downstream consumers (verified)
-
+#### Downstream consumers (verified)
 | Object / script | Evidence |
 |-----------------|----------|
-| B Report consumers | `dim_pub_date.md:L6` — Vertica RDS POS report scripts (`rds_*_rtv`), ad-hoc POS exports |
+| B Report hub and serving tables | `source/contracts/b-report-us/tables/dim_pub_date.md:L6` — Vertica RDS POS report scripts (`rds_*_rtv`), ad-hoc POS exports |
 
-### Operational detail (verified)
-
-- Freshness: Not documented in repository
+#### Operational detail (verified)
+- Load pattern: Daily incremental by `date_flag` — `source/contracts/b-report-us/tables/dim_pub_date.md:L1`
 - Column count: 32 (B Report contract catalog)
 
-### Not documented in repository
-
-- ETL SQL load script and Azkaban `.flow` for this table
+#### Not documented in repository
+- pub_dw ETL SQL and Azkaban `.flow` for this dimension
 - hive2vertica sync job file:line evidence
 - Schedule, owner, SLA
 
-### Related scripts (verified)
-
-None identified in repository.
+#### Related scripts (verified)
+- `dim_pub_date.md` — B Report contract source — `source/contracts/b-report-us/tables/dim_pub_date.md`
+- `target/knowledgebase/common/dim_pub_date/dim_pub_date.md` — cross-domain Knowledgebase entry for same table object
 
 ---
 
-*Document generated from B Report contract `source/contracts/b-report-us/tables/dim_pub_date.md`.*
+*Document generated from `source/contracts/b-report-us/tables/dim_pub_date.md` (contract_v2).*

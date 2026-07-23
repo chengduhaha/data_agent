@@ -11,10 +11,26 @@ REPO_ROOT = BACKEND_ROOT.parent
 APP_ROOT = BACKEND_ROOT / "app"
 WORKSPACE_ROOT = REPO_ROOT / "workspace"
 BUILTIN_SKILLS_DIR = BACKEND_ROOT / "skills_builtin"
-ORG_BUNDLE_DIR = BACKEND_ROOT / "defaults" / "b_report"
-ORG_SKILLS_DIR = ORG_BUNDLE_DIR / "skills"
-ORG_KNOWLEDGE_DIR = ORG_BUNDLE_DIR / "workspace"
-ORG_FRAGMENTS_DIR = ORG_BUNDLE_DIR / "fragments"
+
+# The "org bundle" (a.k.a. Org Pack) is an optional, swappable extension directory.
+# Core code must not assume any particular bundle (e.g. b_report/Vertica) exists.
+# DATA_AGENT_ORG_BUNDLE selects the bundle name under backend/defaults/; set it to
+# an empty string to run with zero org bundle (builtin tools + user MCP only).
+DATA_AGENT_ORG_BUNDLE = os.getenv("DATA_AGENT_ORG_BUNDLE", "b_report").strip()
+ORG_BUNDLE_DIR = (
+    BACKEND_ROOT / "defaults" / DATA_AGENT_ORG_BUNDLE if DATA_AGENT_ORG_BUNDLE else None
+)
+ORG_SKILLS_DIR = ORG_BUNDLE_DIR / "skills" if ORG_BUNDLE_DIR else BACKEND_ROOT / "_no_org_skills"
+ORG_KNOWLEDGE_DIR = (
+    ORG_BUNDLE_DIR / "workspace" if ORG_BUNDLE_DIR else BACKEND_ROOT / "_no_org_knowledge"
+)
+ORG_FRAGMENTS_DIR = (
+    ORG_BUNDLE_DIR / "fragments" if ORG_BUNDLE_DIR else BACKEND_ROOT / "_no_org_fragments"
+)
+ORG_EXTENSIONS_DIR = (
+    ORG_BUNDLE_DIR / "extensions" if ORG_BUNDLE_DIR else BACKEND_ROOT / "_no_org_extensions"
+)
+ORG_PACK_MANIFEST_PATH = ORG_BUNDLE_DIR / "pack.manifest.yaml" if ORG_BUNDLE_DIR else None
 # Legacy location (pre-migration); used only by migrate_workspace.sh
 LEGACY_USERS_ROOT = APP_ROOT / "users"
 

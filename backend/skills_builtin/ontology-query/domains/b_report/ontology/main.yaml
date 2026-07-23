@@ -1,0 +1,4 @@
+project_domain: b_report
+version: "1.0.44"
+description: >
+  TD SYNNEX NextGen B Report (Distributor Business P&L / Profitability Analysis). v5.0.0: Unified Connected Domain Model. Ensures zero isolated objects by linking all personnel (Sales, PM, Buyer), projects (BD), and master data (Customer, Product, Vendor) through the ShippedOrderLine hub.

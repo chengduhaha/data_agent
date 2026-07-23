@@ -10,6 +10,7 @@ Classify each request into one of:
 - Ranking/top-N
 - Diagnostic slice (dimension breakdown)
 - Attribution/root-cause analysis (why changed, what drove movement)
+- RDS report generation (`rds_report_generation` — report SQL aimed at `rds_tmp`)
 - Unsupported/out-of-KB
 
 If category is unsupported/out-of-KB, reject.
@@ -20,27 +21,108 @@ Intent routing policy:
    - focus on direct metric retrieval/comparison/trend/ranking output;
    - keep response in the standard three-section business format (see Output Contract).
 2. Attribution questions:
-   - do not stop at one-layer descriptive comparison;
-   - perform multi-angle exploration and progressive drill-down until:
+   - if breakdown dimension / driver angle is missing and the pack has no certified default driver set → ask clarification first ([Ambiguity Handling](#ambiguity-handling)); do not invent angles;
+   - once the angle is resolved (user or KB default), do not stop at one-layer descriptive comparison;
+   - perform progressive drill-down on the resolved angle(s) until:
      - a most likely root cause is identified with evidence, or
      - KB boundary is reached and further causal confirmation is unsupported.
+3. RDS report generation (`rds_report_generation`):
+   - follow [`rds-report-sql.md`](./rds-report-sql.md) and `.cursor/rules/rds-*.mdc` before compile;
+   - primary deliverable is RDS-shaped SQL (fenced in user reply + `target/analysis/*.sql`);
+   - do **not** apply this path for KPI-only answers that happen to use an RDS pack.
 
 ## Ambiguity Handling
 
-Ask clarification only when ambiguity materially changes the answer and cannot be resolved by the active knowledge pack.
+Ask clarification **before generating analysis output** when the question is underspecified for **local routing** — i.e. the agent cannot decide analysis scope (what to break down, what business object "item" means, which entity family, which time plan) from the user wording plus KB defaults.
+
+Do **not** invent a routing choice and proceed when that choice would materially change the answer shape.
+
+Gate: ask only when ambiguity is about **business analysis intent / scope**. Do **not** ask the user to supply facts the active knowledge pack is supposed to own (see **Do not ask the user** below).
+
+### When clarification is required (routing underspecified)
+
+Ask a concise clarification and stop before evidence SQL / analysis artifact when **any** of the following holds and KB does not certify a safe default for that slot:
+
+| Gap | Clarification target | Typical ask |
+|-----|----------------------|-------------|
+| Variance / driver / attribution without a breakdown angle | `breakdown_dimension` | Which dimension to explain the move by (e.g. customer, vendor, P&L item, VPC, product) |
+| Vague business grouping word ("item", "line", "category", "component") with multiple KB-plausible meanings | `grouping_definition` | What "item" (or similar) means in this question |
+| Business term / acronym / project label that cannot be resolved from pack ontology | `business_term` | What the term refers to (entity family + identifier) |
+| Time missing and `temporal_obligation = user_must_specify` (or no safe KB default) | `time_range` | Confirm period |
+| Entity / geography / currency / grain ambiguous among user-facing choices | matching target | Offer the concrete alternatives |
+| Comparative / evaluative wording without a baseline (“less”, “lower”, “low”, “hurt”, “worst”) | `comparison_sense` | Ranking (lowest/highest)? Negative only? vs prior period / YoY? vs peer set or target? Top-N size? |
+| Open ranking / “who is lowest” without population bound | `population_scope` | All entities, or filtered (PM, VPC, segment, named list, …)? |
+
+Also ask when:
+
+- metric **name among user-facing metrics** is ambiguous (e.g. NGM$ vs NGM%) and both are valid in pack;
+- geography/region, entity family, or reporting grain is underspecified and changes routing.
+
+**Comparison-sense rule:** Do **not** silently interpret “less / low / hurt” as top-N ranking or MoM decline. Ask `comparison_sense` (and `time_range` / `population_scope` when also missing) first.
+
+Workspace rule mirror: [`.cursor/rules/analysis-clarification-before-routing.mdc`](../../../rules/analysis-clarification-before-routing.mdc).
+
+**Attribution exception:** Do **not** auto-run multi-angle driver exploration when the user asked for variance drivers / top contributors but did **not** name a breakdown dimension **and** the pack does not certify a default driver-dimension set for that question. Ask `breakdown_dimension` first. Only after the user (or KB default) supplies the angle may diagnose / multi-round drill-down proceed.
+
+### Do not ask the user (KB-owned technical facts)
+
+Never ask the user to clarify or supply:
+
+- ETL / business **logic** explanations that belong in KB;
+- **table** names, FQNs, or which physical table to use;
+- **metric formulas**, column expressions, or calculation steps;
+- Azkaban / **flow config**, job names, schedule, or pipeline wiring;
+- join keys, partition keys, or schema/catalog details.
+
+Resolve those from the active knowledge pack (`metric-index`, table docs, golden patterns, domain-knowledge, special logic). If the pack cannot support the request after local research → refuse / **no data found** / unsupported with scope — do **not** interview the user for missing KB content.
+
+| Ask user (business scope) | Do not ask user (use KB or fail closed) |
+|---------------------------|----------------------------------------|
+| "Break down by customer, vendor, or P&L?" | "Which Vertica table holds NGM?" |
+| "Does 'item' mean P&L line or VPC?" | "What is the NGM% formula?" |
+| "What is B33 BD project 16428 — confirm type and period?" | "Which flow builds inv cost?" |
+| "Which month/range should we use?" when no KB default | "Is `segment_exclude = 'N'` correct?" |
 
 ### Time Ambiguity
 
-Do not automatically ask for time just because the user omitted a time expression.
+Do not automatically ask for time just because the user omitted a time expression — but **do** ask when the question shape has no safe period (see below).
 
 Use `temporal_obligation` from [question-shape.md](./question-shape.md).
 
 | temporal_obligation | Behavior |
 |---------------------|----------|
 | `user_already_specified` | Parse and apply the user's explicit time. Ask only if the expression has multiple plausible meanings that CIS calendar policy cannot resolve. |
-| `kb_anchor_resolve` | Resolve relative time using CIS fiscal calendar, data freshness, runtime anchor, selected table max date, and active pack Time Scope Ontology. Do not ask for a year merely because the user said "last month" or similar. |
-| `kb_default_eligible` | Do not ask for time in Stage-1. Stage-2 must verify whether the active pack provides certified default period assembly. Ask for time only if no safe KB default exists. |
+| `kb_anchor_resolve` | Resolve relative time using CIS fiscal calendar, data freshness, runtime anchor, selected table max date, and active pack Time Scope Ontology. Includes **entity-anchored** cues (e.g. "same month as this order"). Do not ask for a year merely because the user said "last month" or similar. |
+| `kb_default_eligible` | Do not ask for time in Stage-1. Stage-2 must verify whether the active pack provides certified default period assembly. Ask for time only if no safe KB default exists. **Not** eligible for person/PM portfolio KPI lookup or ranking when time is absent (those are `user_must_specify`). |
 | `user_must_specify` | Ask a concise time clarification before evidence SQL. |
+
+#### Time range required (ask `time_range`)
+
+When time is **absent** and **not** entity-anchored, set `user_must_specify` and ask before analysis for:
+
+- Person-scoped revenue / margin / KPI (one or more names) with no period.
+- PM / portfolio-scoped ranking, "hurt most", or high-impact SKU / product lists with no period.
+- Vendor- / customer- / open-portfolio ranking or “who is lowest/highest on metric X” with no period.
+- Other open portfolio aggregates/rankings with no period and no KB-certified default for that shape.
+
+Examples:
+
+- `tell me the revenue/margin for Kris Cheng And Thi Dao` → ask time.
+- `I am a PM, PMID=706187, Show low‑net sales, high‑impact net gross margin items(SKU)` → ask time.
+- `I am a PM, PMID=706187, Which products hurt NGM the most?` → ask time.
+- `is gm_amt less for vendor level` / `which vendors have lower GM` → ask `comparison_sense` **and** `time_range` (and `population_scope` if needed).
+
+#### Time range not required
+
+Do **not** ask for time when:
+
+- User gave explicit or relative period; or
+- Period is **entity-anchored** (pinpoint order/transaction implies the window, e.g. "same month as Order#…"); or
+- True `kb_default_eligible` path is confirmed by Stage-2 for a shape that allows it (disclose the default).
+
+Example:
+
+- `For Order#169010235, Compare this order to similar profitable ones by same product with Order#169010235's same month` → resolve the order’s month; do not ask for a separate time range.
 
 ### Time clarification must not mask other issues
 
@@ -48,40 +130,81 @@ Do not ask for time when the real issue is:
 
 - invalid entity;
 - ambiguous entity;
-- missing metric definition;
-- missing table routing;
+- missing metric definition in KB (fail closed — do not ask user for the formula);
+- missing table routing in KB (fail closed — do not ask user for the table);
 - unsupported attribution;
-- out-of-scope request.
+- out-of-scope request;
+- missing breakdown dimension on a variance/driver question (ask `breakdown_dimension` instead).
 
-### Other ambiguities
+### Other ambiguities (user-facing scope)
 
-Ask clarification before querying when any of these is ambiguous:
+Ask clarification before querying when any of these is ambiguous **as business scope**:
 
-- metric name/definition
-- grain (daily/weekly/monthly/QTD/YTD)
-- geography/region scope
-- entity scope (customer, vendor, BD rep, buyer, etc.)
-- currency/unit
+- which user-facing metric among pack candidates (name clash, not formula);
+- grain (daily/weekly/monthly/QTD/YTD) when not defaultable;
+- geography/region scope;
+- entity scope (customer, vendor, BD rep, buyer, etc.);
+- currency/unit;
+- breakdown / grouping definition for ranking, slice, or attribution (see table above);
+- **comparison / ranking sense** when “less / lower / low / hurt / worst” has no baseline;
+- **population scope** for open rankings (all vs filtered portfolio).
 
-Do not guess when ambiguity can materially change metric definition or results.
+Do not guess when ambiguity can materially change routing or results.
+
+### Clarification style
+
+- Ask **one focused question** (or a short numbered list of options) covering only the missing routing slot(s).
+- Offer **concrete alternatives** drawn from pack-supported dimensions/terms when possible.
+- Do **not** generate Summary/Evidence analysis output, SQL plans presented as the answer, or `target/analysis/*.md` until required clarifications are resolved.
+- Match the user's language ([Response Language](#response-language)).
 
 ### Examples
 
-Good:
+**Good — ask (underspecified routing):**
+
+1. Variance drivers without angle:  
+   `PMID=706187 NGM% lower in March vs February — what are the top drivers?`  
+   → Ask which breakdown to use (customers, P&L items, VPC, vendors, …). Do not invent multi-angle output first.
+
+2. Vague "item":  
+   `For Vendor #13208 in April 2026, show Value, MoM%, YoY% for each item in April NGM`  
+   → Ask what "item" means (P&L line, VPC, part, …).
+
+3. Unresolved term + missing time:  
+   `Check inv cost details for B33 BD project 16428`  
+   → Ask what B33 BD refers to (if not resolvable from pack) and which time range (if `user_must_specify` / no KB default).
+
+4. Person / PM portfolio with no period (ask time):  
+   - `tell me the revenue/margin for Kris Cheng And Thi Dao` → ask `time_range`.  
+   - `PMID=706187, Show low‑net sales, high‑impact NGM items (SKU)` → ask `time_range`.  
+   - `PMID=706187, Which products hurt NGM the most?` → ask `time_range`.
+
+5. Comparative wording without baseline + open vendor ranking:  
+   `is gm_amt less for vendor level`  
+   → Ask `comparison_sense` (lowest ranking vs negative vs MoM/YoY vs peer) **and** `time_range` (and optional `population_scope`). Do not run vendor GM SQL yet.
+
+**Good — do not ask time (entity-anchored):**
+
+`For Order#169010235, Compare this order to similar profitable ones by same product with Order#169010235's same month`  
+→ Resolve the order’s month; do not ask for a separate time range.
+
+**Good — time clarification wording:**
 
 `请确认要分析的时间范围，例如最近一个月、某个财政季度或某个财年。`
 
-Bad:
+**Bad — ask user for KB-owned facts:**
 
-`请提供年份。`
+- `Which table should I query for inv cost?`
+- `What is the NGM formula / which columns?`
+- `Which Azkaban flow loads this?`
 
-when the user said "上个月" and a freshness anchor exists.
+**Bad — premature or wrong clarification:**
 
-Bad:
+`请提供年份。` when the user said "上个月" and a freshness anchor exists.
 
-`请提供时间范围。`
+`请提供时间范围。` when the question is an entity-scoped scalar KPI eligible for KB default assembly.
 
-when the question is an entity-scoped scalar KPI eligible for KB default assembly.
+`请确认 metric 计算公式` when the formula is (or should be) in `metric-index` — resolve from KB or fail closed.
 
 ## Analysis Workflow
 
@@ -106,7 +229,9 @@ when the question is an entity-scoped scalar KPI eligible for KB default assembl
      6. Stop when additional drill-down no longer changes conclusion materially.
 7. Format response with the fixed output contract below.
 
-Executed SQL is appended automatically by the data_agent chat UI under **## Vertica validation** after your answer. Do **not** duplicate SQL in Summary, Evidence, or Analysis approach & confidence — you may reference "see Vertica validation below".
+Executed SQL is shown in the analysis execution trace only. Do not repeat SQL in the user-facing answer.
+
+**Exception — `rds_report_generation`:** the primary deliverable is the RDS report script; **do** include the final fenced SQL in the user-facing answer. See [Mode — rds_report_generation](#mode--rds_report_generation) and [`rds-report-sql.md`](./rds-report-sql.md).
 
 ## Response Language
 
@@ -118,7 +243,16 @@ Match the user's question language in every user-facing part of the answer and t
 
 ## Output Contract (Fixed)
 
-User-facing answers must focus on business-readable content. **Do not include SQL** in the three main sections — the platform appends executed queries automatically at the end of the chat message under **## Vertica validation** (wiki-style fenced `sql` blocks).
+User-facing answers must focus on business-readable content. **Do not include SQL** in the reply — queries are already visible in the analysis process / observability panel.
+
+### Mode — `rds_report_generation`
+
+When `pipeline_mode` / intent is `rds_report_generation` (RDS SQL / report generation):
+
+1. Still use **Summary** / **Evidence** / **Analysis approach & confidence** for scope, assumptions, and optional validation totals.
+2. **Override:** include the final RDS-shaped report SQL as a fenced `sql` block in the user-facing answer (and save `target/analysis/{slug}_{YYYYMMDD}.sql`).
+3. Script must follow [`rds-report-sql.md`](./rds-report-sql.md) + `.cursor/rules/rds-*.mdc` (`tmp_*` → `rdsetl.rds_tmp` / `_body`). Evidence CTE extracts are not valid deliverables.
+4. Do not change the no-SQL rule for KPI lookup / ranking / trend / attribution on other paths.
 
 ### Standard answer structure (all intents)
 
@@ -148,8 +282,8 @@ Use exactly these three sections (markdown headings recommended):
 
 ### Do NOT include in user-facing answers
 
-- SQL queries in Summary / Evidence / Analysis approach & confidence (fenced blocks, "SQL used", "Executed SQL", or similar) — the platform adds **## Vertica validation** automatically
-- Trial/error or intermediate SQL in the main answer body
+- SQL queries (fenced blocks, "SQL used", "Executed SQL", or similar)
+- Trial/error or intermediate SQL
 - Raw warehouse/MCP tooling references unless the user explicitly asked
 
 ### Intent-specific notes
@@ -237,9 +371,11 @@ Align trace names with runtime: `read-question`, `plan-queries`, `review-evidenc
 - Column type predicate gate: no string literal compared to int/numeric columns.
 - Vertica first; Hive only on Vertica unavailability.
 - Answer follows three-section contract: Summary, Evidence, Analysis approach & confidence.
-- No SQL in the three main sections (platform appends Vertica validation SQL automatically).
-- Attribution question: evidence chain and conclusion are in Summary/Evidence; drill-down limits noted in section 3.
+- No SQL repeated in the user-facing answer (except `rds_report_generation`, where final fenced RDS report SQL is required).
+- Attribution question: breakdown angle clarified or KB-defaulted before analysis; evidence chain and conclusion are in Summary/Evidence; drill-down limits noted in section 3.
+- Did not ask the user for KB-owned facts (tables, formulas, flow config, ETL logic).
 - Soft signals (`Evidence completeness note`, `entity_scope_set`, other unrecognized `planning_hints`) were reasoned about against the actual evidence rows, not rubber-stamped or reflexively refused.
+- If `rds_report_generation`: script uses working `tmp_*` tables and final `rds_tmp` / `_body`; MCP was validation-only unless user asked to run DDL.
 
 ## Memory Coverage Rule
 

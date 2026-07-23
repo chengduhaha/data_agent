@@ -1,0 +1,27 @@
+# Org MCP server manifest — resolved by app/org/mcp.py at runtime.
+# Secrets stay in env / .env.secrets; only the shape is declared here.
+# ${VAR} substitutes the env var verbatim; ${VAR:default} falls back to
+# `default` when the env var is unset or blank.
+name: gateway-vertica-prod
+transport: streamable_http
+url_env: VERTICA_MCP_URL
+url_default: https://ai-gateway.synnex.org/mcp-gateway/api/v1/mcp/vertica
+required_env:
+  - VERTICA_API_KEY
+  - VERTICA_HOST
+  - VERTICA_DATABASE
+  - VERTICA_USER
+  - VERTICA_PASSWORD
+headers:
+  x-api-key: "${VERTICA_API_KEY}"
+  X-Vertica-Host: "${VERTICA_HOST}"
+  X-Vertica-Port: "${VERTICA_PORT:5433}"
+  X-Vertica-Database: "${VERTICA_DATABASE}"
+  X-Vertica-User: "${VERTICA_USER}"
+  X-Vertica-Password: "${VERTICA_PASSWORD}"
+  X-Vertica-SSL: "${VERTICA_SSL:false}"
+  X-Vertica-SSL-Reject-Unauthorized: "${VERTICA_SSL_REJECT_UNAUTHORIZED:true}"
+# Metadata/discovery tools hidden once this server is enabled (mcp_manager.py).
+allowed_tools:
+  - run_query_safely
+  - execute_query_paginated

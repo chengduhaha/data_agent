@@ -2,7 +2,10 @@
 
 import type { ChatMessage, SubagentEvent } from "@/lib/api";
 import { toolStepLabel } from "@/lib/toolLabels";
+import { splitAssistantContent } from "@/lib/messageContent";
+import { normalizeNarrativeMarkdown, shouldRenderAsMarkdown } from "@/lib/markdownOutput";
 import { MarkdownRenderer } from "./MarkdownRenderer";
+import { QueryAppendix } from "./QueryAppendix";
 import { ToolCallCard } from "./ToolCallCard";
 
 export function MessageBubble({
@@ -15,7 +18,19 @@ export function MessageBubble({
   const isUser = message.role === "user";
   const tools = message.tools || [];
   const hasTools = tools.length > 0;
-  const hasContent = Boolean(message.content?.trim());
+  // Legacy threads may have SQL inlined into `content`; split it out so the
+  // narrative area is never a bare code block (see lib/messageContent.ts).
+  const { narrative, queryAppendix: inlineAppendix } = isUser
+    ? { narrative: message.content, queryAppendix: [] }
+    : splitAssistantContent(
+        normalizeNarrativeMarkdown(message.content || "", streaming)
+      );
+  const structuredAppendix = message.queryAppendix || [];
+  const appendixQueries =
+    structuredAppendix.length > 0
+      ? structuredAppendix
+      : inlineAppendix.map((q) => ({ sql: q.sql, tool: q.tool || "run_query_safely" }));
+  const hasContent = Boolean(narrative?.trim());
   const thinking = !isUser && streaming && !hasContent;
   const latestRunning = [...tools].reverse().find((t) => t.status === "running");
   const liveLabel =
@@ -67,9 +82,9 @@ export function MessageBubble({
         {hasContent && (
           <div className="text-sm">
             {isUser ? (
-              <div className="whitespace-pre-wrap leading-relaxed">{message.content}</div>
+              <div className="whitespace-pre-wrap leading-relaxed">{narrative}</div>
             ) : (
-              <MarkdownRenderer content={message.content} />
+              <MarkdownRenderer content={narrative} streaming={streaming} />
             )}
             {!isUser && streaming && (
               <span
@@ -81,8 +96,10 @@ export function MessageBubble({
         )}
 
         {message.subagents?.map((s) => (
-          <SubagentCard key={s.id} event={s} />
+          <SubagentCard key={`${s.id}-${s.phase}`} event={s} />
         ))}
+
+        {!isUser && !streaming && <QueryAppendix queries={appendixQueries} />}
       </div>
     </div>
   );
@@ -98,12 +115,31 @@ function Spinner() {
 }
 
 function SubagentCard({ event }: { event: SubagentEvent }) {
+  const outputText =
+    typeof event.output === "string"
+      ? event.output
+      : event.output !== undefined
+        ? JSON.stringify(event.output, null, 2)
+        : "";
+  const showOutput = Boolean(outputText.trim());
+
+  if (event.phase === "start" && !showOutput) return null;
+
   return (
     <div className="mt-2 rounded-xl border border-dashed border-accent/40 bg-accent-soft/50 px-3 py-2">
       <p className="text-[10px] font-semibold uppercase tracking-wider text-accent-strong">
         Subagent · {event.phase}
+        {event.tool ? ` · ${event.tool}` : ""}
       </p>
-      <p className="font-mono text-xs text-ink-700">{event.tool || "task"}</p>
+      {showOutput && shouldRenderAsMarkdown(outputText) ? (
+        <div className="mt-2 text-sm">
+          <MarkdownRenderer content={outputText} />
+        </div>
+      ) : showOutput ? (
+        <pre className="mt-2 max-h-72 overflow-auto whitespace-pre-wrap font-mono text-[11px] text-ink-700">
+          {outputText}
+        </pre>
+      ) : null}
     </div>
   );
 }

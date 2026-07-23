@@ -1,0 +1,20 @@
+domain_id: b_report
+name: B-Report Business Analytics
+description: >-
+  NextGen B Report (distributor P&L / profitability). ShippedOrderLine as hub
+  linking customers, products, suppliers, and sales/PM/procurement/BD projects.
+enabled: true
+ontology_version: "1.0.44"
+
+data_source:
+  type: vertica
+  dialect: Vertica
+  schemas: [dim_us, dw_us]
+
+mcp_tools:
+  - run_query_safely
+
+metadata:
+  tags: [b-report, vertica, dim_us, dw_us]
+  category: profitability-reporting
+  version: "5.0.0"

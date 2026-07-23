@@ -1,0 +1,107 @@
+{
+  "entity_id": "dm_gbl.dm_idc_raw_data_month",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "marketing",
+  "qualified_name": "dm_gbl.dm_idc_raw_data_month",
+  "schema_name": "dm_gbl",
+  "table_name": "dm_idc_raw_data_month",
+  "columns": [
+    {
+      "name": "data_year",
+      "type": "int"
+    },
+    {
+      "name": "data_month",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "country",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "distributor",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "channel_detail",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "product_group",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "product_category",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "product_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "product_detail",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "company_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "brand_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "mpn",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "upc_code",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "currency_id",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "units",
+      "type": "int"
+    },
+    {
+      "name": "distributor_revenue",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "distributor_revenue_usd",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "month",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp"
+    },
+    {
+      "name": "ai_pc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "deployment_type",
+      "type": "varchar(120)"
+    }
+  ],
+  "column_count": 21,
+  "partition_keys": [
+    "month"
+  ],
+  "grain": null,
+  "ddl_source": {
+    "repo": "VERTICA-MCP/user-gateway-vertica-prod",
+    "file_path": "get_table_structure",
+    "commit": "metadata-only",
+    "fetched_at": "2026-06-29T07:27:27.710906+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/marketing/ods_etl_marketing_idc_raw_data_month.md"
+}

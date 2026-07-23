@@ -1,0 +1,20 @@
+{
+  "layers": {
+    "l1_catalog": {
+      "doc_count": 162
+    },
+    "l2_usage": {
+      "doc_count": 122
+    },
+    "l3_code": {
+      "doc_count": 121
+    },
+    "l4_flow": {
+      "doc_count": 122
+    },
+    "l5_eval": {
+      "doc_count": 122
+    }
+  },
+  "total_docs": 649
+}

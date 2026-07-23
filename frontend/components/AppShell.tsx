@@ -12,7 +12,7 @@ const NAV = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   return (
-    <div className="mx-auto flex min-h-screen max-w-[1400px] flex-col px-4 py-3 md:px-6">
+    <div className="mx-auto flex h-dvh max-h-dvh max-w-[1400px] flex-col overflow-hidden px-4 py-3 md:px-6">
       <header className="mb-3 flex shrink-0 items-center justify-between gap-3 border-b border-ink-200/50 pb-3">
         <div className="min-w-0">
           <p className="font-display text-xl font-semibold tracking-tight text-ink-900 md:text-2xl">

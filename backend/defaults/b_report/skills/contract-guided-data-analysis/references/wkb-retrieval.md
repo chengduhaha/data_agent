@@ -70,7 +70,7 @@ Maximum **3** knowledgebase table files per run.
 | L2 `l2_usage` | Metric serving, report context |
 | L3 `l3_code` | Filter/join hints (verify in contract L3) |
 | L4 `l4_flow` | Only when user asks lineage; local path required before Bitbucket |
-| L5 `l5_eval` | Validation ideas; prefer `eval/golden_cases.md` when present |
+| L5 `l5_eval` | Validation ideas; use metric-index routing checks only — do not read `eval/golden_cases.md` |
 
 Index output is a **short-list**, not proof. SQL must align with contract `metric-index.md` and knowledgebase table L3.
 

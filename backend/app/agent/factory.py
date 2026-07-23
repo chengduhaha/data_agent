@@ -11,17 +11,29 @@ from deepagents.backends import CompositeBackend, FilesystemBackend, LocalShellB
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
 from app.agent.builtin_tools import get_builtin_tools
+from app.agent.extensions.registry import ResolvedCapabilities, capability_registry
+from app.agent.extensions.subagent_routing import (
+    detect_active_skills_from_message,
+    filter_subagents_for_routing,
+    format_subagent_routing_prompt,
+)
 from app.agent.harness.config import load_harness_config
 from app.agent.harness.middleware import ToolGovernanceMiddleware
+from app.agent.harness.phases import RunPhaseMiddleware
 from app.agent.harness.profiles import register_data_agent_harness_profiles
 from app.agent.harness.prompts import HARNESS_SYSTEM_SUFFIX
 from app.agent.harness.spill import LargeResultSpillMiddleware
 from app.agent.harness.step_budget import StepBudgetMiddleware
 from app.agent.harness.summarization import make_summarization_middleware
-from app.agent.harness.tools import make_search_knowledge_tool, make_wkb_query_tool
+from app.agent.harness.tool_budget import ToolBudgetMiddleware
+from app.agent.harness.tools import (
+    EXTENSION_TOOL_AVAILABILITY,
+    EXTENSION_TOOL_FACTORIES,
+    make_search_knowledge_tool,
+)
 from app.agent.mcp_manager import mcp_manager
 from app.agent.models import build_model
-from app.store.io import load_subagents_config, load_user_config
+from app.store.io import load_effective_mcp_config, load_subagents_config, load_user_config
 from app.store.paths import (
     BUILTIN_SKILLS_DIR,
     ORG_FRAGMENTS_DIR,
@@ -126,6 +138,27 @@ def _load_permissions(cfg: UserConfig) -> list[FilesystemPermission] | None:
     return rules
 
 
+def _build_extension_tools(capabilities: ResolvedCapabilities) -> list[Any]:
+    """Instantiate only the extension tools an enabled skill actually declared.
+
+    Core never assumes org-specific tools (e.g. `wkb_query`) exist — they are
+    added solely when a resolved skill manifest lists them and the underlying
+    org pack resource is available.
+    """
+    tools: list[Any] = []
+    for name in sorted(capabilities.extra_tool_names):
+        factory = EXTENSION_TOOL_FACTORIES.get(name)
+        if factory is None:
+            logger.warning("Skill requested unknown extension tool: %s", name)
+            continue
+        availability = EXTENSION_TOOL_AVAILABILITY.get(name)
+        if availability is not None and not availability():
+            logger.info("Extension tool %s requested but unavailable in this org bundle", name)
+            continue
+        tools.append(factory())
+    return tools
+
+
 def _to_subagent_dicts(specs: list[SubAgentSpec]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for s in specs:
@@ -156,7 +189,7 @@ def _ensure_model_profile(model: Any) -> None:
         profile["max_input_tokens"] = default_max
 
 
-def render_system_prompt(cfg: UserConfig) -> str:
+def render_system_prompt(cfg: UserConfig, *, routing_suffix: str = "") -> str:
     base = (cfg.system_prompt or "").strip()
     suffix = (
         "\n\n## Path conventions\n"
@@ -169,11 +202,12 @@ def render_system_prompt(cfg: UserConfig) -> str:
         "- Organization rules (shared): `/rules/org/`\n"
         "- Personal rules memory: `/rules/AGENTS.md`\n"
         "- Shell note: `execute` cannot see `/knowledge/org/` virtual paths; "
-        "use `wkb_query` or `$DATA_AGENT_ORG_KNOWLEDGE` for WKB indexing.\n"
+        "use a skill-provided retrieval tool or `$DATA_AGENT_ORG_KNOWLEDGE` instead.\n"
         "Prefer `/workspace/` for durable personal artifacts.\n\n"
         + HARNESS_SYSTEM_SUFFIX
     )
-    return (base + suffix).strip()
+    extra = f"\n\n{routing_suffix.strip()}" if routing_suffix.strip() else ""
+    return (base + suffix + extra).strip()
 
 
 def build_memory_paths() -> list[str]:
@@ -199,6 +233,8 @@ async def create_user_agent(
     cfg: UserConfig | None = None,
     *,
     extended_run: bool = False,
+    message: str | None = None,
+    active_skills: list[str] | None = None,
 ) -> Any:
     """Create a compiled deep agent graph for this user."""
     register_data_agent_harness_profiles()
@@ -208,17 +244,38 @@ async def create_user_agent(
     model = build_model(cfg)
     _ensure_model_profile(model)
 
-    mcp_tools = await mcp_manager.get_tools(user_id)
+    resolved_active = active_skills or detect_active_skills_from_message(message or "")
+    capabilities = await capability_registry.resolve(
+        user_id,
+        cfg,
+        active_skills=resolved_active or None,
+    )
+    mcp_cfg = await load_effective_mcp_config(user_id)
+    if cfg.disabled_mcp_servers:
+        disabled = set(cfg.disabled_mcp_servers)
+        mcp_cfg = mcp_cfg.model_copy(
+            update={
+                "mcpServers": {
+                    name: server
+                    for name, server in mcp_cfg.mcpServers.items()
+                    if name not in disabled
+                }
+            }
+        )
+    mcp_tools = await mcp_manager.get_tools(user_id, mcp_cfg)
     backend = build_backend(user_id)
     builtin = get_builtin_tools(
         cfg.enabled_tools,
         backend=backend,
         include_harness_tools=True,
     )
-    tools = [*builtin, make_wkb_query_tool(), *mcp_tools]
+    tools = [*builtin, *_build_extension_tools(capabilities), *mcp_tools]
 
     sub_cfg = await load_subagents_config(user_id)
-    subagents = _to_subagent_dicts(sub_cfg.subagents) or None
+    routing_plan = capabilities.subagent_routing
+    routed_subagents = filter_subagents_for_routing(sub_cfg.subagents, routing_plan)
+    subagents = _to_subagent_dicts(routed_subagents) or None
+    routing_suffix = format_subagent_routing_prompt(routing_plan)
 
     interrupt_on: dict[str, bool] = {}
     if cfg.approve_execute:
@@ -229,8 +286,11 @@ async def create_user_agent(
 
     checkpointer = await get_checkpointer(user_id)
 
+    tool_budgets = dict(capabilities.harness.tool_budgets)
     harness_middleware = [
         ToolGovernanceMiddleware(harness_cfg),
+        ToolBudgetMiddleware(tool_budgets),
+        RunPhaseMiddleware(harness_cfg, tool_budgets=tool_budgets),
         LargeResultSpillMiddleware(harness_cfg),
         StepBudgetMiddleware(harness_cfg),
         make_summarization_middleware(model, backend, harness_cfg),
@@ -239,7 +299,7 @@ async def create_user_agent(
     agent = create_deep_agent(
         model=model,
         tools=tools,
-        system_prompt=render_system_prompt(cfg),
+        system_prompt=render_system_prompt(cfg, routing_suffix=routing_suffix),
         subagents=subagents,
         skills=build_skill_paths(),
         memory=build_memory_paths(),

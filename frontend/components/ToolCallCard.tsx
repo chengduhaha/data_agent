@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import type { ToolCall } from "@/lib/api";
+import { normalizeNarrativeMarkdown, shouldRenderAsMarkdown } from "@/lib/markdownOutput";
+import { MarkdownRenderer } from "./MarkdownRenderer";
 import { toolStepDetail, toolStepLabel } from "@/lib/toolLabels";
 
-function isVerticaQueryTool(tool: string): boolean {
+/** Generic SQL-shaped tool detection (not vendor-specific — any `run_query*`/`execute_query*` tool). */
+function isQueryTool(tool: string): boolean {
   const name = (tool || "").toLowerCase();
   return (
     name === "run_query_safely" ||
@@ -27,10 +30,10 @@ export function ToolCallCard({ tool }: { tool: ToolCall }) {
   const label = toolStepLabel(tool.tool, tool.input);
   const detail = toolStepDetail(tool.input);
   const hasBody = tool.input !== undefined || tool.output !== undefined;
-  const verticaQuery = isVerticaQueryTool(tool.tool);
-  const fullSql = verticaQuery ? extractQuery(tool.input) : null;
-  const inputMaxHeight = verticaQuery ? "max-h-96" : "max-h-28";
-  const outputMaxHeight = verticaQuery ? "max-h-96" : "max-h-40";
+  const queryTool = isQueryTool(tool.tool);
+  const fullSql = queryTool ? extractQuery(tool.input) : null;
+  const inputMaxHeight = queryTool ? "max-h-96" : "max-h-28";
+  const outputMaxHeight = queryTool ? "max-h-96" : "max-h-40";
 
   return (
     <div className="mt-1.5 overflow-hidden rounded-xl border border-ink-200/70 bg-ink-50/60 animate-fade-up">
@@ -61,22 +64,44 @@ export function ToolCallCard({ tool }: { tool: ToolCall }) {
       {open && (
         <div className="border-t border-ink-200/50">
           {tool.input !== undefined && (
-            <pre
-              className={`${inputMaxHeight} overflow-auto border-b border-ink-200/40 px-3 py-2 font-mono text-[11px] text-ink-600`}
-            >
-              {fullSql ?? format(tool.input)}
-            </pre>
+            <ToolPayloadBody value={fullSql ?? tool.input} preferMarkdown={!queryTool} />
           )}
           {tool.output !== undefined && (
-            <pre
-              className={`${outputMaxHeight} overflow-auto px-3 py-2 font-mono text-[11px] text-ink-700`}
-            >
-              {format(tool.output)}
-            </pre>
+            <ToolPayloadBody value={tool.output} preferMarkdown maxHeight={outputMaxHeight} />
           )}
         </div>
       )}
     </div>
+  );
+}
+
+function ToolPayloadBody({
+  value,
+  preferMarkdown = true,
+  maxHeight = "max-h-40",
+}: {
+  value: unknown;
+  preferMarkdown?: boolean;
+  maxHeight?: string;
+}) {
+  const text = format(value);
+  const markdownText =
+    typeof value === "string" ? normalizeNarrativeMarkdown(value) : text;
+  if (preferMarkdown && typeof value === "string" && shouldRenderAsMarkdown(value)) {
+    return (
+      <div
+        className={`${maxHeight} overflow-auto border-b border-ink-200/40 px-3 py-2 last:border-b-0`}
+      >
+        <MarkdownRenderer content={markdownText} />
+      </div>
+    );
+  }
+  return (
+    <pre
+      className={`${maxHeight} overflow-auto border-b border-ink-200/40 px-3 py-2 font-mono text-[11px] text-ink-700 last:border-b-0`}
+    >
+      {text}
+    </pre>
   );
 }
 

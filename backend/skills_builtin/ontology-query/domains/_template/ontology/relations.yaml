@@ -1,0 +1,10 @@
+project_domain: template
+version: "1.0.0"
+
+links:
+  - name: example_parent_has_children
+    from: ExampleEntity
+    to: ExampleEntity
+    relationType: ONE_TO_MANY
+    description: Example self-referential link
+    join_logic: ExampleEntity.hasExampleId = ExampleEntity.hasParentId

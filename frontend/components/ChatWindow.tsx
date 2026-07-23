@@ -14,10 +14,7 @@ import {
   streamChat,
 } from "@/lib/api";
 import { toolStepLabel } from "@/lib/toolLabels";
-import {
-  formatExecutedSqlSection,
-  parseExecutedSqlEvent,
-} from "@/lib/executedSql";
+import { parseQueryAppendixEvent } from "@/lib/queryAppendix";
 import { HitlPanel } from "./HitlPanel";
 import { ContinuePanel } from "./ContinuePanel";
 import { ContextBudgetBar } from "./ContextBudgetBar";
@@ -28,6 +25,8 @@ import { ChatInput } from "./ChatInput";
 import { expandSkillMessage, type SlashSkill } from "@/lib/skillSlash";
 import { buildHitlDecisions } from "@/lib/hitl";
 import { useAuth } from "@/context/AuthContext";
+import { useMessageScroll } from "@/hooks/useMessageScroll";
+import { ScrollToBottom } from "./ScrollToBottom";
 
 function uid() {
   return Math.random().toString(36).slice(2, 10);
@@ -35,11 +34,13 @@ function uid() {
 
 function shouldKeepAssistant(m: ChatMessage, activeId?: string | null) {
   if (m.role !== "assistant") return true;
-  if (activeId && m.id === activeId) return true;
-  if (m.content?.trim()) return true;
-  if (m.tools && m.tools.length > 0) return true;
-  if (m.subagents && m.subagents.length > 0) return true;
-  return false;
+  const hasBody =
+    Boolean(m.content?.trim()) ||
+    Boolean(m.tools && m.tools.length > 0) ||
+    Boolean(m.subagents && m.subagents.length > 0) ||
+    Boolean(m.queryAppendix && m.queryAppendix.length > 0);
+  if (activeId && m.id === activeId) return hasBody;
+  return hasBody;
 }
 
 function threadTitlePreview(text: string, maxLen = 56): string {
@@ -63,7 +64,25 @@ export function ChatWindow() {
   const [topicHint, setTopicHint] = useState<TopicHintPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [skills, setSkills] = useState<SlashSkill[]>([]);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const lastMsg = messages[messages.length - 1];
+  const scrollDeps = useMemo(
+    () => [
+      messages.length,
+      lastMsg?.content?.length,
+      lastMsg?.tools?.length,
+      interrupt,
+      continuePrompt,
+    ],
+    [
+      messages.length,
+      lastMsg?.content?.length,
+      lastMsg?.tools?.length,
+      interrupt,
+      continuePrompt,
+    ]
+  );
+  const { scrollableRef, contentRef, bottomSentinelRef, isNearBottom, scrollToBottom, resetFollow } =
+    useMessageScroll<HTMLDivElement>(scrollDeps, { streaming });
   const abortRef = useRef<AbortController | null>(null);
   const pendingTitleRef = useRef("");
   const { user, oauthEnabled } = useAuth();
@@ -103,10 +122,6 @@ export function ChatWindow() {
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, interrupt, continuePrompt]);
 
   useEffect(() => {
     if (!streaming || streamStartedAt == null) {
@@ -199,40 +214,36 @@ export function ChatWindow() {
         );
       }
       if (event === "subagent") {
+        const entry = {
+          id: String(data.run_id || uid()),
+          phase: String(data.phase || ""),
+          tool: data.tool ? String(data.tool) : undefined,
+          input: data.input,
+          output: data.output,
+        };
         setMessages((prev) =>
-          prev.map((m) =>
-            m.id === assistantId
-              ? {
-                  ...m,
-                  subagents: [
-                    ...(m.subagents || []),
-                    {
-                      id: String(data.run_id || uid()),
-                      phase: String(data.phase || ""),
-                      tool: data.tool ? String(data.tool) : undefined,
-                      input: data.input,
-                      output: data.output,
-                    },
-                  ],
-                }
-              : m
-          )
+          prev.map((m) => {
+            if (m.id !== assistantId) return m;
+            const subs = [...(m.subagents || [])];
+            const idx = subs.findIndex((s) => s.id === entry.id);
+            if (idx >= 0) {
+              subs[idx] = { ...subs[idx], ...entry };
+            } else {
+              subs.push(entry);
+            }
+            return { ...m, subagents: subs };
+          })
         );
       }
-      if (event === "executed_sql") {
-        const queries = parseExecutedSqlEvent(data);
-        const section = formatExecutedSqlSection(queries);
-        if (section) {
+      if (event === "query_appendix") {
+        const queries = parseQueryAppendixEvent(data);
+        if (queries.length) {
           setMessages((prev) =>
-            prev.map((m) => {
-              if (m.id !== assistantId) return m;
-              if (m.content.includes("## Vertica validation")) return m;
-              return {
-                ...m,
-                content: m.content + section,
-                statusText: undefined,
-              };
-            })
+            prev.map((m) =>
+              m.id === assistantId
+                ? { ...m, queryAppendix: queries, statusText: undefined }
+                : m
+            )
           );
         }
       }
@@ -258,6 +269,8 @@ export function ChatWindow() {
       }
       if (event === "done") {
         setInterrupt(null);
+        setStreaming(false);
+        setStreamStartedAt(null);
         if (!data.incomplete) {
           setContinuePrompt(null);
         }
@@ -285,6 +298,7 @@ export function ChatWindow() {
       userMsg,
       { id: assistantId, role: "assistant", content: "", tools: [], subagents: [] },
     ]);
+    resetFollow();
     setStreaming(true);
     setStreamStartedAt(Date.now());
     const ac = new AbortController();
@@ -336,6 +350,7 @@ export function ChatWindow() {
         subagents: [],
       },
     ]);
+    resetFollow();
     const ac = new AbortController();
     abortRef.current = ac;
     try {
@@ -395,6 +410,8 @@ export function ChatWindow() {
     setThreadId(id);
     setInterrupt(null);
     setContinuePrompt(null);
+    setBudget(null);
+    setTopicHint(null);
     setError(null);
     try {
       const data = await apiGet<{
@@ -448,10 +465,15 @@ export function ChatWindow() {
   }
 
   function newThread() {
+    abortRef.current?.abort();
+    setStreaming(false);
+    setStreamStartedAt(null);
     setThreadId(null);
     setMessages([]);
     setInterrupt(null);
     setContinuePrompt(null);
+    setBudget(null);
+    setTopicHint(null);
     setError(null);
   }
 
@@ -476,8 +498,14 @@ export function ChatWindow() {
         onNew={newThread}
         onDelete={handleDelete}
       />
-      <section className="panel flex min-h-[70vh] flex-1 flex-col overflow-hidden">
-        <div className="flex-1 space-y-3 overflow-y-auto px-4 py-4 md:px-6">
+      <section className="panel relative flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div
+          ref={scrollableRef}
+          data-testid="chat-scroll"
+          className="relative flex-1 overflow-y-auto px-4 py-4 md:px-6"
+          style={{ scrollbarGutter: "stable" }}
+        >
+          <div ref={contentRef} className="space-y-3 pb-2">
           {messages.length === 0 && (
             <div className="flex h-full min-h-[40vh] flex-col items-center justify-center text-center animate-fade-up">
               <p className="font-display text-2xl text-ink-800">Ready when you are</p>
@@ -528,10 +556,15 @@ export function ChatWindow() {
               {error}
             </div>
           )}
-          <div ref={bottomRef} />
+          <div ref={bottomSentinelRef} />
+          </div>
+          <ScrollToBottom
+            visible={!isNearBottom && messages.length > 0}
+            onClick={() => resetFollow()}
+          />
         </div>
-        <div className="border-t border-ink-200/70 bg-white/50 p-3 md:p-4">
-          <ContextBudgetBar budget={budget} />
+        <div className="shrink-0 border-t border-ink-200/70 bg-white/50 p-3 md:p-4">
+          <ContextBudgetBar budget={budget} threadId={threadId} streaming={streaming} />
           {streaming && liveStatus && (
             <div className="mb-2 flex items-center gap-2 rounded-xl border border-accent/20 bg-accent-soft/40 px-3 py-1.5 text-xs text-accent-strong">
               <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-accent/30 border-t-accent" />

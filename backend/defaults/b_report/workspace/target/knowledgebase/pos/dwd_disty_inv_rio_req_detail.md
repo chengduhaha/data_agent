@@ -1,5 +1,211 @@
 # DLAKE: Inventory RIO request detail used by supplemental POS inventory reports (`dlake_dg.dwd_disty_inv_rio_req_detail`)
 
+- artifact_type: etl_table
+- artifact_id: dw_us.dwd_disty_inv_rio_req_detail
+- domain: pos
+- one_line_purpose: POS-domain table with load SQL under bitbucket-etl (see L3); prior contract narrative preserved below when present.
+- layer_type: DWD
+- source_kind: etl_sql
+- evidence_source: source/contracts/pos/bitbucket-etl/dwd_disty_inv_rio_req_detail/ods_us.ods_cis_corp_rio_req_detail_chg_log.sql
+- bitbucket_etl_bundle: source/contracts/pos/bitbucket-etl/dwd_disty_inv_rio_req_detail/
+- related_etl_scripts:
+- `source/contracts/pos/bitbucket-etl/dwd_disty_inv_rio_req_detail/ods_cis_corp_rio_req_detail_chg_log.sql`
+
+---
+
+## L1 Data Foundation
+
+### Identity and physical mapping
+- **Table:** `dw_us.dwd_disty_inv_rio_req_detail`
+- **Layer type:** DWD
+- **Canonical / derived:** Derived / ETL-loaded (see L3 from bitbucket-etl)
+- **Owner team:** Not documented in repository
+
+### Grain, scope, exclusions
+- See preserved **Grain and keys** section below when present (POS contract narrative retained).
+- Otherwise infer from SELECT / GROUP BY / INSERT column list in `source/contracts/pos/bitbucket-etl/dwd_disty_inv_rio_req_detail/ods_us.ods_cis_corp_rio_req_detail_chg_log.sql`.
+
+### Cross-engine presence
+| Engine | Present | Notes |
+|--------|---------|-------|
+| Hive | yes | ETL load target |
+| Vertica | yes when POS contract documents Vertica sync | See preserved Business query tables |
+
+### Physical schema reference
+
+| Field | Value |
+|-------|-------|
+| **entity_id** | `dw_us.dwd_disty_inv_rio_req_detail` |
+| **l1_catalog_seed** | `target/storage/wkb/snapshots/_snapshot_id_template/l1_catalog/{engine}_{schema}_{table}.json` |
+| **column_count** | pending (run ddl_seed_writer) |
+| **partition_keys** | See preserved Grain / L4 / ETL PARTITION clause |
+| **ddl_source** | pending |
+| **retrieval** | `python -m tools.wkb.indexing.run_query --query "pos dwd_disty_inv_rio_req_detail schema" --intent find_table_schema` |
+
+### Lineage
+
+- **Primary load:** `source/contracts/pos/bitbucket-etl/dwd_disty_inv_rio_req_detail/ods_us.ods_cis_corp_rio_req_detail_chg_log.sql`
+- **downstream:** see L6 Downstream consumers
+### Freshness and load path
+- Parameters / date window: see ETL `${literal_*}` / `${date_flag}` / `${start_date}` in evidence script.
+- Schedule: Not documented in repository
+
+## L2 Declarative Knowledge
+
+### Business purpose
+See preserved **Business purpose** below when present (POS contract catalog + linked ETL).
+
+### Audience and use cases
+See preserved **Who it helps** section when present.
+
+### Fact key resolution
+See preserved **Grain and keys** when present.
+
+### Time field semantics
+- Prefer partition / `date_flag` filters documented in preserved sections and L3 Key filters from ETL.
+
+### Metrics served
+See preserved Metrics / column groups when present; otherwise L3 column derivations.
+
+### Metric serving map
+N/A unless multi-period wide table (see preserved content).
+
+### etl_metrics
+No new metric-index formulas appended in this bitbucket-etl upgrade pass.
+
+## L3 Procedural Knowledge
+
+### Query and routing rules
+- Reporting: Vertica `dw_us.dwd_disty_inv_rio_req_detail` when synced (see preserved Business query tables).
+- Load logic: bitbucket-etl evidence `source/contracts/pos/bitbucket-etl/dwd_disty_inv_rio_req_detail/ods_us.ods_cis_corp_rio_req_detail_chg_log.sql`.
+
+### Dimension join patterns
+See Relationship map (ETL JOIN edges) and preserved contract join notes.
+
+### Key filters and ETL business logic
+
+| Predicate | Kind | Evidence |
+|-----------|------|----------|
+| — | — | No WHERE clause parsed from `source/contracts/pos/bitbucket-etl/dwd_disty_inv_rio_req_detail/ods_us.ods_cis_corp_rio_req_detail_chg_log.sql` |
+
+### Standard time-filter SQL
+```sql
+-- Prefer date_flag / literal_start_date / literal_end_date as used in source/contracts/pos/bitbucket-etl/dwd_disty_inv_rio_req_detail/ods_us.ods_cis_corp_rio_req_detail_chg_log.sql
+```
+
+### End-to-end flow
+```mermaid
+flowchart LR
+  SRC["ETL sources"] --> T["dw_us.dwd_disty_inv_rio_req_detail"]
+```
+
+### Base tables register
+| Object | Role |
+|--------|------|
+| — | See Relationship map |
+
+### Step-by-step logic
+1. Execute load SQL / python in `source/contracts/pos/bitbucket-etl/dwd_disty_inv_rio_req_detail/`.
+2. Apply date / business filters from ETL (Key filters).
+3. Write target `dw_us.dwd_disty_inv_rio_req_detail` (see INSERT/OVERWRITE in evidence).
+
+### Relationship map (embedded)
+
+| from_fqn | to_fqn | cardinality | join_keys | provenance |
+|----------|--------|-------------|-----------|------------|
+| — | — | — | — | No JOIN edges parsed from ETL (`source/contracts/pos/bitbucket-etl/dwd_disty_inv_rio_req_detail/ods_us.ods_cis_corp_rio_req_detail_chg_log.sql`); see Base tables register / step-by-step |
+
+### Special logic (embedded)
+
+`source/ref/pos/special_logic.txt` exists but no rule naming this FQN/stem (`dw_us.dwd_disty_inv_rio_req_detail`).
+
+Not documented in repository
+
+
+### Column / field derivations (from ETL SQL)
+
+| target_column | expression_sql | upstream_columns | upstream_tables | transform_kind | evidence |
+|---------------|----------------|------------------|-----------------|----------------|----------|
+| — | — | — | — | — | No SELECT-list derivations parsed from `source/contracts/pos/bitbucket-etl/dwd_disty_inv_rio_req_detail/ods_us.ods_cis_corp_rio_req_detail_chg_log.sql` |
+
+
+### Sentinel and code values
+See preserved content and ETL CASE expressions in column derivations.
+
+## L4 Validation
+
+### Resolved partition value
+- Partition / date parameters from ETL literals — concrete calendar values Not documented in repository (resolve via Azkaban when flow evidence exists).
+
+### Data quality checks
+See preserved Validation SQL when present.
+
+### Validation SQL
+Prefer preserved Vertica validation bundle when present; MCP business SQL not re-run during documentation.
+
+### Caveats for interpretation
+- Document upgraded additively from POS **contract** MD + **bitbucket-etl** SQL. Prior contract text is under **Preserved pre-L1-L6 content** when present.
+
+### Conflicts and open questions
+- Companion loader scripts may also appear under other domain KB folders; see `target/knowledgebase/pos/readme.md` cross-links.
+
+## L5 Runtime View
+
+### Query path and engine preference
+| Path | Engine | Evidence |
+|------|--------|----------|
+| Load | Hive/Spark | `source/contracts/pos/bitbucket-etl/dwd_disty_inv_rio_req_detail/ods_us.ods_cis_corp_rio_req_detail_chg_log.sql` |
+| Report | Vertica | preserved POS contract when present |
+
+### Access constraints
+Not documented in repository
+
+### Query risk profile
+- Always filter `date_flag` / documented partition keys before wide scans.
+
+## L6 Access and Consumption
+
+### Primary consumers and use cases
+See preserved audience / POS report consumers when present.
+
+### Representative query patterns
+See preserved Validation SQL / contract examples when present.
+
+### Dependencies and notes
+
+#### Upstream objects (verified)
+| Object | Usage | Evidence |
+|--------|-------|----------|
+| — | — | Not documented in repository |
+
+#### Downstream consumers (verified)
+
+| Object / script | Evidence |
+|-----------------|----------|
+| POS / RDS reports (contract) | preserved sections when present |
+| Related loaders | see related_etl_scripts header |
+| KB / contract ref: `source/contracts/pos/bitbucket-etl/MANIFEST.md` | `source/contracts/pos/bitbucket-etl/MANIFEST.md:188` |
+| KB / contract ref: `source/contracts/pos/tables/dwd_disty_inv_rio_req_detail.md` | `source/contracts/pos/tables/dwd_disty_inv_rio_req_detail.md:5` |
+| ETL/script ref: `source/contracts/rds/vertica_b_report/etl/b_report_lightweight_orders_inventory_rio_rds_7500.sql` | `source/contracts/rds/vertica_b_report/etl/b_report_lightweight_orders_inventory_rio_rds_7500.sql:275` |
+| ETL/script ref: `source/contracts/rds/vertica_open_so_bo/etl/open_so_bo_inventory_rio_runrate_rds_7500.sql` | `source/contracts/rds/vertica_open_so_bo/etl/open_so_bo_inventory_rio_runrate_rds_7500.sql:275` |
+| KB / contract ref: `target/knowledgebase/RDS/vertica_b_report/b_report_lightweight_orders_inventory_rio_rds_7500.md` | `target/knowledgebase/RDS/vertica_b_report/b_report_lightweight_orders_inventory_rio_rds_7500.md:183` |
+| KB / contract ref: `target/knowledgebase/RDS/vertica_open_so_bo/open_so_bo_inventory_rio_runrate_rds_7500.md` | `target/knowledgebase/RDS/vertica_open_so_bo/open_so_bo_inventory_rio_runrate_rds_7500.md:183` |
+| KB / contract ref: `target/knowledgebase/pos/readme.md` | `target/knowledgebase/pos/readme.md:64` |
+
+#### Operational detail (verified)
+- Bundle: `source/contracts/pos/bitbucket-etl/dwd_disty_inv_rio_req_detail/`
+- Manifest: `source/contracts/pos/bitbucket-etl/MANIFEST.md`
+
+#### Not documented in repository
+- Schedule, owner, SLA
+
+---
+
+## Preserved pre-L1-L6 content
+
+> Retained verbatim from the prior POS contract knowledgebase document (nothing removed). ETL load evidence above supplements this catalog narrative.
+
+
 **Domain:** pos  
 **Source contract:** `C:\Users\T154858D.TDSNX\Desktop\git_repo_v1\data_analysis_agent_brpt\knowledge\POS\tables\dwd_disty_inv_rio_req_detail.md`  
 **Knowledgebase path:** `target/knowledgebase/pos/dwd_disty_inv_rio_req_detail.md`

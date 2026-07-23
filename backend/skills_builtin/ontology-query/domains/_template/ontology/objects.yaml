@@ -1,0 +1,26 @@
+project_domain: template
+version: "1.0.0"
+description: Example ontology — replace with your domain objects
+
+objects_type_entities:
+  - id: ExampleEntity
+    physical_source: schema.example_table
+    description: Example business entity for template purposes
+    primary_key:
+      - hasExampleId
+    properties:
+      - name: hasExampleId
+        type: INT64
+        mapping: id
+        description: Primary identifier
+        visibility: prominent
+      - name: hasExampleName
+        type: STRING
+        mapping: name
+        description: Human-readable name
+        visibility: prominent
+      - name: hasExampleStatus
+        type: STRING
+        mapping: status
+        description: Active / Inactive status
+        visibility: default

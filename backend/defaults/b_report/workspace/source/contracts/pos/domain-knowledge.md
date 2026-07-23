@@ -60,6 +60,14 @@
 
 Several DIM and DWD table names overlap with B Report and other disty domains (e.g. `dim_pub_customer_info`, `dwd_disty_brpt_orders_pl_etl_mi`). POS documentation captures **POS-specific join keys and report use cases** only. Shared column semantics follow platform dimension definitions.
 
+## Virtual / Negative Order Type P&L Adjustments
+
+- POS grain includes `order_type` on hub `dw_us.dwd_disty_common_pos_di`; standard POS sales rules (for example exclude `order_type = 114` from revenue) do **not** fully describe B Report virtual/negative adjustment order types.
+- For Adj P&L allocation semantics of virtual/negative codes (for example -2, -3, -5, -50, -60/-61), use the shared B Report reference: [`source/contracts/b-report-us/order-type-pnl-adjustments.md`](../b-report-us/order-type-pnl-adjustments.md).
+- Domain index pointer: `source/contracts/b-report-us/domain-knowledge.md` → section **Virtual / Negative Order Type P&L Adjustments**.
+- Knowledgebase human layer: `target/knowledgebase/order/dim_pub_order_type.md` (Human Knowledge Layer).
+- CIS operational (positive) order type master remains `source/ref/platform/order_type_info 2.md`.
+
 ## ODS Deferred Inventory (46 tables)
 
 Full L1–L6 documentation deferred to a future ODS enrich pass. Tables are used as gap-fill sources when DWD/DIM lack required fields:

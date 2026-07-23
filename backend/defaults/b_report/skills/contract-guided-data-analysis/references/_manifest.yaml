@@ -8,6 +8,7 @@ defaults:
 # All progressive-load policies live in this references/ folder (local file: only).
 
 forbidden_paths:
+  - /knowledge/org/source/contracts/**/eval/golden_cases.md
   - /knowledge/org/source/contracts/**/golden-questions.md
   - /knowledge/org/source/contracts/b-report-us/tables/**
   - /knowledge/org/source/contracts/pos/tables/**
@@ -25,9 +26,14 @@ stages:
         sections:
           - "## Stage-1 Output Contract"
           - "## Temporal Obligation"
+          - "## Axis 1b — Pipeline Mode (orchestration only)"
       - file: output-contract.md
         sections:
           - "## Ambiguity Handling"
+      - file: rds-report-sql.md
+        sections:
+          - "## Intent detection checklist"
+        when_intent: rds_report_generation
 
   local_research:
     files:
@@ -36,10 +42,6 @@ stages:
   resolve_domain:
     files:
       - file: domain-routing.md
-
-  golden_cases_match:
-    files:
-      - file: golden-cases-match.md
 
   special_logic_check:
     files:
@@ -68,6 +70,10 @@ stages:
       attribution:
         - file: fiscal-calendar.md
         - file: output-contract.md
+      rds_report_generation:
+        - file: rds-report-sql.md
+        - file: fiscal-calendar.md
+        - file: entity-resolution.md
       _default:
         - file: typo-tolerance.md
         - file: fiscal-calendar.md
@@ -87,6 +93,9 @@ stages:
           - "## Gate before MCP"
       - file: sql-planning.md
       - file: metric-table-routing.md
+      # Apply when intent / pipeline_mode is rds_report_generation
+      - file: rds-report-sql.md
+        when_intent: rds_report_generation
 
   execute_evidence:
     files:
@@ -97,6 +106,11 @@ stages:
       - file: output-contract.md
         sections:
           - "## Output Contract (Fixed)"
+          - "## Mode — rds_report_generation"
       - file: confidence-provenance.md
         sections:
           - "## Source Tier"
+      - file: rds-report-sql.md
+        sections:
+          - "## Deliverable override vs `output-contract.md`"
+        when_intent: rds_report_generation

@@ -36,6 +36,21 @@ class UserConfig(BaseModel):
         default_factory=lambda: {"web_fetch": True, "web_search": True}
     )
     permissions: list[PermissionRule] = Field(default_factory=list)
+    disabled_skills: list[str] = Field(
+        default_factory=list,
+        description="Skill names (builtin/org/user) hidden from slash menu and not loaded.",
+    )
+    disabled_mcp_servers: list[str] = Field(
+        default_factory=list,
+        description="MCP server names (including org-managed ones) to exclude at runtime.",
+    )
+    feature_flags: dict[str, Any] = Field(
+        default_factory=lambda: {
+            "extended_run_default": False,
+            "show_sql_appendix": True,
+        },
+        description="Per-user feature toggles; org pack config.patch.json may seed defaults.",
+    )
 
 
 class McpServerConfig(BaseModel):
@@ -87,6 +102,29 @@ class ProviderInfo(BaseModel):
     requires_api_key: bool = True
 
 
+class SkillExtensions(BaseModel):
+    """Extra tools/rules/MCP a skill needs beyond the agent core (frontmatter `extensions:`)."""
+
+    rules: list[str] = Field(default_factory=list)
+    tools: list[str] = Field(default_factory=list)
+    mcp: list[str] = Field(default_factory=list)
+    subagents: list[str] = Field(default_factory=list)
+
+
+class SubagentHint(BaseModel):
+    id: str
+    label: str = ""
+
+
+class SkillHarness(BaseModel):
+    """Harness governance a skill declares (frontmatter `harness:`)."""
+
+    phases: list[str] = Field(default_factory=list)
+    tool_budgets: dict[str, int] = Field(default_factory=dict)
+    require_synthesis: bool = False
+    subagent_hints: list[SubagentHint] = Field(default_factory=list)
+
+
 class SkillInfo(BaseModel):
     name: str
     description: str = ""
@@ -94,6 +132,9 @@ class SkillInfo(BaseModel):
     path: str
     content: str | None = None
     editable: bool = False
+    disabled: bool = False
+    extensions: SkillExtensions = Field(default_factory=SkillExtensions)
+    harness: SkillHarness = Field(default_factory=SkillHarness)
 
 
 class FileEntry(BaseModel):

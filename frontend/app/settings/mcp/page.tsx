@@ -28,6 +28,7 @@ export default function McpSettingsPage() {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tools, setTools] = useState<{ name: string; description: string }[]>([]);
+  const [disabledMcp, setDisabledMcp] = useState<string[]>([]);
 
   useEffect(() => {
     void (async () => {
@@ -43,11 +44,27 @@ export default function McpSettingsPage() {
           "/api/mcp/tools"
         );
         setTools(t.tools || []);
+        const cfg = await apiGet<{ disabled_mcp_servers?: string[] }>("/api/config");
+        setDisabledMcp(cfg.disabled_mcp_servers || []);
       } catch (e) {
         setError((e as Error).message);
       }
     })();
   }, []);
+
+  async function toggleOrgServer(name: string, disable: boolean) {
+    setError(null);
+    try {
+      const cfg = await apiGet<Record<string, unknown>>("/api/config");
+      const next = disable
+        ? Array.from(new Set([...((cfg.disabled_mcp_servers as string[]) || []), name]))
+        : ((cfg.disabled_mcp_servers as string[]) || []).filter((n) => n !== name);
+      await apiSend("/api/config", "PUT", { ...cfg, disabled_mcp_servers: next });
+      setDisabledMcp(next);
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
 
   async function save() {
     setStatus(null);
@@ -81,9 +98,21 @@ export default function McpSettingsPage() {
             {orgServers.map((s) => (
               <li
                 key={s.name}
-                className="rounded-xl border border-teal-100 bg-teal-50/50 px-3 py-2 text-sm"
+                className={`rounded-xl border border-teal-100 bg-teal-50/50 px-3 py-2 text-sm ${
+                  disabledMcp.includes(s.name) ? "opacity-50" : ""
+                }`}
               >
-                <p className="font-medium text-ink-900">{s.name}</p>
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-medium text-ink-900">{s.name}</p>
+                  <label className="flex items-center gap-1.5 text-xs text-ink-600">
+                    Enabled
+                    <input
+                      type="checkbox"
+                      checked={!disabledMcp.includes(s.name)}
+                      onChange={(e) => void toggleOrgServer(s.name, !e.target.checked)}
+                    />
+                  </label>
+                </div>
                 <p className="text-xs text-ink-500">{s.description}</p>
                 {s.url && (
                   <p className="mt-1 break-all font-mono text-[11px] text-ink-600">{s.url}</p>

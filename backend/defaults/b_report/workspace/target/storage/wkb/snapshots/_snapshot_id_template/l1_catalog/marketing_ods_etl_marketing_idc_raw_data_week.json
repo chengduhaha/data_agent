@@ -1,0 +1,38 @@
+{
+  "entity_id": "ods_gbl.ods_etl_marketing_idc_raw_data_week",
+  "layer": "l1_catalog",
+  "domain": "marketing",
+  "qualified_name": "ods_gbl.ods_etl_marketing_idc_raw_data_week",
+  "source_table": "ods_gbl.ods_ext_marketing_idc_raw_data_week_v1",
+  "grain": "one row per IDC weekly delivery record for latest week partition",
+  "partition_keys": [
+    "week"
+  ],
+  "columns": [
+    "iso_year",
+    "iso_week",
+    "week_start_date",
+    "week_end_date",
+    "week",
+    "country",
+    "distributor",
+    "channel_detail",
+    "product_group",
+    "product_category",
+    "product_name",
+    "product_detail",
+    "company_name",
+    "brand_name",
+    "mpn",
+    "upc_code",
+    "currency_id",
+    "deployment_type",
+    "ai_pc",
+    "product_type",
+    "units",
+    "distributor_revenue",
+    "distributor_revenue_usd",
+    "etl_timestamp"
+  ],
+  "evidence_doc": "target/knowledgebase/marketing/ods_etl_marketing_idc_raw_data_week.md"
+}

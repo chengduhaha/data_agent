@@ -1,5 +1,208 @@
 # DWD: Apply Territory Change Rules to Single Orders (`dwd_disty_sales_single_orders_di`)
 
+- artifact_type: etl_table
+- artifact_id: dwd_disty_sales_single_orders_di
+- domain: pos
+- one_line_purpose: Territory-change application ETL for POS order lines (see preserved business sections below).
+- layer_type: DWD
+- source_kind: etl_sql
+- evidence_source: source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql
+
+---
+
+## L1 Data Foundation
+
+### Identity and physical mapping
+- **Table / job:** `dwd_disty_sales_single_orders_di` / `load_single_orders_apply_terr_change`
+- **Layer type:** DWD
+- **Canonical / derived:** Derived / ETL-loaded (see preserved lineage below)
+- **Owner team:** Not documented in repository
+
+### Grain, scope, exclusions
+- See preserved **Grain and keys** section below (content retained from prior documentation).
+
+### Cross-engine presence
+| Engine | Present | Notes |
+|--------|---------|-------|
+| Hive | yes | ETL target / intermediate |
+| Vertica | See preserved Business query tables section |
+
+### Physical schema reference
+
+| Field | Value |
+|-------|-------|
+| **entity_id** | `dwd_disty_sales_single_orders_di` |
+| **l1_catalog_seed** | `target/storage/wkb/snapshots/_snapshot_id_template/l1_catalog/{engine}_{schema}_{table}.json` |
+| **column_count** | pending |
+| **ddl_source** | pending |
+| **retrieval** | `python -m tools.wkb.indexing.run_query --query "pos load_single_orders_apply_terr_change schema" --intent find_table_schema` |
+
+### Lineage
+- Primary upstream/downstream details are retained in the preserved sections below; L3 Relationship map summarizes ETL JOIN edges.
+
+### Freshness and load path
+- Parameters and load pattern: see preserved content (`date_flag`, target/source/dim DB literals).
+
+## L2 Declarative Knowledge
+
+### Business purpose
+See preserved **Business purpose** section below (not removed).
+
+### Audience and use cases
+See preserved **Who it helps** section below.
+
+### Fact key resolution
+See preserved **Grain and keys**.
+
+### Time field semantics
+- `date_flag` partition semantics documented in preserved sections.
+
+### Metrics served
+N/A / see preserved content.
+
+### Metric serving map
+N/A
+
+### etl_metrics
+No new metric-index formulas added in this enrichment pass.
+
+## L3 Procedural Knowledge
+
+### Query and routing rules
+See preserved processing / stage tables below.
+
+### Dimension join patterns
+See Relationship map and preserved join narrative.
+
+### Key filters and ETL business logic
+See preserved stage/filter narrative; SQL predicates also reflected in Relationship map evidence.
+
+### Standard time-filter SQL
+```sql
+-- Prefer date_flag = '${date_flag}' as documented in ETL parameters
+```
+
+### End-to-end flow
+```mermaid
+flowchart LR
+  ETL["load_single_orders_apply_terr_change"] --> TGT["dwd_disty_sales_single_orders_di"]
+```
+
+### Base tables register
+| Object | Role |
+|--------|------|
+| See preserved lineage / stage tables | retained below |
+
+### Step-by-step logic
+See preserved **What the process does** stages (retained below).
+
+### Relationship map (embedded)
+
+| from_fqn | to_fqn | cardinality | join_keys | provenance |
+|----------|--------|-------------|-----------|------------|
+| `dw_xx.dwd_pub_shipped_order_header_di` | `ods_xx.ods_cis_corp_dw_vend_pl` | many:1 | `a.pm_code = b.vpl_no)` | etl_sql (source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:1) |
+| `dw_xx.dwd_pub_shipped_order_header_di` | `ods_xx.ods_cis_corp_dw_vend_pl` | many:1 | `a.pm_code = b.vpl_no; --DROP TABLE IF EXISTS temp_order_terr_2; CREATE TEMPORARY TABLE temp_order_terr_2 AS with ot1 as (` | etl_sql (source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:1) |
+| `dw_xx.dwd_pub_shipped_order_header_di` | `ods_xx.ods_cis_corp_filter_sku` | many:1 | `a.sku_no = b.sku_no), ot3 as (` | etl_sql (source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:1) |
+| `dw_xx.dwd_pub_shipped_order_header_di` | `ods_xx.ods_cis_corp_cust_xref` | many:1 | `a.cust_no = cx.cust_no and cx.xref_type = 'MASTER_SUB' and nvl(cx.active, 'Y') = 'Y')` | etl_sql (source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:1) |
+| `dw_xx.dwd_pub_shipped_order_header_di` | `temp_etl_ord_prof` | many:1 | `a.order_type = b.order_type AND a.order_no = b.order_no AND a.order_line_no = b.profile_no AND b.profile_type = 'MODELGROUP' AND b.profile_cat = 'ORDL' AND b...` | etl_sql (source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:1) |
+| `dw_xx.dwd_pub_shipped_order_header_di` | `temp_etl_ord_prof` | many:1 | `a.order_type = c.order_type AND a.order_no = c.order_no AND c.profile_type = 'PROG_NAME' AND c.profile_cat = 'ORDR' AND c.active = 'Y'; --DROP TABLE IF EXIST...` | etl_sql (source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:1) |
+| `temp_orders` | `temp_rule_terr_1` | many:1 | `dwo.cust_no = t.cust_no AND ( t.mcust_no IS NULL OR dwo.mcust_no = t.mcust_no ) AND ( t.cust_terr IS NULL OR dwo.cust_terr = t.cust_terr ) AND ( t.cust_type ...` | etl_sql (source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:1) |
+| `temp_orders` | `ods_xx.ods_cis_corp_customer_header` | many:1 | `dwo.cust_no = b.cust_no` | etl_sql (source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:1) |
+| `temp_orders` | `ods_xx.ods_cis_corp_cust_type` | many:1 | `dwo.cust_type = c.cust_type` | etl_sql (source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:1) |
+| `temp_orders` | `temp_etl_ord_hd` | many:1 | `dwo.order_no = b.order_no AND dwo.order_type = b.order_type` | etl_sql (source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:1) |
+| `dw_xx.dwd_pub_shipped_order_header_di` | `ods_xx.ods_cis_corp_territory` | many:1 | `a.to_terr = te.sales_terr` | etl_sql (source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:1) |
+| `dw_xx.dwd_pub_shipped_order_header_di` | `ods_xx.ods_cis_corp_cust_type` | many:1 | `a.cust_type = c.cust_type` | etl_sql (source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:1) |
+
+`table relationship.txt` edges naming this FQN: none found — Not documented in repository.
+
+### Special logic (embedded)
+
+Provenance file: `source/ref/pos/special_logic.txt` (applicable rules only).
+
+Domain `special_logic.txt` present, but no numbered rules name this artifact FQN / stem — Not documented in repository for this artifact.
+
+### Column / field derivations (from ETL SQL)
+
+| target_column | expression_sql | upstream_columns | upstream_tables | transform_kind | evidence |
+|---------------|----------------|------------------|-----------------|----------------|----------|
+| `order_type` | `order_type` | `order_type` | `temp_to_terr_4`, `temp_orders`, `${target_db}.dwd_disty_sales_orders_change_terr_di`, `${source_db}.ods_cis_corp_cust_type`, `${dim_db}.${vendor_table_name}` | passthrough | `source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:15` |
+| `order_no` | `order_no` | `order_no` | `temp_to_terr_4`, `temp_orders`, `${target_db}.dwd_disty_sales_orders_change_terr_di`, `${source_db}.ods_cis_corp_cust_type`, `${dim_db}.${vendor_table_name}` | passthrough | `source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:16` |
+| `order_line_no` | `order_line_no` | `order_line_no` | `temp_to_terr_4`, `temp_orders`, `${target_db}.dwd_disty_sales_orders_change_terr_di`, `${source_db}.ods_cis_corp_cust_type`, `${dim_db}.${vendor_table_name}` | passthrough | `source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:17` |
+| `kit_sku_no` | `kit_sku_no` | `kit_sku_no` | `temp_to_terr_4`, `temp_orders`, `${target_db}.dwd_disty_sales_orders_change_terr_di`, `${source_db}.ods_cis_corp_cust_type`, `${dim_db}.${vendor_table_name}` | passthrough | `source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:72` |
+| `rule_no` | `rule_no` | `rule_no` | `temp_to_terr_4`, `temp_orders`, `${target_db}.dwd_disty_sales_orders_change_terr_di`, `${source_db}.ods_cis_corp_cust_type`, `${dim_db}.${vendor_table_name}` | passthrough | `source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:258` |
+| `seq` | `seq` | `seq` | `temp_to_terr_4`, `temp_orders`, `${target_db}.dwd_disty_sales_orders_change_terr_di`, `${source_db}.ods_cis_corp_cust_type`, `${dim_db}.${vendor_table_name}` | passthrough | `source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:49` |
+| `to_terr` | `to_terr` | `to_terr` | `temp_to_terr_4`, `temp_orders`, `${target_db}.dwd_disty_sales_orders_change_terr_di`, `${source_db}.ods_cis_corp_cust_type`, `${dim_db}.${vendor_table_name}` | passthrough | `source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:264` |
+| `to_cust_type` | `to_cust_type` | `to_cust_type` | `temp_to_terr_4`, `temp_orders`, `${target_db}.dwd_disty_sales_orders_change_terr_di`, `${source_db}.ods_cis_corp_cust_type`, `${dim_db}.${vendor_table_name}` | passthrough | `source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:644` |
+| `vend_seq_ord` | `vend_seq_ord` | `vend_seq_ord` | `temp_to_terr_4`, `temp_orders`, `${target_db}.dwd_disty_sales_orders_change_terr_di`, `${source_db}.ods_cis_corp_cust_type`, `${dim_db}.${vendor_table_name}` | passthrough | `source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:49` |
+| `date_flag` | `'${date_flag}'` | `date_flag` | `temp_to_terr_4`, `temp_orders`, `${target_db}.dwd_disty_sales_orders_change_terr_di`, `${source_db}.ods_cis_corp_cust_type`, `${dim_db}.${vendor_table_name}` | literal | `source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:4` |
+| `rec_type` | `'S'` | `S` | `temp_to_terr_4`, `temp_orders`, `${target_db}.dwd_disty_sales_orders_change_terr_di`, `${source_db}.ods_cis_corp_cust_type`, `${dim_db}.${vendor_table_name}` | literal | `source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql:662` |
+
+### Sentinel and code values
+See preserved content for `terr_status`, `to_terr = -1`, `order_type = 20` and related sentinels.
+
+## L4 Validation
+
+### Resolved partition value
+- `date_flag` from Azkaban / job parameters — Not documented as a concrete calendar value in repository.
+
+### Data quality checks
+Not documented in repository
+
+### Validation SQL
+N/A — Vertica MCP not executed during documentation.
+
+### Caveats for interpretation
+- This file was upgraded additively to L1–L6; all prior narrative was preserved under **Preserved pre-L1-L6 content**.
+
+### Conflicts and open questions
+None identified in repository
+
+## L5 Runtime View
+
+### Query path and engine preference
+| Path | Engine | Evidence |
+|------|--------|----------|
+| ETL | Hive/Spark | `source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql` |
+
+### Access constraints
+Not documented in repository
+
+### Query risk profile
+- Partition on `date_flag`; filter before wide scans.
+
+## L6 Access and Consumption
+
+### Primary consumers and use cases
+See preserved audience section.
+
+### Representative query patterns
+Not documented in repository
+
+### Dependencies and notes
+
+#### Upstream objects (verified)
+| Object | Usage | Evidence |
+|--------|-------|----------|
+| See preserved lineage | — | `source/etl/sql/pos/data_service/pos/sql/load_single_orders_apply_terr_change.sql` |
+
+#### Downstream consumers (verified)
+| Object / script | Evidence |
+|-----------------|----------|
+| Not documented in repository | — |
+
+#### Operational detail (verified)
+- See preserved parameters list.
+
+#### Not documented in repository
+- Schedule, owner, SLA
+
+---
+
+## Preserved pre-L1-L6 content
+
+> The following sections are retained verbatim from the prior knowledgebase document (nothing removed).
+
+
 ## Business purpose
 
 This job resolves territory assignment for single (non-kit/standalone) order lines that have not yet had their territory evaluated (`terr_status = 'o'`). It matches each order line against a prioritized set of territory-change rules and, where a rule fires, overwrites the customer territory (`cust_terr`) and vendor sequence (`vend_seq_ord`) on the single-order record. A territory-change audit record is simultaneously written to a shared change-tracking table so downstream jobs can trace which rule triggered each reassignment. Unlike the comp-order equivalent, single orders self-reference their own `order_line_no` as both `kit_no` and `kit_line_no`, and include an additional low-priority fallback path for division-18 non-PCW orders.

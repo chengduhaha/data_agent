@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from app.deps import get_user_id
-from app.store.io import delete_user_skill, get_skill, list_skills, save_user_skill
+from app.store.io import delete_user_skill, get_skill, list_skills, load_user_config, save_user_skill
 
 router = APIRouter(prefix="/api/skills", tags=["skills"])
 
@@ -17,9 +17,12 @@ class SkillWrite(BaseModel):
 
 
 @router.get("")
-async def skills_list(user_id: str = Depends(get_user_id)):
-    items = await list_skills(user_id)
-    return {"skills": [s.model_dump() for s in items]}
+async def skills_list(include_disabled: bool = False, user_id: str = Depends(get_user_id)):
+    cfg = await load_user_config(user_id)
+    items = await list_skills(user_id, cfg)
+    # Slash menu hides disabled skills entirely; Settings passes include_disabled=true.
+    visible = items if include_disabled else [s for s in items if not s.disabled]
+    return {"skills": [s.model_dump() for s in visible]}
 
 
 @router.get("/{name}")

@@ -1,0 +1,1359 @@
+project_domain: b_report
+version: 1.0.44
+description: 'TD SYNNEX NextGen B Report (Distributor Business P&L / Profitability
+  Analysis). v5.0.0: Unified Connected Domain Model. Ensures zero isolated objects
+  by linking all personnel (Sales, PM, Buyer), projects (BD), and master data (Customer,
+  Product, Vendor) through the ShippedOrderLine hub.'
+objects_type_entities:
+- id: Customer
+  physical_source: dim_us.dim_pub_customer_info
+  description: A Customer, in the context of TDSYNNEX, is an individual or organization
+    that purchases or receives products or services from TDSYNNEX. Customers can be
+    end-users, resellers, or other businesses.
+  primary_key:
+  - custNo
+  properties:
+  - name: custNo
+    type: INT32
+    mapping: cust_no
+    description: Customer ID
+    visibility: prominent
+  - name: custName
+    type: STRING
+    mapping: cust_name
+    description: Customer Name
+    visibility: prominent
+  - name: outsideSalesRep
+    type: INT32
+    mapping: outside_sales_rep
+    description: Assigned Sales Rep
+    visibility: default
+  - name: salesTerr
+    type: INT
+    mapping: sales_terr
+    visibility: default
+  - name: mcustNo
+    type: INT32
+    mapping: mcust_no
+    description: Master customer this ship-to customer rolls up to
+    visibility: default
+  - name: outsideSalesRepName
+    type: STRING
+    mapping: outside_sales_rep_name
+    description: Name of the outside sales rep assigned to this customer
+    visibility: default
+  - name: salesTerrName
+    type: STRING
+    mapping: sales_terr_name
+    description: Name of the sales territory for this customer
+    visibility: default
+  - name: mcustName
+    type: STRING
+    mapping: mcust_name
+    description: Master Customer Name
+    visibility: default
+- id: Vendor
+  physical_source: dim_us.dim_pub_vendor_info
+  description: TD Synnex's vendors is a merchant who sells a merchandisable property,
+    products, or goods, TD Synnex procures products from vendors.
+  primary_key:
+  - vendNo
+  properties:
+  - name: vendNo
+    type: INT32
+    mapping: vend_no
+    description: Vendor ID
+    visibility: prominent
+  - name: vendName
+    type: STRING
+    mapping: vend_name
+    description: Vendor Name
+    visibility: prominent
+- id: Part
+  physical_source: dim_us.dim_pub_part_info
+  description: A Part, in the context of TDSYNNEX, refers to a specific product or
+    component that is identified by a unique Part Number. This identifier is used
+    to simplify referencing and tracking of the part within the TDSYNNEX system. Sku_no
+    is the identifier
+  primary_key:
+  - skuNo
+  properties:
+  - name: skuNo
+    type: INT32
+    mapping: sku_no
+    description: SKU ID
+    visibility: prominent
+  - name: partNo
+    type: STRING
+    mapping: part_no
+    description: Part Number
+    visibility: prominent
+  - name: vendNo
+    type: INT32
+    mapping: vend_no
+    description: Vendor ID
+    visibility: default
+  - name: vplNo
+    type: INT32
+    mapping: vpl_no
+    description: VPL ID
+    visibility: default
+  - name: shortDesc
+    type: STRING
+    mapping: short_desc
+    description: Short product description (catalog title); human-readable summary
+      distinct from part number
+    visibility: default
+  - name: vendName
+    type: STRING
+    mapping: vend_name
+    description: Vendor Name
+    visibility: default
+  - name: vplDesc
+    type: STRING
+    mapping: vpl_desc
+    description: Description of the vendor product line for this part
+    visibility: default
+- id: VendorProductLine
+  physical_source: dim_us.dim_pub_vpl_info
+  description: VPL stands for Vendor Product Line. It is a code used by vendors to
+    categorize their products by product line, such as motherboards, CPUs, memory,
+    storage, networking devices, etc.  vpl_no represents VPL and maps to VPC(vendor
+    product code)
+  primary_key:
+  - vplNo
+  properties:
+  - name: vplNo
+    type: INT32
+    mapping: vpl_no
+    description: Vendor Product Line ID
+    visibility: prominent
+  - name: vendNo
+    type: INT32
+    mapping: vend_no
+    description: Vendor ID
+    visibility: default
+  - name: vplDesc
+    type: STRING
+    mapping: vpl_desc
+    description: Description of the vendor product line (human-readable product line
+      name)
+    visibility: prominent
+- id: MasterCustomer
+  physical_source: dim_us.dim_pub_customer_info
+  description: A Master Customer refers to the primary customer in a business relationship
+    that may include sub-companies or subsidiaries. In the context of TDSYNNEX's system,
+    a Master Customer is the main account that has a special relationship with its
+    sub-accounts.
+  primary_key:
+  - mcustNo
+  properties:
+  - name: mcustNo
+    type: INT32
+    mapping: mcust_no
+    description: Master Customer ID
+    visibility: prominent
+  - name: salesTerr
+    type: INT
+    mapping: sales_terr
+    visibility: default
+  - name: mcustName
+    type: STRING
+    mapping: mcust_name
+    description: Master Customer Name
+    visibility: prominent
+  - name: salesTerrName
+    type: STRING
+    mapping: sales_terr_name
+    description: Name of the sales territory for this master customer
+    visibility: default
+- id: Territory
+  physical_source: dim_us.dim_pub_sales_territory
+  description: A Territory, in the context of TDSYNNEX, refers to a customer group
+    or geographic district for which an individual sales person or sales team holds
+    responsibility. Territories can be defined on the basis of geography, sales potential,
+    history, or a combination of factors.
+  primary_key:
+  - salesTerr
+  properties:
+  - name: salesTerr
+    type: INT
+    mapping: sales_terr
+    description: Territory No
+    visibility: prominent
+  - name: terrName
+    type: STRING
+    mapping: terr_name
+    visibility: default
+  - name: custType
+    type: INT
+    mapping: cust_type
+    description: Customer type associated with this territory
+    visibility: default
+- id: CustomerType
+  physical_source: dim_us.dim_pub_sales_cust_type
+  description: Customer Type (Cust Type) refers to the category or classification
+    of a customer based on their business nature, size, industry, or other relevant
+    characteristics, such as Reseller, End-User, Government, or Education, in the
+    context of TDSYNNEX.
+  primary_key:
+  - custType
+  properties:
+  - name: custType
+    type: INT
+    mapping: cust_type
+    description: Customer Type
+    visibility: prominent
+  - name: division
+    type: INT
+    mapping: division
+    description: Sales division for this customer type
+    visibility: default
+  - name: custTypeDescr
+    type: STRING
+    mapping: cust_type_descr
+    description: Description of the customer type classification (e.g. Reseller, End-User,
+      Government)
+    visibility: prominent
+  - name: divisionDesc
+    type: STRING
+    mapping: division_desc
+    description: Description of the sales division for this customer type
+    visibility: default
+- id: Division
+  physical_source: dim_us.dim_pub_sales_division
+  description: Division, in the context of TDSYNNEX, refers to a sub-unit or a segment
+    within the company that operates with a degree of autonomy, focusing on specific
+    products, services, markets, or customer groups, such as Enterprise, Commercial,
+    or Public Sector.
+  primary_key:
+  - division
+  properties:
+  - name: division
+    type: INT
+    mapping: division
+    description: Division number (sales division identifier)
+    visibility: prominent
+  - name: divisionDesc
+    type: STRING
+    mapping: division_desc
+    description: Description of the sales division
+    visibility: prominent
+- id: PM
+  physical_source: dim_us.dim_pub_vpl_hierarchy_info
+  description: PM, in the context of TDSYNNEX, refers to Product Manager, responsible
+    for overseeing the development, launch, and lifecycle of a product or a set of
+    products, including market research, competitive analysis, and product strategy.
+  primary_key:
+  - pmId
+  properties:
+  - name: pmId
+    type: INT32
+    mapping: pm_id
+    description: PM ID
+    visibility: prominent
+  - name: pmName
+    type: STRING
+    mapping: pm_name
+    description: PM Name
+    visibility: prominent
+  - name: vplNo
+    type: INT32
+    mapping: vpl_no
+    description: Managed VPL
+    visibility: default
+  - name: pmManagerId
+    type: INT32
+    mapping: pm_manager_id
+    description: PM Manager this PM reports to
+    visibility: default
+  - name: vendNo
+    type: INT32
+    mapping: vend_no
+    description: Vendor this PM is associated with
+    visibility: default
+  - name: pmManagerName
+    type: STRING
+    mapping: pm_manager_name
+    description: Name of the PM Manager this PM reports to
+    visibility: default
+- id: PMManager
+  physical_source: dim_us.dim_pub_vpl_hierarchy_info
+  description: PM Manager, in the context of TDSYNNEX, refers to Product Manager Manager
+    or Product Management Manager, who oversees and leads a team of Product Managers,
+    guiding product strategy, development, and lifecycle, and is responsible for the
+    overall product management function.
+  primary_key:
+  - pmManagerId
+  properties:
+  - name: pmManagerId
+    type: INT32
+    mapping: pm_manager_id
+    description: PM Manager ID (same hierarchy table; filter by role when querying)
+    visibility: prominent
+  - name: pmDirectorId
+    type: INT32
+    mapping: pm_director_id
+    description: PM Director this manager reports to
+    visibility: default
+  - name: vendNo
+    type: INT32
+    mapping: vend_no
+    description: Vendor this PM Manager is associated with
+    visibility: default
+  - name: pmManagerName
+    type: STRING
+    mapping: pm_manager_name
+    description: PM Manager Name
+    visibility: prominent
+  - name: pmDirectorName
+    type: STRING
+    mapping: pm_director_name
+    description: Name of the PM Director this manager reports to
+    visibility: default
+- id: PMDirector
+  physical_source: dim_us.dim_pub_vpl_hierarchy_info
+  description: PM Director, in the context of TDSYNNEX, refers to Product Management
+    Director, a senior leadership role responsible for overseeing the entire product
+    management organization, setting product vision and strategy, and driving business
+    growth through effective product management practices.
+  primary_key:
+  - pmDirectorId
+  properties:
+  - name: pmDirectorId
+    type: INT32
+    mapping: pm_director_id
+    description: PM Director ID (same hierarchy table; filter by role when querying)
+    visibility: prominent
+  - name: pmVpId
+    type: INT32
+    mapping: pm_vp_id
+    description: PM VP this director reports to
+    visibility: default
+  - name: vendNo
+    type: INT32
+    mapping: vend_no
+    description: Vendor this PM Director is associated with
+    visibility: default
+  - name: pmDirectorName
+    type: STRING
+    mapping: pm_director_name
+    description: PM Director Name
+    visibility: prominent
+  - name: pmVpName
+    type: STRING
+    mapping: pm_vp_name
+    description: Name of the PM VP this director reports to
+    visibility: default
+- id: PMVP
+  physical_source: dim_us.dim_pub_vpl_hierarchy_info
+  description: PM VP, in the context of TDSYNNEX, refers to Vice President of Product
+    Management, an executive-level role responsible for leading the product management
+    function across the organization, developing and executing product strategies,
+    and driving business outcomes through product innovation and growth.
+  primary_key:
+  - pmVpId
+  properties:
+  - name: pmVpId
+    type: INT32
+    mapping: pm_vp_id
+    description: PM VP ID (same hierarchy table; filter by role when querying)
+    visibility: prominent
+  - name: vendNo
+    type: INT32
+    mapping: vend_no
+    description: Vendor this PM VP is associated with
+    visibility: default
+  - name: pmVpName
+    type: STRING
+    mapping: pm_vp_name
+    description: PM VP Name
+    visibility: prominent
+- id: SalesRep
+  physical_source: dim_us.dim_pub_sales_hierarchy_primary_role_by_terr_view
+  description: 'Sales Rep: Represents TDSYNNEX to sell products or services to customers.'
+  primary_key:
+  - salesRepId
+  properties:
+  - name: salesRepId
+    type: INT32
+    mapping: sales_rep_id
+    description: Sales Rep ID
+    visibility: prominent
+  - name: salesRepName
+    type: STRING
+    mapping: sales_rep_name
+    description: Sales Rep Name
+    visibility: prominent
+  - name: salesTerr
+    type: INT
+    mapping: sales_terr
+    description: Sales Territory No
+    visibility: default
+  - name: supId
+    type: INT32
+    mapping: sup_id
+    description: Sales Supervisor this rep reports to
+    visibility: default
+  - name: terrName
+    type: STRING
+    mapping: terr_name
+    description: Name of the sales territory for this sales rep
+    visibility: default
+  - name: supName
+    type: STRING
+    mapping: sup_name
+    description: Name of the Sales Supervisor this rep reports to
+    visibility: default
+- id: SalesSupervisor
+  physical_source: dim_us.dim_pub_sales_hierarchy_primary_role_by_terr_view
+  description: 'Sales Supervisor: Oversees a team of Sales Reps, providing guidance
+    and support to meet sales targets.'
+  primary_key:
+  - supId
+  properties:
+  - name: supId
+    type: INT32
+    mapping: sup_id
+    description: Sales Supervisor ID (same hierarchy view; filter by role when querying)
+    visibility: prominent
+  - name: salesTerr
+    type: INT
+    mapping: sales_terr
+    visibility: default
+  - name: mgrId
+    type: INT32
+    mapping: mgr_id
+    description: Sales Manager this supervisor reports to
+    visibility: default
+  - name: supName
+    type: STRING
+    mapping: sup_name
+    description: Sales Supervisor Name
+    visibility: prominent
+  - name: terrName
+    type: STRING
+    mapping: terr_name
+    description: Name of the sales territory for this supervisor
+    visibility: default
+  - name: mgrName
+    type: STRING
+    mapping: mgr_name
+    description: Name of the Sales Manager this supervisor reports to
+    visibility: default
+- id: SalesManager
+  physical_source: dim_us.dim_pub_sales_hierarchy_primary_role_by_terr_view
+  description: 'Sales Manager: Manages a sales team, develops sales strategies, and
+    is responsible for achieving sales goals.'
+  primary_key:
+  - mgrId
+  properties:
+  - name: mgrId
+    type: INT32
+    mapping: mgr_id
+    description: Sales Manager ID (same hierarchy view; filter by role when querying)
+    visibility: prominent
+  - name: salesTerr
+    type: INT
+    mapping: sales_terr
+    visibility: default
+  - name: dirId
+    type: INT32
+    mapping: dir_id
+    description: Sales Director this manager reports to
+    visibility: default
+  - name: mgrName
+    type: STRING
+    mapping: mgr_name
+    description: Sales Manager Name
+    visibility: prominent
+  - name: terrName
+    type: STRING
+    mapping: terr_name
+    description: Name of the sales territory for this manager
+    visibility: default
+  - name: dirName
+    type: STRING
+    mapping: dir_name
+    description: Name of the Sales Director this manager reports to
+    visibility: default
+- id: SalesDirector
+  physical_source: dim_us.dim_pub_sales_hierarchy_primary_role_by_terr_view
+  description: 'Sales Director: Directs sales operations, leads multiple sales teams,
+    and develops sales strategies to drive business growth.'
+  primary_key:
+  - dirId
+  properties:
+  - name: dirId
+    type: INT32
+    mapping: dir_id
+    description: Sales Director ID (same hierarchy view; filter by role when querying)
+    visibility: prominent
+  - name: salesTerr
+    type: INT
+    mapping: sales_terr
+    visibility: default
+  - name: vpId
+    type: INT32
+    mapping: vp_id
+    description: Sales VP this director reports to
+    visibility: default
+  - name: dirName
+    type: STRING
+    mapping: dir_name
+    description: Sales Director Name
+    visibility: prominent
+  - name: terrName
+    type: STRING
+    mapping: terr_name
+    description: Name of the sales territory for this director
+    visibility: default
+  - name: vpName
+    type: STRING
+    mapping: vp_name
+    description: Name of the Sales VP this director reports to
+    visibility: default
+- id: SalesVP
+  physical_source: dim_us.dim_pub_sales_hierarchy_primary_role_by_terr_view
+  description: 'Sales VP: Vice President of Sales, responsible for leading the entire
+    sales organization, developing sales strategies, and driving revenue growth across
+    TDSYNNEX.'
+  primary_key:
+  - vpId
+  properties:
+  - name: vpId
+    type: INT32
+    mapping: vp_id
+    description: Sales VP ID (same hierarchy view; filter by role when querying)
+    visibility: prominent
+  - name: salesTerr
+    type: INT
+    mapping: sales_terr
+    visibility: default
+  - name: vpName
+    type: STRING
+    mapping: vp_name
+    description: Sales VP Name
+    visibility: prominent
+  - name: terrName
+    type: STRING
+    mapping: terr_name
+    description: Name of the sales territory for this VP
+    visibility: default
+- id: BDRep
+  physical_source: dim_us.dim_disty_bd_project_user
+  description: 'BD Rep: Business Development Representative, responsible for identifying
+    and pursuing new business opportunities for TDSYNNEX.'
+  primary_key:
+  - bdRepId
+  properties:
+  - name: bdRepId
+    type: INT32
+    mapping: bd_rep_id
+    description: BD Rep ID (same project-user table; filter by role when querying)
+    visibility: prominent
+  - name: projectNo
+    type: INT
+    mapping: project_no
+    visibility: default
+  - name: bdMgrId
+    type: INT32
+    mapping: bd_mgr_id
+    description: BD Manager this rep reports to
+    visibility: default
+  - name: bdRepName
+    type: STRING
+    mapping: bd_rep_name
+    description: BD Rep Name
+    visibility: prominent
+  - name: projectName
+    type: STRING
+    mapping: project_name
+    description: Name of the BD project for this assignment
+    visibility: default
+  - name: bdMgrName
+    type: STRING
+    mapping: bd_mgr_name
+    description: Name of the BD Manager this rep reports to
+    visibility: default
+- id: BDManager
+  physical_source: dim_us.dim_disty_bd_project_user
+  description: 'BD Manager: Business Development Manager, oversees a team of BD Reps,
+    manages business development projects, and drives growth initiatives.'
+  primary_key:
+  - bdMgrId
+  properties:
+  - name: bdMgrId
+    type: INT32
+    mapping: bd_mgr_id
+    description: BD Manager ID (same table; filter by role when querying)
+    visibility: prominent
+  - name: projectNo
+    type: INT
+    mapping: project_no
+    visibility: default
+  - name: bdDirId
+    type: INT32
+    mapping: bd_dir_id
+    description: BD Director this manager reports to
+    visibility: default
+  - name: bdMgrName
+    type: STRING
+    mapping: bd_mgr_name
+    description: BD Manager Name
+    visibility: prominent
+  - name: projectName
+    type: STRING
+    mapping: project_name
+    description: Name of the BD project for this assignment
+    visibility: default
+  - name: bdDirName
+    type: STRING
+    mapping: bd_dir_name
+    description: Name of the BD Director this manager reports to
+    visibility: default
+- id: BDDirector
+  physical_source: dim_us.dim_disty_bd_project_user
+  description: 'BD Director: Business Development Director, directs business development
+    strategies, leads multiple teams, and develops partnerships to drive business
+    expansion.'
+  primary_key:
+  - bdDirId
+  properties:
+  - name: bdDirId
+    type: INT32
+    mapping: bd_dir_id
+    description: BD Director ID (same table; filter by role when querying)
+    visibility: prominent
+  - name: projectNo
+    type: INT
+    mapping: project_no
+    visibility: default
+  - name: bdVpId
+    type: INT32
+    mapping: bd_vp_id
+    description: BD VP this director reports to
+    visibility: default
+  - name: bdDirName
+    type: STRING
+    mapping: bd_dir_name
+    description: BD Director Name
+    visibility: prominent
+  - name: projectName
+    type: STRING
+    mapping: project_name
+    description: Name of the BD project for this assignment
+    visibility: default
+  - name: bdVpName
+    type: STRING
+    mapping: bd_vp_name
+    description: Name of the BD VP this director reports to
+    visibility: default
+- id: BDVP
+  physical_source: dim_us.dim_disty_bd_project_user
+  description: 'BD VP: Vice President of Business Development, responsible for leading
+    the entire business development organization, developing strategic partnerships,
+    and driving business growth across TDSYNNEX.'
+  primary_key:
+  - bdVpId
+  properties:
+  - name: bdVpId
+    type: INT32
+    mapping: bd_vp_id
+    description: BD VP ID (same table; filter by role when querying)
+    visibility: prominent
+  - name: projectNo
+    type: INT
+    mapping: project_no
+    visibility: default
+  - name: bdVpName
+    type: STRING
+    mapping: bd_vp_name
+    description: BD VP Name
+    visibility: prominent
+  - name: projectName
+    type: STRING
+    mapping: project_name
+    description: Name of the BD project for this assignment
+    visibility: default
+- id: Date
+  physical_source: dim_us.dim_pub_date
+  description: Date Flag, it's date level without timestamp
+  primary_key:
+  - dateFlag
+  properties:
+  - name: dateFlag
+    type: DATE
+    mapping: date_flag
+    description: Calendar date key (day grain)
+    visibility: prominent
+- id: BDProject
+  physical_source: dim_us.dim_disty_bd_project
+  description: BD Project refers to Business Development projects initiated by the
+    Marketing Team at TDSYNNEX, aimed at driving business growth, improving sales
+    strategies, and enhancing customer engagement through various marketing initiatives
+    and campaigns.
+  primary_key:
+  - projectNo
+  properties:
+  - name: projectNo
+    type: INT
+    mapping: project_no
+    visibility: default
+  - name: projectDesc
+    type: STRING
+    mapping: project_desc
+    description: Display name of the BD project (business development / marketing
+      initiative)
+    visibility: default
+- id: Buyer
+  physical_source: dim_us.dim_pub_vpl_hierarchy_info
+  description: 'Buyer: Procures products or services from suppliers on behalf of TDSYNNEX.'
+  primary_key:
+  - buyerId
+  properties:
+  - name: buyerId
+    type: INT
+    mapping: buyer_id
+    visibility: default
+  - name: buyerName
+    type: STRING
+    mapping: buyer_name
+    visibility: default
+  - name: vendNo
+    type: INT
+    mapping: vend_no
+    visibility: default
+  - name: vplNo
+    type: INT
+    mapping: vpl_no
+    visibility: default
+  - name: buyerManagerId
+    type: INT
+    mapping: buyer_manager_id
+    description: Buyer Manager this buyer reports to
+    visibility: default
+  - name: buyerManagerName
+    type: STRING
+    mapping: buyer_manager_name
+    description: Name of the Buyer Manager this buyer reports to
+    visibility: default
+- id: BuyerManager
+  physical_source: dim_us.dim_pub_vpl_hierarchy_info
+  description: 'Buyer Manager: Oversees a team of Buyers, managing procurement operations
+    and supplier relationships.'
+  primary_key:
+  - buyerManagerId
+  properties:
+  - name: buyerManagerId
+    type: INT
+    mapping: buyer_manager_id
+    visibility: default
+  - name: buyerManagerName
+    type: STRING
+    mapping: buyer_manager_name
+    visibility: default
+  - name: buyerId
+    type: INT
+    mapping: buyer_id
+    visibility: default
+  - name: vendNo
+    type: INT
+    mapping: vend_no
+    visibility: default
+  - name: vplNo
+    type: INT
+    mapping: vpl_no
+    visibility: default
+  - name: buyerDirectorId
+    type: INT
+    mapping: buyer_director_id
+    description: Buyer Director this manager reports to
+    visibility: default
+  - name: buyerName
+    type: STRING
+    mapping: buyer_name
+    description: Buyer Name (denormalized on the manager hierarchy row)
+    visibility: default
+  - name: buyerDirectorName
+    type: STRING
+    mapping: buyer_director_name
+    description: Name of the Buyer Director this manager reports to
+    visibility: default
+- id: BuyerDirector
+  physical_source: dim_us.dim_pub_vpl_hierarchy_info
+  description: 'Buyer Director: Directs procurement strategies, leads a team of Buyer
+    Managers, and develops supplier partnerships.'
+  primary_key:
+  - buyerDirectorId
+  properties:
+  - name: buyerDirectorId
+    type: INT
+    mapping: buyer_director_id
+    visibility: default
+  - name: buyerDirectorName
+    type: STRING
+    mapping: buyer_director_name
+    visibility: default
+  - name: vendNo
+    type: INT
+    mapping: vend_no
+    visibility: default
+  - name: vplNo
+    type: INT
+    mapping: vpl_no
+    visibility: default
+  - name: buyerVpId
+    type: INT
+    mapping: buyer_vp_id
+    description: Buyer VP this director reports to
+    visibility: default
+  - name: buyerVpName
+    type: STRING
+    mapping: buyer_vp_name
+    description: Name of the Buyer VP this director reports to
+    visibility: default
+- id: BuyerVP
+  physical_source: dim_us.dim_pub_vpl_hierarchy_info
+  description: 'Buyer VP: Vice President of Procurement, responsible for leading the
+    entire procurement organization, developing strategic sourcing initiatives, and
+    managing supplier relationships across TDSYNNEX.'
+  primary_key:
+  - buyerVpId
+  properties:
+  - name: buyerVpId
+    type: INT
+    mapping: buyer_vp_id
+    visibility: default
+  - name: buyerVpName
+    type: STRING
+    mapping: buyer_vp_name
+    visibility: default
+  - name: vendNo
+    type: INT
+    mapping: vend_no
+    visibility: default
+  - name: vplNo
+    type: INT
+    mapping: vpl_no
+    visibility: default
+- id: ShippedOrderLine
+  physical_source: SELECT NVL(ngm_amt, 0)/ NULLIF(NVL(ship_qty, 0) * (NVL(u_price,
+    0) + NVL(u_sum_expense, 0)),0) AS NGM_PCT, nvl(ship_qty,0) * (nvl(u_price,0) +
+    nvl(u_sum_expense,0)) as calc_net_sales, (nvl(u_price,0)-nvl(u_cost,0))*nvl(ship_qty,0)
+    as STANDARD_GM, nvl(ship_qty,0) * (nvl(u_price,0) - coalesce(sales_cost,u_cost,0))
+    as SALES_GM,* FROM dw_us.dwd_disty_brpt_orders_pl_etl_mi WHERE segment_exclude
+    ='N'
+  description: Shipped and invoiced sales order line, not including open sales orders,
+    key is order_no, order_type and order_line_no
+  primary_key:
+  - orderNo
+  - orderType
+  - orderLineNo
+  properties:
+  - name: dateFlag
+    type: DATE
+    mapping: date_flag
+    visibility: default
+  - name: orderNo
+    type: INT
+    mapping: order_no
+    visibility: default
+  - name: orderType
+    type: INT
+    mapping: order_type
+    visibility: default
+  - name: orderLineNo
+    type: INT
+    mapping: order_line_no
+    visibility: default
+  - name: custNo
+    type: INT
+    mapping: cust_no
+    visibility: default
+  - name: custTerr
+    type: INT
+    mapping: cust_terr
+    visibility: default
+  - name: salesRep
+    type: INT
+    mapping: sales_rep
+    visibility: default
+  - name: shipQty
+    type: INT
+    mapping: ship_qty
+    visibility: default
+  - name: uPrice
+    type: NUMERIC
+    mapping: u_price
+    visibility: default
+  - name: uSumExpense
+    type: NUMERIC
+    mapping: u_sum_expense
+    visibility: default
+  - name: ngmAmt
+    type: NUMERIC
+    mapping: ngm_amt
+    description: "NGM is the margin derived from product transactions after accounting\
+      \ for cost, vendor funding (e.g., rebates, MDF, price protection,etc.), and\
+      \ other deal-related adjustments, divided by net sales.\n\nIt is composed of\
+      \ multiple P&L ITEMS and the formula is as followsï¼š\nngm_amt=\n( (nvl(u_price,0)-nvl(u_cost,0))*nvl(ship_qty,0)\n\
+      \n+ nvl(BTL,0)+nvl(TRANS_BTL,0)\n\n+ nvl(ONE_TIME_BTL,0)\n\n+ nvl(HBTL,0)\n\n\
+      + nvl(SCM_PROFIT_ADJ,0)\n\n+ nvl(BTL_BACKOUT,0)\n\n+ nvl(PDT,0)\n\n+ nvl(AP_FINANCE,0)\n\
+      \n+ nvl(SCM_COST,0)\n\n+ nvl(SCM_RISK,0)\n\n+ nvl(INV_COST,0)\n\n+ nvl(INV_RESERVE,0)\n\
+      \n+ nvl(INFRASTRUCTURE,0)\n\n+ nvl(MARKETING,0)\n\n+ nvl(FRT_OUT_LOAD,0)\n\n\
+      + nvl(FRT_OUT_EXP,0) + nvl(FRT_OB_RECOVERY,0)\n\n+ nvl(FRT_IB_RECOVERY,0)\n\n\
+      + nvl(WHOH_PACK ,0)\n\n+ nvl(CSGN_EDI_FEE,0)\n\n+ nvl(CUST_FINANCE,0) \n\n+\
+      \ nvl(AR_FIN_RECOVERY,0)\n\n + nvl(CR_RISK_CTERM,0)\n\n+ nvl(CUST_PMT_DISC,0)\n\
+      \n+ nvl(CUST_REBATE,0)+nvl(CVR_RM,0)\n\n+ nvl(DIRECT_CREDIT,0)\n\n+ nvl(FLR_SYNNEX,0)\n\
+      \n+ nvl(RMA,0)\n\n+ nvl(MOF,0)\n\n+ nvl(MARGIN_SHARE,0)\n\n+ nvl(AP_ADJ,0)\n\
+      \n+ nvl(CORPORATE,0)\n\n+ nvl(HC_PM,0)\n\n+ nvl(HC_BD,0)\n\n+ nvl(HC_SALES,0)\n\
+      \n+ nvl(ORDER_OVERHEAD,0)\n\n+ nvl(OTHERS,0)\n\n+ nvl(MFG_OH,0)\n\n+ nvl(SFS,0)\n\
+      \n)"
+    visibility: default
+  - name: dimPmId
+    type: INT
+    mapping: dim_pm_id
+    visibility: default
+  - name: netSales
+    type: NUMERIC
+    mapping: calc_net_sales
+    description: The company's "verified and confirmed sales revenue", the amount
+      after deducting various revenue deductions, NET_SALES = nvl(ship_qty,0) * (nvl(u_price,0)
+      + nvl(u_sum_expense,0)). Mapped to calc_net_sales to avoid ambiguity with base
+      table column net_sales.
+    visibility: default
+  - name: virtualType
+    type: INT
+    mapping: virtual_type
+    visibility: default
+  - name: fromLocNo
+    type: INT
+    mapping: from_loc_no
+    visibility: default
+  - name: terms
+    type: STRING
+    mapping: terms
+    visibility: default
+  - name: gvUserType
+    type: STRING
+    mapping: gv_user_type
+    visibility: default
+  - name: skuNo
+    type: INT
+    mapping: sku_no
+    visibility: default
+  - name: prodCode
+    type: INT
+    mapping: prod_code
+    visibility: default
+  - name: invType
+    type: INT
+    mapping: inv_type
+    visibility: default
+  - name: baseCost
+    type: DECIMAL
+    mapping: base_cost
+    visibility: default
+  - name: salesCost
+    type: DECIMAL
+    mapping: sales_cost
+    visibility: default
+  - name: uCost
+    type: DECIMAL
+    mapping: u_cost
+    visibility: default
+  - name: lWeight
+    type: DECIMAL
+    mapping: l_weight
+    visibility: default
+  - name: salesTotal
+    type: DECIMAL
+    mapping: sales_total
+    visibility: default
+  - name: custProgramId
+    type: INT
+    mapping: cust_program_id
+    visibility: default
+  - name: apFinance
+    type: DECIMAL
+    mapping: ap_finance
+    visibility: default
+  - name: invCost
+    type: DECIMAL
+    mapping: inv_cost
+    visibility: default
+  - name: invReserve
+    type: DECIMAL
+    mapping: inv_reserve
+    visibility: default
+  - name: crRiskCterm
+    type: DECIMAL
+    mapping: cr_risk_cterm
+    visibility: default
+  - name: flrSynnex
+    type: DECIMAL
+    mapping: flr_synnex
+    visibility: default
+  - name: directCredit
+    type: DECIMAL
+    mapping: direct_credit
+    visibility: default
+  - name: csgnEdiFee
+    type: DECIMAL
+    mapping: csgn_edi_fee
+    visibility: default
+  - name: corporate
+    type: DECIMAL
+    mapping: corporate
+    visibility: default
+  - name: sfs
+    type: DECIMAL
+    mapping: sfs
+    visibility: default
+  - name: scmRisk
+    type: DECIMAL
+    mapping: scm_risk
+    visibility: default
+  - name: flrVendor
+    type: DECIMAL
+    mapping: flr_vendor
+    visibility: default
+  - name: custFinanceSales
+    type: DECIMAL
+    mapping: cust_finance_sales
+    visibility: default
+  - name: custPmtDisc
+    type: DECIMAL
+    mapping: cust_pmt_disc
+    visibility: default
+  - name: cvrRm
+    type: DECIMAL
+    mapping: cvr_rm
+    visibility: default
+  - name: arFinRecovery
+    type: DECIMAL
+    mapping: ar_fin_recovery
+    visibility: default
+  - name: mfgOh
+    type: DECIMAL
+    mapping: mfg_oh
+    visibility: default
+  - name: custFinance
+    type: DECIMAL
+    mapping: cust_finance
+    visibility: default
+  - name: rma
+    type: DECIMAL
+    mapping: rma
+    visibility: default
+  - name: hcSales
+    type: DECIMAL
+    mapping: hc_sales
+    visibility: default
+  - name: orderOverhead
+    type: DECIMAL
+    mapping: order_overhead
+    visibility: default
+  - name: marginShare
+    type: DECIMAL
+    mapping: margin_share
+    visibility: default
+  - name: apAdj
+    type: DECIMAL
+    mapping: ap_adj
+    visibility: default
+  - name: pdt
+    type: DECIMAL
+    mapping: pdt
+    visibility: default
+  - name: scmCost
+    type: DECIMAL
+    mapping: scm_cost
+    visibility: default
+  - name: infrastructure
+    type: DECIMAL
+    mapping: infrastructure
+    visibility: default
+  - name: marketing
+    type: DECIMAL
+    mapping: marketing
+    visibility: default
+  - name: coop
+    type: DECIMAL
+    mapping: coop
+    visibility: default
+  - name: oneTimeBtl
+    type: DECIMAL
+    mapping: one_time_btl
+    visibility: default
+  - name: hbtl
+    type: DECIMAL
+    mapping: hbtl
+    visibility: default
+  - name: scmProfitAdj
+    type: DECIMAL
+    mapping: scm_profit_adj
+    visibility: default
+  - name: hcPm
+    type: DECIMAL
+    mapping: hc_pm
+    visibility: default
+  - name: hcBd
+    type: DECIMAL
+    mapping: hc_bd
+    visibility: default
+  - name: btl
+    type: DECIMAL
+    mapping: btl
+    visibility: default
+  - name: btlSales
+    type: DECIMAL
+    mapping: btl_sales
+    visibility: default
+  - name: btlBackout
+    type: DECIMAL
+    mapping: btl_backout
+    visibility: default
+  - name: custRebate
+    type: DECIMAL
+    mapping: cust_rebate
+    visibility: default
+  - name: mof
+    type: DECIMAL
+    mapping: mof
+    visibility: default
+  - name: frtOutLoad
+    type: DECIMAL
+    mapping: frt_out_load
+    visibility: default
+  - name: frtOutExp
+    type: DECIMAL
+    mapping: frt_out_exp
+    visibility: default
+  - name: whohPack
+    type: DECIMAL
+    mapping: whoh_pack
+    visibility: default
+  - name: frtObRecovery
+    type: DECIMAL
+    mapping: frt_ob_recovery
+    visibility: default
+  - name: frtIbRecovery
+    type: DECIMAL
+    mapping: frt_ib_recovery
+    visibility: default
+  - name: others
+    type: DECIMAL
+    mapping: others
+    visibility: default
+  - name: othersSales
+    type: DECIMAL
+    mapping: others_sales
+    visibility: default
+  - name: scmDisc
+    type: DECIMAL
+    mapping: scm_disc
+    visibility: default
+  - name: scmNdisc
+    type: DECIMAL
+    mapping: scm_ndisc
+    visibility: default
+  - name: frtIn
+    type: DECIMAL
+    mapping: frt_in
+    visibility: default
+  - name: transBtl
+    type: DECIMAL
+    mapping: trans_btl
+    visibility: default
+  - name: transBtlSales
+    type: DECIMAL
+    mapping: trans_btl_sales
+    visibility: default
+  - name: oplgmAmt
+    type: DECIMAL
+    mapping: oplgm_amt
+    visibility: default
+  - name: companyNo
+    type: INT
+    mapping: company_no
+    visibility: default
+  - name: etlTimestamp
+    type: DATETIME
+    mapping: etl_timestamp
+    visibility: default
+  - name: btlSalesForOpl
+    type: DECIMAL
+    mapping: btl_sales_for_opl
+    visibility: default
+  - name: transBtlSalesForOpl
+    type: DECIMAL
+    mapping: trans_btl_sales_for_opl
+    visibility: default
+  - name: pdtForOpl
+    type: DECIMAL
+    mapping: pdt_for_opl
+    visibility: default
+  - name: custRebateForOpl
+    type: DECIMAL
+    mapping: cust_rebate_for_opl
+    visibility: default
+  - name: cvrRmForOpl
+    type: DECIMAL
+    mapping: cvr_rm_for_opl
+    visibility: default
+  - name: btlBackoutForOpl
+    type: DECIMAL
+    mapping: btl_backout_for_opl
+    visibility: default
+  - name: custPmtDiscForOpl
+    type: DECIMAL
+    mapping: cust_pmt_disc_for_opl
+    visibility: default
+  - name: custFinanceSalesForOpl
+    type: DECIMAL
+    mapping: cust_finance_sales_for_opl
+    visibility: default
+  - name: rmaForOpl
+    type: DECIMAL
+    mapping: rma_for_opl
+    visibility: default
+  - name: arFinRecoveryForOpl
+    type: DECIMAL
+    mapping: ar_fin_recovery_for_opl
+    visibility: default
+  - name: orderOverheadForOpl
+    type: DECIMAL
+    mapping: order_overhead_for_opl
+    visibility: default
+  - name: frtOutExpForOpl
+    type: DECIMAL
+    mapping: frt_out_exp_for_opl
+    visibility: default
+  - name: frtObRecoveryForOpl
+    type: DECIMAL
+    mapping: frt_ob_recovery_for_opl
+    visibility: default
+  - name: adjustGroup
+    type: STRING
+    mapping: adjust_group
+    visibility: default
+  - name: dimDivision
+    type: INT
+    mapping: dim_division
+    visibility: default
+  - name: dimCustType
+    type: INT
+    mapping: dim_cust_type
+    visibility: default
+  - name: dimTerrSubGroup
+    type: INT
+    mapping: dim_terr_sub_group
+    visibility: default
+  - name: dimTerrGroup
+    type: INT
+    mapping: dim_terr_group
+    visibility: default
+  - name: dimMcustNo
+    type: INT
+    mapping: dim_mcust_no
+    visibility: default
+  - name: dimSegCode
+    type: STRING
+    mapping: dim_seg_code
+    visibility: default
+  - name: dimMasterVendNo
+    type: INT
+    mapping: dim_master_vend_no
+    visibility: default
+  - name: dimVendNo
+    type: INT
+    mapping: dim_vend_no
+    visibility: default
+  - name: dimVpcGroupId
+    type: INT
+    mapping: dim_vpc_group_id
+    visibility: default
+  - name: dimVplNo
+    type: INT
+    mapping: dim_vpl_no
+    description: VPC Number
+    visibility: default
+  - name: dimGroupId
+    type: INT
+    mapping: dim_group_id
+    visibility: default
+  - name: dimPmMgrId
+    type: INT
+    mapping: dim_pm_mgr_id
+    visibility: default
+  - name: dimPmDirId
+    type: INT
+    mapping: dim_pm_dir_id
+    visibility: default
+  - name: dimPmVpId
+    type: INT
+    mapping: dim_pm_vp_id
+    visibility: default
+  - name: dimBuyerId
+    type: INT
+    mapping: dim_buyer_id
+    visibility: default
+  - name: dimBuyerMgrId
+    type: INT
+    mapping: dim_buyer_mgr_id
+    visibility: default
+  - name: dimBuyerDirId
+    type: INT
+    mapping: dim_buyer_dir_id
+    visibility: default
+  - name: dimBuyerVpId
+    type: INT
+    mapping: dim_buyer_vp_id
+    visibility: default
+  - name: segmentExclude
+    type: STRING
+    mapping: segment_exclude
+    visibility: default
+  - name: fxCost
+    type: DECIMAL
+    mapping: fx_cost
+    visibility: default
+  - name: integratedOrderFlag
+    type: STRING
+    mapping: integrated_order_flag
+    visibility: default
+  - name: dtMonth
+    type: STRING
+    mapping: dt_month
+    description: yyyy-MM
+    visibility: default
+  - name: bizSolutionFlag
+    type: STRING
+    mapping: biz_solution_flag
+    visibility: default
+  - name: euLocId
+    type: INT
+    mapping: eu_loc_id
+    visibility: default
+  - name: oplgmPlusAmt
+    type: DECIMAL
+    mapping: oplgm_plus_amt
+    visibility: default
+  - name: salesGm
+    type: NUMERIC
+    mapping: SALES_GM
+    description: SALES_GM = nvl(ship_qty,0) * (nvl(u_price,0) - coalesce(sales_cost,u_cost,0))
+    visibility: default
+  - name: standardGm
+    type: NUMERIC
+    mapping: STANDARD_GM
+    description: STANDARD_GM=( (nvl(u_price,0)-nvl(u_cost,0))*nvl(ship_qty,0)
+    visibility: default
+  - name: ngmPct
+    type: NUMERIC
+    mapping: NGM_PCT
+    description: Net Gross Margin Percentage, calculated as total NGM amount divided
+      by total Net Sales
+    visibility: default

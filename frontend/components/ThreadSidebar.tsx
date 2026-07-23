@@ -20,7 +20,7 @@ export function ThreadSidebar({
   onDelete?: (id: string) => void;
 }) {
   return (
-    <aside className="panel flex w-full shrink-0 flex-col md:w-60">
+    <aside className="panel flex min-h-0 w-full shrink-0 flex-col overflow-hidden md:w-60">
       <div className="flex items-center justify-between border-b border-ink-200/60 px-3 py-3">
         <p className="text-xs font-semibold uppercase tracking-wider text-ink-400">
           Chats
@@ -29,7 +29,7 @@ export function ThreadSidebar({
           New
         </button>
       </div>
-      <ul className="max-h-48 flex-1 space-y-0.5 overflow-auto p-2 md:max-h-none">
+      <ul className="min-h-0 max-h-48 flex-1 space-y-0.5 overflow-y-auto p-2 md:max-h-none">
         {threads.length === 0 && (
           <li className="px-2 py-3 text-xs text-ink-400">No chats yet</li>
         )}

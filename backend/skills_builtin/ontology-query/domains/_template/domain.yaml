@@ -1,0 +1,22 @@
+domain_id: template
+name: Template Domain
+description: Copy this directory to create a new ontology query domain
+enabled: true
+
+data_sources:
+  clickhouse:
+    type: clickhouse
+    host: ${CLICKHOUSE_HOST}
+    port: 8123
+    database: default
+    username: ${CLICKHOUSE_USER}
+    password: ${CLICKHOUSE_PASSWORD}
+    secure: false
+    verify: true
+
+mcp_tools:
+  - query_clickhouse
+
+metadata:
+  tags: [template]
+  version: "1.0.0"

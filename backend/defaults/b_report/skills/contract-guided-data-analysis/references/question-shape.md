@@ -36,8 +36,8 @@ Stage-1 must classify the question and produce:
 
 ```json
 {
-  "intent": "optional semantic label — trace/eval only",
-  "pipeline_mode": "lookup | explore | diagnose",
+  "intent": "optional semantic label — trace/eval only; use rds_report_generation when RDS report SQL is the deliverable",
+  "pipeline_mode": "lookup | explore | diagnose | rds_report_generation",
   "query_spec": {
     "metrics": [],
     "group_by_key": null,
@@ -64,6 +64,24 @@ Stage-1 must classify the question and produce:
 }
 ```
 
+`clarification_target` when `needs_clarification=true` should be one of:
+
+| Value | Use when |
+|-------|----------|
+| `time_range` | `temporal_obligation = user_must_specify` or no safe KB default |
+| `breakdown_dimension` | Variance/driver/attribution without a named (or KB-default) analysis angle |
+| `grouping_definition` | Vague word like "item"/"line"/"category" with multiple pack-plausible meanings |
+| `business_term` | Acronym/label/project cue not resolvable from pack ontology |
+| `entity_scope` | Ambiguous entity among candidates |
+| `metric_name` | Multiple user-facing metric candidates (name clash — not formula) |
+| `grain` / `geography` / `currency_unit` | Underspecified reporting scope |
+| `comparison_sense` | “less / lower / low / hurt / worst” (or similar) without a clear baseline (ranking vs MoM/YoY vs negative-only vs peer/target) |
+| `population_scope` | Open ranking without clear population (all vs PM/VPC/segment/named list) |
+
+Do **not** set clarification for missing table, formula, flow, or ETL logic — those are KB gaps (fail closed). See [output-contract.md](./output-contract.md) Ambiguity Handling. Workspace rule: [`.cursor/rules/analysis-clarification-before-routing.mdc`](../../../rules/analysis-clarification-before-routing.mdc).
+
+When multiple slots are open (e.g. `comparison_sense` + `time_range`), set `needs_clarification=true` and ask for **all** missing slots in one concise reply; prefer listing `clarification_target` values in `notes` if only one field is allowed.
+
 **`query_spec` is required** before prep-sql (alias `routing_payload` accepted during migration). **`pipeline_mode`** controls orchestration only (single lookup vs multi-round diagnose). **`intent`** and legacy **`answer_shape`** are optional trace labels — they must not control SqlTaskContract assembly.
 
 **Person names:** Stage-1 must always emit `person_name_tokens` (use `[]` when none). Runtime does **not** infer person names from the raw user message — bare names, date-range `and`, and list/top-N scope must come from this LLM output. Do **not** emit `tasks` / pipeline obligations; compile uses `query_spec` + `todo_ids` only (see deprecate-pipeline-tasks spec).
@@ -77,7 +95,10 @@ Stage-1 must not:
 - invent metric formulas;
 - invent time filters;
 - invent a fiscal year or calendar year when the user omitted time;
-- ask for time when `temporal_obligation = kb_default_eligible`.
+- ask for time when `temporal_obligation = kb_default_eligible`;
+- ask the user which table, formula, flow, or ETL logic to use (KB-owned — resolve or fail closed);
+- proceed to plan evidence SQL when `needs_clarification=true` for a required routing slot.
+- invent a `comparison_sense` (e.g. treat “less” as top-N lowest) when the user did not specify the baseline.
 
 ---
 
@@ -110,8 +131,21 @@ See [sql-compiler-contract.md](./sql-compiler-contract.md) for full schema and e
 | `lookup` | Single round: plan → compile → execute → answer (default) |
 | `explore` | Multiple evidence queries / parallel slices; no recursive root-cause loop |
 | `diagnose` | Multi-round drill-down per [output-contract.md](./output-contract.md) attribution policy |
+| `rds_report_generation` | RDS report SQL deliverable: local contract routing unchanged, then compile per [rds-report-sql.md](./rds-report-sql.md) + `.cursor/rules/rds-*.mdc` (`tmp_*` → `rdsetl.rds_tmp` / `_body`). User reply includes fenced SQL. MCP aggregates optional for validation only. |
 
 Top-N, YoY, trend, and scalar KPI questions are typically `lookup`. Use `diagnose` when the user asks why / what drove / root cause.
+
+### Detecting `rds_report_generation`
+
+Set `pipeline_mode` (and/or `intent`) to `rds_report_generation` when **any** of these cues apply:
+
+- Explicit “generate RDS SQL”, “RDS report”, “report generation”, or column lists aimed at `rds_tmp` / RTV
+- Inventory / CPO / POS / VPO / Open SO-BO / RMA / AR / AP report SQL for RDS
+- `/contract-guided-data-analysis` plus domain pack under `/knowledge/org/source/contracts/rds/**` with report-shaped output columns
+
+**Do not** select this mode when the user only wants a metric answer from an RDS pack (e.g. “what is OH for vendor X?”) without asking for a report/SQL script — keep `lookup` / `explore` / `diagnose` and the standard three-section path (no SQL in user reply).
+
+Defaults when unspecified (from RDS rules): engine **Vertica**, region **US** → `_us`, report# **99999**. Full checklist: [rds-report-sql.md](./rds-report-sql.md).
 
 ---
 
@@ -222,15 +256,23 @@ For `kb_assembly_default`, Stage-2 must record:
 | answer_shape | entity_anchoring | temporal_expression | temporal_obligation |
 |-------------|------------------|---------------------|---------------------|
 | any | any | `explicit_period` | `user_already_specified` |
-| any | any | `relative_cue` | `kb_anchor_resolve` |
-| `scalar_snapshot` | `pinpoint` | `absent` | `kb_default_eligible` |
-| `scalar_snapshot` | `label_probe` | `absent` | `kb_default_eligible`, after entity validation |
+| any | any | `relative_cue` (incl. entity-anchored, e.g. "same month as Order#…") | `kb_anchor_resolve` |
+| `scalar_snapshot` | `pinpoint` (non-person transaction/key) | `absent` | `kb_default_eligible` |
+| `scalar_snapshot` | `label_probe` **without** person portfolio KPI | `absent` | `kb_default_eligible`, after entity validation |
+| `scalar_snapshot` / ranking | **person names** (`person_name_tokens` non-empty) or **PM/portfolio** scope | `absent` | `user_must_specify` — do not treat as KB-default-eligible |
+| `ranked_set` / hurt-most / high-impact list | PM / portfolio / person scope | `absent` | `user_must_specify` |
 | `scalar_snapshot` | `open_aggregate` | `absent` | `user_must_specify` unless active pack defines a certified default reporting period |
 | `time_series` | any | `absent` | `user_must_specify` unless active pack defines a default trend window |
 | `period_comparison` | any | `absent` | `user_must_specify` |
-| `ranked_set` | `pinpoint` or `label_probe` | `absent` | `kb_default_eligible` only if active pack defines default ranking period for the resolved scope; otherwise `user_must_specify` |
+| `ranked_set` | `pinpoint` or `label_probe` (non-person, non-PM portfolio) | `absent` | `kb_default_eligible` only if active pack defines default ranking period for the resolved scope; otherwise `user_must_specify` |
 | `ranked_set` | `open_aggregate` | `absent` | `user_must_specify` unless active pack defines a default ranking period |
 | `causal_chain` | any | `absent` | `user_must_specify` unless user refers to a known event or the pack defines a certified comparison window |
+
+**Person / PM portfolio override:** Revenue, margin, or ranking for named people or a PMID/PM book of business with **no** period → always `user_must_specify`. Do not apply KB latest-month default silently.
+
+**Open vendor/customer ranking override:** Questions like “is gm_amt less for vendor level” / “which vendors have lower GM” with **no** period → `user_must_specify` for time, and usually also `needs_clarification` for `comparison_sense` (and `population_scope` if unbound). Do not treat as KB-default-eligible.
+
+**Entity-anchored period:** If the user ties time to a pinpoint object (order/invoice month), classify as `relative_cue` + `kb_anchor_resolve` — resolve from that object; do not ask for a separate range.
 
 ---
 

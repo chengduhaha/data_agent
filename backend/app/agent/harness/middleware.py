@@ -10,7 +10,7 @@ from langchain.agents.middleware.types import AgentMiddleware
 from langchain_core.messages import ToolMessage
 
 from app.agent.harness.config import HarnessConfig
-from app.agent.harness.context import get_thread_segment
+from app.agent.harness.context import get_harness_context, get_thread_segment
 
 _BLOCKED_PATH_MARKERS = (
     "conversation_history/",
@@ -23,13 +23,22 @@ _L1_CATALOG_MARKER = "l1_catalog/"
 
 
 class _SegmentState:
-    __slots__ = ("read_cache", "l1_offset_counts", "task_count", "tool_step_count")
+    __slots__ = (
+        "read_cache",
+        "l1_offset_counts",
+        "task_count",
+        "tool_step_count",
+        "tool_call_counts",
+        "phase",
+    )
 
     def __init__(self) -> None:
         self.read_cache: OrderedDict[str, str] = OrderedDict()
         self.l1_offset_counts: dict[str, int] = {}
         self.task_count = 0
         self.tool_step_count = 0
+        self.tool_call_counts: dict[str, int] = {}
+        self.phase: str = "research"
 
 
 # Key: (thread_id, run_segment)
@@ -121,6 +130,14 @@ class ToolGovernanceMiddleware(AgentMiddleware):
         state = get_segment_state(thread_id, run_segment)
 
         if name == "task":
+            if bool(get_harness_context().get("require_synthesis")):
+                return ToolMessage(
+                    content=(
+                        "Blocked: contract-guided analysis must run in the main agent. "
+                        "Do not delegate via `task`. Use `run_query_safely` for Vertica evidence SQL."
+                    ),
+                    tool_call_id=_tool_call_id(request),
+                )
             state.task_count += 1
             if state.task_count > self.cfg.max_task_per_segment:
                 return ToolMessage(

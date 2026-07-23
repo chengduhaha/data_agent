@@ -10,14 +10,13 @@ When `temporal_obligation = kb_default_eligible`, verify certified default perio
 
 Check in this order:
 
-1. `/knowledge/org/source/contracts/{domain}/eval/golden_cases.md` routing-certified case (when file exists and matches)
-2. `/knowledge/org/source/contracts/{domain}/metric-index.md` default reporting period or metric-specific time policy
-3. Selected table L6 routing-certified snippets in `/knowledge/org/target/knowledgebase/{domain}/{stem}.md`
-4. Entity Resolution Assembly in table docs
-5. `/knowledge/org/source/contracts/{domain}/domain-knowledge.md` Time Scope Ontology
-6. Table L3 Standard Time-Filter SQL (`/knowledge/org/target/knowledgebase/{domain}/{stem}.md`)
+1. `/knowledge/org/source/contracts/{domain}/metric-index.md` default reporting period or metric-specific time policy
+2. Selected table L6 routing-certified snippets in `/knowledge/org/target/knowledgebase/{domain}/{stem}.md`
+3. Entity Resolution Assembly in table docs
+4. `/knowledge/org/source/contracts/{domain}/domain-knowledge.md` Time Scope Ontology
+5. Table L3 Standard Time-Filter SQL (`/knowledge/org/target/knowledgebase/{domain}/{stem}.md`)
 
-**Forbidden:** `golden-questions.md`. Do not borrow time logic from unrelated domains.
+**Forbidden:** `golden-questions.md`, `eval/golden_cases.md`. Do not borrow time logic from unrelated domains.
 
 ### If certified default exists
 
@@ -52,12 +51,24 @@ Per [`metric-table-routing.md`](metric-table-routing.md): verify pre-aggregated 
 
 ---
 
+## Mode — `rds_report_generation`
+
+When `pipeline_mode` / intent is `rds_report_generation`:
+
+1. Still resolve metrics, tables, filters, joins, and formulas from contracts + `special_logic` (this file’s schema/column policy unchanged).
+2. **Defer script shape and formatting** to [`rds-report-sql.md`](rds-report-sql.md) and the ordered `.cursor/rules/rds-*.mdc` gate — do **not** emit a large multi-CTE evidence extract as the report deliverable.
+3. Compile working `tmp_<step>_<region>_<report#>` steps → `rdsetl.rds_tmp` + `rdsetl.rds_tmp_body` (or StarRocks `tempdb.*` if requested).
+4. MCP remains optional SELECT validation only; the RDS-shaped script is the primary SQL artifact.
+
+---
+
 ## Related local references
 
 - [`metric-table-routing.md`](metric-table-routing.md) — metric/table routing and pre-aggregate grain checks
 - [`fiscal-calendar.md`](fiscal-calendar.md) — fiscal / calendar time assembly
 - [`entity-resolution.md`](entity-resolution.md) — Phase-1 entity probes
 - [`special-logic-check.md`](special-logic-check.md) — domain special_logic filter exceptions
+- [`rds-report-sql.md`](rds-report-sql.md) — RDS report SQL gate (when `rds_report_generation`)
 
 ---
 

@@ -108,6 +108,15 @@
 - cue_keywords: cust_type, cust type, cust_type_descr, cust type descr | join_key: cust_type | filter_label: cust_type_descr | dim_fqn: `dim_us.dim_pub_sales_cust_type` | table_ref: tables/dim_pub_sales_cust_type.md | serving_ref: tables/dws_disty_brpt_cust_type_comb_mtd.md
 - cue_keywords: division, division_desc, division desc | join_key: division | filter_label: division_desc | dim_fqn: `dim_us.dim_pub_sales_division` | table_ref: tables/dim_pub_sales_division.md | serving_ref: tables/dws_disty_brpt_division_comb_mtd.md
 
+## Virtual / Negative Order Type P&L Adjustments
+
+- reference_file: `order-type-pnl-adjustments.md`
+- scope: virtual/negative `order_type` codes used for B Report Adj P&L allocation (for example -2 Customer Finance/CVR, -5 VPC BTL adjustments, -50/-59 Cisco Cloud OT127, -60/-61 Unassigned Customer reallocation)
+- when_to_use: questions about adjustment order types, no-revenue P&L rows, vendor/customer/VPC allocation of finance buckets (`CUST_FINANCE`, `INV_COST`, `ONE_TIME_BTL`, `AP_FINANCE`, etc.), or NGM impact from virtual OT rows
+- disambiguation: do **not** treat these codes as ordinary CIS sales order types; prefer `order-type-pnl-adjustments.md` over `source/ref/platform/order_type_info 2.md` for negative/virtual adjustment semantics
+- dim_join: still resolve labels via `dim_us.dim_pub_order_type` when present; Adj P&L / revenue-assignment meaning comes from `order-type-pnl-adjustments.md`
+- knowledgebase_human_layer: `target/knowledgebase/order/dim_pub_order_type.md` (Human Knowledge Layer)
+
 ## Person and Organization Scope Policy
 
 - Bare person-name tokens (for example `First Last`) are **ambiguous** across PM, sales hierarchy, buyer, and other org lookup families until Phase-1 identifier validation on the correct dimension table.

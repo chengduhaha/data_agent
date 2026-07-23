@@ -1,7 +1,14 @@
+export type SlashSkillExtensions = {
+  rules?: string[];
+  tools?: string[];
+  mcp?: string[];
+};
+
 export type SlashSkill = {
   name: string;
   description: string;
   source: "builtin" | "org" | "user";
+  extensions?: SlashSkillExtensions;
 };
 
 export function skillVirtualPath(skill: SlashSkill): string {
@@ -36,7 +43,12 @@ export function filterSlashSkills(skills: SlashSkill[], query: string): SlashSki
   );
 }
 
-/** Expand `/skill-name …` into an agent instruction (Cursor-style slash invoke). */
+/** Expand `/skill-name …` into an agent instruction (Cursor-style slash invoke).
+ *
+ * Any extra rule fragments a skill needs are declared in its own SKILL.md
+ * frontmatter (`extensions.rules`) and resolved on the backend — this stays
+ * generic so a new skill never requires a frontend code change.
+ */
 export function expandSkillMessage(text: string, skills: SlashSkill[]): string {
   const trimmed = text.trim();
   const match = trimmed.match(/^\/([\w-]+)(?:\s+([\s\S]*))?$/);
@@ -48,13 +60,10 @@ export function expandSkillMessage(text: string, skills: SlashSkill[]): string {
 
   const path = skillVirtualPath(skill);
   const task = (body || "").trim() || "Follow the skill workflow for my request.";
-  let extra = "";
-  if (name === "contract-guided-data-analysis") {
-    extra =
-      "\n\nAfter reading the skill, also read `/rules/org/AGENTS.contract-skill.md` and " +
-      "`/rules/org/contract-data-analysis-vertica.md`. Follow the contract workflow " +
-      "(domain routing, WKB via `wkb_query`, ≤3 knowledgebase tables, chat-only answer).";
-  }
+  const rules = skill.extensions?.rules || [];
+  const extra = rules.length
+    ? `\n\nAfter reading the skill, also read: ${rules.map((r) => `\`${r}\``).join(", ")}.`
+    : "";
   return (
     `Use skill "${name}". Read and follow \`${path}\` before answering.\n\n` +
     `User request:\n${task}` +

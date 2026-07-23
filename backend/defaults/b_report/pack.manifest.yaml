@@ -1,0 +1,42 @@
+# Org Pack manifest — declares what this bundle adds on top of Agent Core.
+# Core code never hardcodes any of this; see backend/app/agent/extensions/.
+name: b_report
+description: >
+  Default org pack: contract-guided data analysis over the B Report / POS
+  domain, backed by a local WKB retrieval index and a Vertica MCP gateway.
+version: "1"
+
+skills:
+  - contract-guided-data-analysis
+  - azkaban-parameter-jobs
+
+extensions:
+  # Tool factories a skill can request via its own SKILL.md `extensions.tools`.
+  tools:
+    - wkb_query
+  # MCP server manifests under extensions/*.yaml (see vertica_mcp.yaml).
+  mcp_manifests:
+    - extensions/vertica_mcp.yaml
+
+knowledge:
+  root: workspace
+  description: Read-only WKB index + knowledgebase mounted at /knowledge/org/
+
+fragments:
+  root: fragments
+  description: Org rule fragments injected into agent memory (harness defaults, config patch).
+
+# Optional multi-perspective analysis via user subagents.json (see Settings → Subagents).
+# Disabled for contract-guided-data-analysis: main agent must own routing + synthesis.
+# subagent_routing:
+#   contract-guided-data-analysis:
+#     - customer
+#     - vendor
+#     - order
+
+requires_env:
+  - VERTICA_API_KEY
+  - VERTICA_HOST
+  - VERTICA_DATABASE
+  - VERTICA_USER
+  - VERTICA_PASSWORD

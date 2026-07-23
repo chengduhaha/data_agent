@@ -1,0 +1,460 @@
+project_domain: b_report
+version: 1.0.44
+description: 'TD SYNNEX NextGen B Report (Distributor Business P&L / Profitability
+  Analysis). v5.0.0: Unified Connected Domain Model. Ensures zero isolated objects
+  by linking all personnel (Sales, PM, Buyer), projects (BD), and master data (Customer,
+  Product, Vendor) through the ShippedOrderLine hub.'
+links:
+- name: vendor_product_line_to_part
+  from: VendorProductLine
+  to: Part
+  relationType: ONE_TO_MANY
+  description: VPL groups Parts.
+  join_logic: VendorProductLine.vplNo=Part.vplNo
+  graph:
+    rel_type: HAS_PARTS
+    direction: outgoing
+- name: master_customer_to_customer
+  from: MasterCustomer
+  to: Customer
+  relationType: ONE_TO_MANY
+  join_logic: MasterCustomer.mcustNo=Customer.mcustNo
+  graph:
+    rel_type: HAS_CUSTOMER
+    direction: outgoing
+- name: customer_type_to_territory
+  from: CustomerType
+  to: Territory
+  relationType: ONE_TO_MANY
+  join_logic: CustomerType.custType=Territory.custType
+  graph:
+    rel_type: HAS_TERRITORY
+    direction: outgoing
+- name: division_to_customer_type
+  from: Division
+  to: CustomerType
+  relationType: ONE_TO_MANY
+  join_logic: Division.division=CustomerType.division
+  graph:
+    rel_type: HAS_CUST_TYPE
+    direction: outgoing
+- name: pmmanager_to_pm
+  from: PMManager
+  to: PM
+  relationType: ONE_TO_MANY
+  join_logic: PMManager.pmManagerId=PM.pmManagerId
+  graph:
+    rel_type: HAS_PM
+    direction: outgoing
+- name: pmdirector_to_pmmanager
+  from: PMDirector
+  to: PMManager
+  relationType: ONE_TO_MANY
+  join_logic: PMDirector.pmDirectorId=PMManager.pmDirectorId
+  graph:
+    rel_type: HAS_PM_MANAGER
+    direction: outgoing
+- name: pmvp_to_pmdirector
+  from: PMVP
+  to: PMDirector
+  relationType: ONE_TO_MANY
+  join_logic: PMVP.pmVpId=PMDirector.pmVpId
+  graph:
+    rel_type: HAS_PM_DIRECTOR
+    direction: outgoing
+- name: sales_supervisor_to_sales_rep
+  from: SalesSupervisor
+  to: SalesRep
+  relationType: ONE_TO_MANY
+  description: Related entities (Excel Entity Relationship matrix).
+  join_logic: SalesSupervisor.supId=SalesRep.supId
+  graph:
+    rel_type: HAS_SALES_REP
+    direction: outgoing
+- name: sales_manager_to_sales_supervisor
+  from: SalesManager
+  to: SalesSupervisor
+  relationType: ONE_TO_MANY
+  description: Related entities (Excel Entity Relationship matrix).
+  join_logic: SalesManager.mgrId=SalesSupervisor.mgrId
+  graph:
+    rel_type: HAS_SUPERVISOR
+    direction: outgoing
+- name: sales_director_to_sales_manager
+  from: SalesDirector
+  to: SalesManager
+  relationType: ONE_TO_MANY
+  description: Related entities (Excel Entity Relationship matrix).
+  join_logic: SalesDirector.dirId=SalesManager.dirId
+  graph:
+    rel_type: HAS_SALES_MANAGER
+    direction: outgoing
+- name: sales_vp_to_sales_director
+  from: SalesVP
+  to: SalesDirector
+  relationType: ONE_TO_MANY
+  description: Related entities (Excel Entity Relationship matrix).
+  join_logic: SalesVP.vpId=SalesDirector.vpId
+  graph:
+    rel_type: HAS_DIRECTOR
+    direction: outgoing
+- name: bdmanager_to_bdrep
+  from: BDManager
+  to: BDRep
+  relationType: ONE_TO_MANY
+  join_logic: BDManager.bdMgrId=BDRep.bdMgrId
+  graph:
+    rel_type: HAS_BD_REP
+    direction: outgoing
+- name: bddirector_to_bdmanager
+  from: BDDirector
+  to: BDManager
+  relationType: ONE_TO_MANY
+  join_logic: BDDirector.bdDirId=BDManager.bdDirId
+  graph:
+    rel_type: HAS_MANAGER
+    direction: outgoing
+- name: bdvp_to_bddirector
+  from: BDVP
+  to: BDDirector
+  relationType: ONE_TO_MANY
+  join_logic: BDVP.bdVpId=BDDirector.bdVpId
+  graph:
+    rel_type: HAS_DIRECTOR
+    direction: outgoing
+- name: vendor_to_vendor_product_line
+  from: Vendor
+  to: VendorProductLine
+  relationType: ONE_TO_MANY
+  join_logic: Vendor.vendNo=VendorProductLine.vendNo
+  graph:
+    rel_type: HAS_VPL
+    direction: outgoing
+- name: PM_TO_Vendor
+  from: PM
+  to: Vendor
+  relationType: ONE_TO_MANY
+  join_logic: PM.vendNo=Vendor.vendNo
+  graph:
+    rel_type: HAS_VENDOR
+    direction: outgoing
+- name: SalesRep_to_Territory
+  from: SalesRep
+  to: Territory
+  relationType: ONE_TO_MANY
+  join_logic: SalesRep.salesTerr=Territory.salesTerr
+  graph:
+    rel_type: HAS_TERRITORY
+    direction: outgoing
+- name: SalesManager_to_Territory
+  from: SalesManager
+  to: Territory
+  relationType: ONE_TO_MANY
+  join_logic: SalesManager.salesTerr=Territory.salesTerr
+  graph:
+    rel_type: HAS_TERRITORY
+    direction: outgoing
+- name: SalesDirector_to_Territory
+  from: SalesDirector
+  to: Territory
+  relationType: ONE_TO_MANY
+  join_logic: SalesDirector.salesTerr=Territory.salesTerr
+  graph:
+    rel_type: HAS_TERRITORY
+    direction: outgoing
+- name: SalesVP_to_Territory
+  from: SalesVP
+  to: Territory
+  relationType: ONE_TO_MANY
+  join_logic: SalesVP.salesTerr=Territory.salesTerr
+  graph:
+    rel_type: HAS_TERRITORY
+    direction: outgoing
+- name: PMManager_to_Vendor
+  from: PMManager
+  to: Vendor
+  relationType: ONE_TO_MANY
+  join_logic: PMManager.vendNo=Vendor.vendNo
+  graph:
+    rel_type: HAS_VENDOR
+    direction: outgoing
+- name: PMDirector_to_Vendor
+  from: PMDirector
+  to: Vendor
+  relationType: ONE_TO_MANY
+  join_logic: PMDirector.vendNo=Vendor.vendNo
+  graph:
+    rel_type: HAS_VENDOR
+    direction: outgoing
+- name: PMVP_to_Vendor
+  from: PMVP
+  to: Vendor
+  relationType: ONE_TO_MANY
+  join_logic: PMVP.vendNo=Vendor.vendNo
+  graph:
+    rel_type: HAS_VENDOR
+    direction: outgoing
+- name: Vendor_to_Part
+  from: Vendor
+  to: Part
+  relationType: ONE_TO_MANY
+  join_logic: Vendor.vendNo=Part.vendNo
+  graph:
+    rel_type: HAS_PART
+    direction: outgoing
+- name: Territory_to_MasterCustomer
+  from: Territory
+  to: MasterCustomer
+  relationType: ONE_TO_MANY
+  join_logic: Territory.salesTerr=MasterCustomer.salesTerr
+  graph:
+    rel_type: HAS_MASTER_CUSTOMER
+    direction: outgoing
+- name: BDRep_to_BDProject
+  from: BDRep
+  to: BDProject
+  relationType: ONE_TO_MANY
+  join_logic: BDRep.projectNo=BDProject.projectNo
+  graph:
+    rel_type: HAS_PROJECT_NO
+    direction: outgoing
+- name: BDManager_to_BDProject
+  from: BDManager
+  to: BDProject
+  relationType: ONE_TO_MANY
+  join_logic: BDManager.projectNo=BDProject.projectNo
+  graph:
+    rel_type: HAS_PROJECT
+    direction: outgoing
+- name: BDDirector_to_BDProject
+  from: BDDirector
+  to: BDProject
+  relationType: ONE_TO_MANY
+  join_logic: BDDirector.projectNo=BDProject.projectNo
+  graph:
+    rel_type: HAS_PROJECT
+    direction: outgoing
+- name: BDVP_to_BDProject
+  from: BDVP
+  to: BDProject
+  relationType: ONE_TO_MANY
+  join_logic: BDVP.projectNo=BDProject.projectNo
+  graph:
+    rel_type: HAS_PROJECT
+    direction: outgoing
+- name: BuyerVP_to_BuyerDirector
+  from: BuyerVP
+  to: BuyerDirector
+  relationType: ONE_TO_MANY
+  join_logic: BuyerVP.buyerVpId=BuyerDirector.buyerVpId
+  graph:
+    rel_type: HAS_DIRECTOR
+    direction: outgoing
+- name: BuyerDirector_to_BuyerManager
+  from: BuyerDirector
+  to: BuyerManager
+  relationType: ONE_TO_MANY
+  join_logic: BuyerDirector.buyerDirectorId=BuyerManager.buyerDirectorId
+  graph:
+    rel_type: HAS_MANAGER
+    direction: outgoing
+- name: BuyerManager_to_Buyer
+  from: BuyerManager
+  to: Buyer
+  relationType: ONE_TO_MANY
+  join_logic: BuyerManager.buyerManagerId=Buyer.buyerManagerId
+  graph:
+    rel_type: HAS_BUYER
+    direction: outgoing
+- name: Buyer_to_Vendor
+  from: Buyer
+  to: Vendor
+  relationType: ONE_TO_MANY
+  join_logic: Buyer.vendNo=Vendor.vendNo
+  graph:
+    rel_type: HAS_VENDOR
+    direction: outgoing
+- name: BuyerVP_to_Vendor
+  from: BuyerVP
+  to: Vendor
+  relationType: ONE_TO_MANY
+  join_logic: BuyerVP.vendNo=Vendor.vendNo
+  graph:
+    rel_type: HAS_VENDOR
+    direction: outgoing
+- name: BuyerDirector_to_Vendor
+  from: BuyerDirector
+  to: Vendor
+  relationType: ONE_TO_MANY
+  join_logic: BuyerDirector.vendNo=Vendor.vendNo
+  graph:
+    rel_type: HAS_VENDOR
+    direction: outgoing
+- name: BuyerManager_to_Vendor
+  from: BuyerManager
+  to: Vendor
+  relationType: ONE_TO_MANY
+  join_logic: BuyerManager.vendNo=Vendor.vendNo
+  graph:
+    rel_type: HAS_VENDOR
+    direction: outgoing
+- name: Territory_to_Customer
+  from: Territory
+  to: Customer
+  relationType: ONE_TO_MANY
+  join_logic: Territory.salesTerr=Customer.salesTerr
+  graph:
+    rel_type: HAS_CUSTOMER
+    direction: outgoing
+- name: sales_supervisor_to_territory
+  from: SalesSupervisor
+  to: Territory
+  relationType: ONE_TO_MANY
+  join_logic: SalesSupervisor.salesTerr=Territory.salesTerr
+  graph:
+    rel_type: HAS_TERRITORY
+    direction: outgoing
+- name: ShippedOrderLine_to_Vendor
+  from: ShippedOrderLine
+  to: Vendor
+  relationType: ONE_TO_MANY
+  join_logic: ShippedOrderLine.dimVendNo=Vendor.vendNo
+  graph:
+    rel_type: SHIPPEDORDERLINE_FOR_VENDOR
+    direction: outgoing
+- name: ShippedOrderLine_to_PM
+  from: ShippedOrderLine
+  to: PM
+  relationType: ONE_TO_MANY
+  description: Order line to Product Manager via denormalized dim_pm_id on the fact.
+  join_logic: ShippedOrderLine.dimPmId=PM.pmId
+  graph:
+    rel_type: SHIPPEDORDERLINE_FOR_PM
+    direction: outgoing
+- name: ShippedOrderLine_to_PMManager
+  from: ShippedOrderLine
+  to: PMManager
+  relationType: ONE_TO_MANY
+  description: Order line to PM Manager via dim_pm_mgr_id on the fact.
+  join_logic: ShippedOrderLine.dimPmMgrId=PMManager.pmManagerId
+  graph:
+    rel_type: SHIPPEDORDERLINE_FOR_PMMANAGER
+    direction: outgoing
+- name: ShippedOrderLine_to_PMDirector
+  from: ShippedOrderLine
+  to: PMDirector
+  relationType: ONE_TO_MANY
+  description: Order line to PM Director via dim_pm_dir_id on the fact.
+  join_logic: ShippedOrderLine.dimPmDirId=PMDirector.pmDirectorId
+  graph:
+    rel_type: SHIPPEDORDERLINE_FOR_PMDIRECTOR
+    direction: outgoing
+- name: ShippedOrderLine_to_PMVP
+  from: ShippedOrderLine
+  to: PMVP
+  relationType: ONE_TO_MANY
+  description: Order line to PM VP via dim_pm_vp_id on the fact.
+  join_logic: ShippedOrderLine.dimPmVpId=PMVP.pmVpId
+  graph:
+    rel_type: SHIPPEDORDERLINE_FOR_PMVP
+    direction: outgoing
+- name: ShippedOrderLine_to_VendorProductLine
+  from: ShippedOrderLine
+  to: VendorProductLine
+  relationType: ONE_TO_MANY
+  description: Order line to VPL via denormalized dim_vpl_no on the fact.
+  join_logic: ShippedOrderLine.dimVplNo=VendorProductLine.vplNo
+  graph:
+    rel_type: SHIPPEDORDERLINE_FOR_VENDORPRODUCTLINE
+    direction: outgoing
+- name: ShippedOrderLine_to_Part
+  from: ShippedOrderLine
+  to: Part
+  relationType: ONE_TO_MANY
+  description: Order line to Part (SKU) via sku_no on the fact.
+  join_logic: ShippedOrderLine.skuNo=Part.skuNo
+  graph:
+    rel_type: SHIPPEDORDERLINE_FOR_PART
+    direction: outgoing
+- name: ShippedOrderLine_to_Territory
+  from: ShippedOrderLine
+  to: Territory
+  relationType: ONE_TO_MANY
+  description: Order line to sales territory via cust_terr on the fact (aligns to
+    Territory.salesTerr).
+  join_logic: ShippedOrderLine.custTerr=Territory.salesTerr
+  graph:
+    rel_type: SHIPPEDORDERLINE_FOR_TERRITORY
+    direction: outgoing
+- name: ShippedOrderLine_to_CustomerType
+  from: ShippedOrderLine
+  to: CustomerType
+  relationType: ONE_TO_MANY
+  description: Order line to customer type via dim_cust_type on the fact.
+  join_logic: ShippedOrderLine.dimCustType=CustomerType.custType
+  graph:
+    rel_type: SHIPPEDORDERLINE_FOR_CUSTOMERTYPE
+    direction: outgoing
+- name: ShippedOrderLine_to_Division
+  from: ShippedOrderLine
+  to: Division
+  relationType: ONE_TO_MANY
+  description: Order line to sales division via dim_division on the fact.
+  join_logic: ShippedOrderLine.dimDivision=Division.division
+  graph:
+    rel_type: SHIPPEDORDERLINE_FOR_DIVISION
+    direction: outgoing
+- name: ShippedOrderLine_to_MasterCustomer
+  from: ShippedOrderLine
+  to: MasterCustomer
+  relationType: ONE_TO_MANY
+  description: Order line to master customer via dim_mcust_no on the fact.
+  join_logic: ShippedOrderLine.dimMcustNo=MasterCustomer.mcustNo
+  graph:
+    rel_type: SHIPPEDORDERLINE_FOR_MASTERCUSTOMER
+    direction: outgoing
+- name: ShippedOrderLine_to_Customer
+  from: ShippedOrderLine
+  to: Customer
+  relationType: ONE_TO_MANY
+  description: Order line to ship-to customer via cust_no on the fact.
+  join_logic: ShippedOrderLine.custNo=Customer.custNo
+  graph:
+    rel_type: SHIPPEDORDERLINE_FOR_CUSTOMER
+    direction: outgoing
+- name: ShippedOrderLine_to_Buyer
+  from: ShippedOrderLine
+  to: Buyer
+  relationType: ONE_TO_MANY
+  description: Order line to Buyer via dim_buyer_id on the fact.
+  join_logic: ShippedOrderLine.dimBuyerId=Buyer.buyerId
+  graph:
+    rel_type: SHIPPEDORDERLINE_FOR_BUYER
+    direction: outgoing
+- name: ShippedOrderLine_to_BuyerManager
+  from: ShippedOrderLine
+  to: BuyerManager
+  relationType: ONE_TO_MANY
+  description: Order line to Buyer Manager via dim_buyer_mgr_id on the fact.
+  join_logic: ShippedOrderLine.dimBuyerMgrId=BuyerManager.buyerManagerId
+  graph:
+    rel_type: SHIPPEDORDERLINE_FOR_BUYERMANAGER
+    direction: outgoing
+- name: ShippedOrderLine_to_BuyerDirector
+  from: ShippedOrderLine
+  to: BuyerDirector
+  relationType: ONE_TO_MANY
+  description: Order line to Buyer Director via dim_buyer_dir_id on the fact.
+  join_logic: ShippedOrderLine.dimBuyerDirId=BuyerDirector.buyerDirectorId
+  graph:
+    rel_type: SHIPPEDORDERLINE_FOR_BUYERDIRECTOR
+    direction: outgoing
+- name: ShippedOrderLine_to_BuyerVP
+  from: ShippedOrderLine
+  to: BuyerVP
+  relationType: ONE_TO_MANY
+  description: Order line to Buyer VP via dim_buyer_vp_id on the fact.
+  join_logic: ShippedOrderLine.dimBuyerVpId=BuyerVP.buyerVpId
+  graph:
+    rel_type: SHIPPEDORDERLINE_FOR_BUYERVP
+    direction: outgoing

@@ -10,6 +10,7 @@ type Skill = {
   path: string;
   content?: string | null;
   editable?: boolean;
+  disabled?: boolean;
 };
 
 const SOURCE_LABEL: Record<Skill["source"], string> = {
@@ -32,17 +33,35 @@ export default function SkillsSettingsPage() {
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [disabledSkills, setDisabledSkills] = useState<string[]>([]);
   const shared = skills.filter((s) => s.source === "builtin" || s.source === "org");
   const personal = skills.filter((s) => s.source === "user");
 
   async function refresh() {
-    const data = await apiGet<{ skills: Skill[] }>("/api/skills");
+    const data = await apiGet<{ skills: Skill[] }>("/api/skills?include_disabled=true");
     setSkills(data.skills || []);
+    const cfg = await apiGet<{ disabled_skills?: string[] }>("/api/config");
+    setDisabledSkills(cfg.disabled_skills || []);
   }
 
   useEffect(() => {
     void refresh().catch((e) => setError((e as Error).message));
   }, []);
+
+  async function toggleSkill(name: string, disable: boolean) {
+    setError(null);
+    try {
+      const cfg = await apiGet<Record<string, unknown>>("/api/config");
+      const next = disable
+        ? Array.from(new Set([...(cfg.disabled_skills as string[] || []), name]))
+        : ((cfg.disabled_skills as string[]) || []).filter((n) => n !== name);
+      await apiSend("/api/config", "PUT", { ...cfg, disabled_skills: next });
+      setDisabledSkills(next);
+      await refresh();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
 
   async function openSkill(s: Skill) {
     setError(null);
@@ -107,15 +126,15 @@ export default function SkillsSettingsPage() {
         </p>
         <ul className="space-y-1">
           {items.map((s) => (
-            <li key={`${s.source}-${s.name}`}>
+            <li key={`${s.source}-${s.name}`} className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={() => void openSkill(s)}
-                className={`w-full rounded-xl px-3 py-2 text-left text-sm transition ${
+                className={`flex-1 rounded-xl px-3 py-2 text-left text-sm transition ${
                   selected?.name === s.name && selected?.source === s.source
                     ? "bg-accent-soft text-accent-strong"
                     : "hover:bg-ink-50"
-                }`}
+                } ${disabledSkills.includes(s.name) ? "opacity-50" : ""}`}
               >
                 <span className="font-medium">{s.name}</span>
                 <span
@@ -124,6 +143,14 @@ export default function SkillsSettingsPage() {
                   {SOURCE_LABEL[s.source]}
                 </span>
               </button>
+              {s.source !== "user" && (
+                <input
+                  type="checkbox"
+                  title="Enabled"
+                  checked={!disabledSkills.includes(s.name)}
+                  onChange={(e) => void toggleSkill(s.name, !e.target.checked)}
+                />
+              )}
             </li>
           ))}
         </ul>

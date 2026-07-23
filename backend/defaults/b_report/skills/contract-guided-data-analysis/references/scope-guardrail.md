@@ -14,7 +14,6 @@ Prefer these local files, in this order:
 
 - `/knowledge/org/source/contracts/{domain}/domain-knowledge.md`
 - `/knowledge/org/source/contracts/{domain}/metric-index.md`
-- `/knowledge/org/source/contracts/{domain}/eval/golden_cases.md` (when present)
 - `/knowledge/org/source/ref/{domain}/special_logic.txt`, `table list.txt`, `table relationship.txt` (when present for domain — always check `special_logic.txt` for the resolved table)
 - `/knowledge/org/target/storage/wkb/snapshots/_snapshot_id_template/l1_catalog/` (table/column metadata search)
 - `/knowledge/org/target/knowledgebase/{domain}/*.md` (table-level detail)

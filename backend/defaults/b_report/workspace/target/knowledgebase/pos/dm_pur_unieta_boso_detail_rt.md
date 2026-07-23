@@ -1,5 +1,235 @@
 # FACT: Supplemental fact/context table used by select POS reports (`dm_us.dm_pur_unieta_boso_detail_rt`)
 
+- artifact_type: etl_table
+- artifact_id: dm_us.dm_pur_unieta_boso_detail_rt
+- domain: pos
+- one_line_purpose: POS-domain table with load SQL under bitbucket-etl (see L3); prior contract narrative preserved below when present.
+- layer_type: DM
+- source_kind: etl_sql
+- evidence_source: source/contracts/pos/bitbucket-etl/dm_pur_unieta_boso_detail_rt/dm_us.dm_pur_unieta_boso_detail_rt.sql
+- bitbucket_etl_bundle: source/contracts/pos/bitbucket-etl/dm_pur_unieta_boso_detail_rt/
+- related_etl_scripts:
+- `source/contracts/pos/bitbucket-etl/dm_pur_unieta_boso_detail_rt/dm_pur_unieta_boso_detail_hf.sql`
+
+---
+
+## L1 Data Foundation
+
+### Identity and physical mapping
+- **Table:** `dm_us.dm_pur_unieta_boso_detail_rt`
+- **Layer type:** DM
+- **Canonical / derived:** Derived / ETL-loaded (see L3 from bitbucket-etl)
+- **Owner team:** Not documented in repository
+
+### Grain, scope, exclusions
+- See preserved **Grain and keys** section below when present (POS contract narrative retained).
+- Otherwise infer from SELECT / GROUP BY / INSERT column list in `source/contracts/pos/bitbucket-etl/dm_pur_unieta_boso_detail_rt/dm_us.dm_pur_unieta_boso_detail_rt.sql`.
+
+### Cross-engine presence
+| Engine | Present | Notes |
+|--------|---------|-------|
+| Hive | yes | ETL load target |
+| Vertica | yes when POS contract documents Vertica sync | See preserved Business query tables |
+
+### Physical schema reference
+
+| Field | Value |
+|-------|-------|
+| **entity_id** | `dm_us.dm_pur_unieta_boso_detail_rt` |
+| **l1_catalog_seed** | `target/storage/wkb/snapshots/_snapshot_id_template/l1_catalog/{engine}_{schema}_{table}.json` |
+| **column_count** | pending (run ddl_seed_writer) |
+| **partition_keys** | See preserved Grain / L4 / ETL PARTITION clause |
+| **ddl_source** | pending |
+| **retrieval** | `python -m tools.wkb.indexing.run_query --query "pos dm_pur_unieta_boso_detail_rt schema" --intent find_table_schema` |
+
+### Lineage
+
+- **Primary load:** `source/contracts/pos/bitbucket-etl/dm_pur_unieta_boso_detail_rt/dm_us.dm_pur_unieta_boso_detail_rt.sql`
+- **upstream:** `PATH` — FROM/JOIN — `source/contracts/pos/bitbucket-etl/dm_pur_unieta_boso_detail_rt/dm_us.dm_pur_unieta_boso_detail_rt.sql`
+- **downstream:** see L6 Downstream consumers
+### Freshness and load path
+- Parameters / date window: see ETL `${literal_*}` / `${date_flag}` / `${start_date}` in evidence script.
+- Schedule: Not documented in repository
+
+## L2 Declarative Knowledge
+
+### Business purpose
+See preserved **Business purpose** below when present (POS contract catalog + linked ETL).
+
+### Audience and use cases
+See preserved **Who it helps** section when present.
+
+### Fact key resolution
+See preserved **Grain and keys** when present.
+
+### Time field semantics
+- Prefer partition / `date_flag` filters documented in preserved sections and L3 Key filters from ETL.
+
+### Metrics served
+See preserved Metrics / column groups when present; otherwise L3 column derivations.
+
+### Metric serving map
+N/A unless multi-period wide table (see preserved content).
+
+### etl_metrics
+No new metric-index formulas appended in this bitbucket-etl upgrade pass.
+
+## L3 Procedural Knowledge
+
+### Query and routing rules
+- Reporting: Vertica `dm_us.dm_pur_unieta_boso_detail_rt` when synced (see preserved Business query tables).
+- Load logic: bitbucket-etl evidence `source/contracts/pos/bitbucket-etl/dm_pur_unieta_boso_detail_rt/dm_us.dm_pur_unieta_boso_detail_rt.sql`.
+
+### Dimension join patterns
+See Relationship map (ETL JOIN edges) and preserved contract join notes.
+
+### Key filters and ETL business logic
+
+| Predicate | Kind | Evidence |
+|-----------|------|----------|
+| — | — | No WHERE clause parsed from `source/contracts/pos/bitbucket-etl/dm_pur_unieta_boso_detail_rt/dm_us.dm_pur_unieta_boso_detail_rt.sql` |
+
+### Standard time-filter SQL
+```sql
+-- Prefer date_flag / literal_start_date / literal_end_date as used in source/contracts/pos/bitbucket-etl/dm_pur_unieta_boso_detail_rt/dm_us.dm_pur_unieta_boso_detail_rt.sql
+```
+
+### End-to-end flow
+```mermaid
+flowchart LR
+  S0["PATH"] --> T["dm_us.dm_pur_unieta_boso_detail_rt"]
+```
+
+### Base tables register
+| Object | Role |
+|--------|------|
+| `PATH` | source / temp (FROM/JOIN) |
+
+### Step-by-step logic
+1. Execute load SQL / python in `source/contracts/pos/bitbucket-etl/dm_pur_unieta_boso_detail_rt/`.
+2. Apply date / business filters from ETL (Key filters).
+3. Write target `dm_us.dm_pur_unieta_boso_detail_rt` (see INSERT/OVERWRITE in evidence).
+
+### Relationship map (embedded)
+
+| from_fqn | to_fqn | cardinality | join_keys | provenance |
+|----------|--------|-------------|-----------|------------|
+| — | — | — | — | No JOIN edges parsed from ETL (`source/contracts/pos/bitbucket-etl/dm_pur_unieta_boso_detail_rt/dm_us.dm_pur_unieta_boso_detail_rt.sql`); see Base tables register / step-by-step |
+
+### Special logic (embedded)
+
+`source/ref/pos/special_logic.txt` exists but no rule naming this FQN/stem (`dm_us.dm_pur_unieta_boso_detail_rt`).
+
+Not documented in repository
+
+
+### Column / field derivations (from ETL SQL)
+
+| target_column | expression_sql | upstream_columns | upstream_tables | transform_kind | evidence |
+|---------------|----------------|------------------|-----------------|----------------|----------|
+| — | — | — | — | — | No SELECT-list derivations parsed from `source/contracts/pos/bitbucket-etl/dm_pur_unieta_boso_detail_rt/dm_us.dm_pur_unieta_boso_detail_rt.sql` |
+
+
+### Sentinel and code values
+See preserved content and ETL CASE expressions in column derivations.
+
+## L4 Validation
+
+### Resolved partition value
+- Partition / date parameters from ETL literals — concrete calendar values Not documented in repository (resolve via Azkaban when flow evidence exists).
+
+### Data quality checks
+See preserved Validation SQL when present.
+
+### Validation SQL
+Prefer preserved Vertica validation bundle when present; MCP business SQL not re-run during documentation.
+
+### Caveats for interpretation
+- Document upgraded additively from POS **contract** MD + **bitbucket-etl** SQL. Prior contract text is under **Preserved pre-L1-L6 content** when present.
+
+### Conflicts and open questions
+- Companion loader scripts may also appear under other domain KB folders; see `target/knowledgebase/pos/readme.md` cross-links.
+
+## L5 Runtime View
+
+### Query path and engine preference
+| Path | Engine | Evidence |
+|------|--------|----------|
+| Load | Hive/Spark | `source/contracts/pos/bitbucket-etl/dm_pur_unieta_boso_detail_rt/dm_us.dm_pur_unieta_boso_detail_rt.sql` |
+| Report | Vertica | preserved POS contract when present |
+
+### Access constraints
+Not documented in repository
+
+### Query risk profile
+- Always filter `date_flag` / documented partition keys before wide scans.
+
+## L6 Access and Consumption
+
+### Primary consumers and use cases
+See preserved audience / POS report consumers when present.
+
+### Representative query patterns
+See preserved Validation SQL / contract examples when present.
+
+### Dependencies and notes
+
+#### Upstream objects (verified)
+| Object | Usage | Evidence |
+|--------|-------|----------|
+| `PATH` | FROM/JOIN | `source/contracts/pos/bitbucket-etl/dm_pur_unieta_boso_detail_rt/dm_us.dm_pur_unieta_boso_detail_rt.sql` |
+
+#### Downstream consumers (verified)
+
+| Object / script | Evidence |
+|-----------------|----------|
+| POS / RDS reports (contract) | preserved sections when present |
+| Related loaders | see related_etl_scripts header |
+| KB / contract ref: `source/contracts/pos/bitbucket-etl/MANIFEST.md` | `source/contracts/pos/bitbucket-etl/MANIFEST.md:138` |
+| ETL/script ref: `source/contracts/pos/bitbucket-etl/dwd_disty_sales_open_order_detail/loading_open_orders_data.sql` | `source/contracts/pos/bitbucket-etl/dwd_disty_sales_open_order_detail/loading_open_orders_data.sql:455` |
+| KB / contract ref: `source/contracts/pos/tables/dm_pur_unieta_boso_detail_rt.md` | `source/contracts/pos/tables/dm_pur_unieta_boso_detail_rt.md:5` |
+| ETL/script ref: `source/contracts/rds/starrocks_cpo/etl/cpo_open_order_eta_ship_complete_contacts_rds_6560.sql` | `source/contracts/rds/starrocks_cpo/etl/cpo_open_order_eta_ship_complete_contacts_rds_6560.sql:27` |
+| ETL/script ref: `source/contracts/rds/starrocks_cpo/etl/cpo_order_status_eta_hideampl_expense_rds_19257.sql` | `source/contracts/rds/starrocks_cpo/etl/cpo_order_status_eta_hideampl_expense_rds_19257.sql:70` |
+| ETL/script ref: `source/contracts/rds/starrocks_inventory/etl/inv_consignment_address_default_wh_rds_7026.sql` | `source/contracts/rds/starrocks_inventory/etl/inv_consignment_address_default_wh_rds_7026.sql:228` |
+| ETL/script ref: `source/contracts/rds/starrocks_inventory/etl/inv_multisheet_dos_bo_rds_14059.sql` | `source/contracts/rds/starrocks_inventory/etl/inv_multisheet_dos_bo_rds_14059.sql:178` |
+| ETL/script ref: `source/contracts/rds/starrocks_open_so_bo/etl/open_so_bo_basic_bo_unieta_inventory_rds_5987.sql` | `source/contracts/rds/starrocks_open_so_bo/etl/open_so_bo_basic_bo_unieta_inventory_rds_5987.sql:57` |
+| ETL/script ref: `source/contracts/rds/starrocks_open_so_bo/etl/open_so_bo_brpt_snapshot_profile_rds_8700.sql` | `source/contracts/rds/starrocks_open_so_bo/etl/open_so_bo_brpt_snapshot_profile_rds_8700.sql:12` |
+| ETL/script ref: `source/contracts/rds/starrocks_open_so_bo/etl/open_so_bo_customer_sku_serial_inventory_rds_14053.sql` | `source/contracts/rds/starrocks_open_so_bo/etl/open_so_bo_customer_sku_serial_inventory_rds_14053.sql:102` |
+| ETL/script ref: `source/contracts/rds/starrocks_open_so_bo/etl/open_so_bo_multisheet_eta_expense_rds_6143.sql` | `source/contracts/rds/starrocks_open_so_bo/etl/open_so_bo_multisheet_eta_expense_rds_6143.sql:40` |
+| ETL/script ref: `source/contracts/rds/starrocks_open_so_bo/etl/open_so_bo_open_shipped_tracking_rds_8775.sql` | `source/contracts/rds/starrocks_open_so_bo/etl/open_so_bo_open_shipped_tracking_rds_8775.sql:11` |
+| ETL/script ref: `source/contracts/rds/starrocks_open_so_bo/etl/open_so_bo_rio_allocation_inventory_rds_6302.sql` | `source/contracts/rds/starrocks_open_so_bo/etl/open_so_bo_rio_allocation_inventory_rds_6302.sql:343` |
+| ETL/script ref: `source/contracts/rds/starrocks_open_so_bo/etl/open_so_bo_status_eu_custom_vpo_chain_rds_17936.sql` | `source/contracts/rds/starrocks_open_so_bo/etl/open_so_bo_status_eu_custom_vpo_chain_rds_17936.sql:231` |
+| ETL/script ref: `source/contracts/rds/vertica_open_so_bo/etl/open_so_bo_eta_sapid_shipped_open_rds_17695.sql` | `source/contracts/rds/vertica_open_so_bo/etl/open_so_bo_eta_sapid_shipped_open_rds_17695.sql:21` |
+| KB / contract ref: `source/contracts/rds/vertica_open_so_bo/examples-index.md` | `source/contracts/rds/vertica_open_so_bo/examples-index.md:31` |
+| KB / contract ref: `target/knowledgebase/RDS/starrocks_cpo/cpo_open_order_eta_ship_complete_contacts_rds_6560.md` | `target/knowledgebase/RDS/starrocks_cpo/cpo_open_order_eta_ship_complete_contacts_rds_6560.md:53` |
+| KB / contract ref: `target/knowledgebase/RDS/starrocks_cpo/cpo_order_status_eta_hideampl_expense_rds_19257.md` | `target/knowledgebase/RDS/starrocks_cpo/cpo_order_status_eta_hideampl_expense_rds_19257.md:51` |
+| KB / contract ref: `target/knowledgebase/RDS/starrocks_inventory/inv_consignment_address_default_wh_rds_7026.md` | `target/knowledgebase/RDS/starrocks_inventory/inv_consignment_address_default_wh_rds_7026.md:178` |
+| KB / contract ref: `target/knowledgebase/RDS/starrocks_inventory/inv_multisheet_dos_bo_rds_14059.md` | `target/knowledgebase/RDS/starrocks_inventory/inv_multisheet_dos_bo_rds_14059.md:55` |
+| KB / contract ref: `target/knowledgebase/RDS/starrocks_open_so_bo/open_so_bo_basic_bo_unieta_inventory_rds_5987.md` | `target/knowledgebase/RDS/starrocks_open_so_bo/open_so_bo_basic_bo_unieta_inventory_rds_5987.md:56` |
+| KB / contract ref: `target/knowledgebase/RDS/starrocks_open_so_bo/open_so_bo_brpt_snapshot_profile_rds_8700.md` | `target/knowledgebase/RDS/starrocks_open_so_bo/open_so_bo_brpt_snapshot_profile_rds_8700.md:51` |
+| KB / contract ref: `target/knowledgebase/RDS/starrocks_open_so_bo/open_so_bo_customer_sku_serial_inventory_rds_14053.md` | `target/knowledgebase/RDS/starrocks_open_so_bo/open_so_bo_customer_sku_serial_inventory_rds_14053.md:60` |
+| KB / contract ref: `target/knowledgebase/RDS/starrocks_open_so_bo/open_so_bo_multisheet_eta_expense_rds_6143.md` | `target/knowledgebase/RDS/starrocks_open_so_bo/open_so_bo_multisheet_eta_expense_rds_6143.md:54` |
+| KB / contract ref: `target/knowledgebase/RDS/starrocks_open_so_bo/open_so_bo_open_shipped_tracking_rds_8775.md` | `target/knowledgebase/RDS/starrocks_open_so_bo/open_so_bo_open_shipped_tracking_rds_8775.md:51` |
+| KB / contract ref: `target/knowledgebase/RDS/starrocks_open_so_bo/open_so_bo_rio_allocation_inventory_rds_6302.md` | `target/knowledgebase/RDS/starrocks_open_so_bo/open_so_bo_rio_allocation_inventory_rds_6302.md:184` |
+| KB / contract ref: `target/knowledgebase/RDS/starrocks_open_so_bo/open_so_bo_status_eu_custom_vpo_chain_rds_17936.md` | `target/knowledgebase/RDS/starrocks_open_so_bo/open_so_bo_status_eu_custom_vpo_chain_rds_17936.md:173` |
+| KB / contract ref: `target/knowledgebase/RDS/vertica_open_so_bo/open_so_bo_eta_sapid_shipped_open_rds_17695.md` | `target/knowledgebase/RDS/vertica_open_so_bo/open_so_bo_eta_sapid_shipped_open_rds_17695.md:52` |
+| KB / contract ref: `target/knowledgebase/pos/dwd_disty_sales_open_order_detail.md` | `target/knowledgebase/pos/dwd_disty_sales_open_order_detail.md:206` |
+| KB / contract ref: `target/knowledgebase/pos/readme.md` | `target/knowledgebase/pos/readme.md:51` |
+
+#### Operational detail (verified)
+- Bundle: `source/contracts/pos/bitbucket-etl/dm_pur_unieta_boso_detail_rt/`
+- Manifest: `source/contracts/pos/bitbucket-etl/MANIFEST.md`
+
+#### Not documented in repository
+- Schedule, owner, SLA
+
+---
+
+## Preserved pre-L1-L6 content
+
+> Retained verbatim from the prior POS contract knowledgebase document (nothing removed). ETL load evidence above supplements this catalog narrative.
+
+
 **Domain:** pos  
 **Source contract:** `C:\Users\T154858D.TDSNX\Desktop\git_repo_v1\data_analysis_agent_brpt\knowledge\POS\tables\dm_pur_unieta_boso_detail_rt.md`  
 **Knowledgebase path:** `target/knowledgebase/pos/dm_pur_unieta_boso_detail_rt.md`

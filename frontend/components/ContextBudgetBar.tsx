@@ -1,16 +1,21 @@
 "use client";
 
-export type BudgetPayload = {
-  steps_used?: number;
-  steps_limit?: number;
-  steps_warn_at?: number;
-  phase?: "ok" | "warn" | "exhausted";
-  run_segment?: number;
-  thread_id?: string;
-};
+import type { BudgetPayload } from "@/lib/api";
+import { RunPhaseBar } from "./RunPhaseBar";
+import { shouldShowBudgetBar } from "@/lib/budgetBar";
 
-export function ContextBudgetBar({ budget }: { budget: BudgetPayload | null }) {
-  if (!budget || budget.steps_limit == null) return null;
+export type { BudgetPayload };
+
+export function ContextBudgetBar({
+  budget,
+  threadId = null,
+  streaming = false,
+}: {
+  budget: BudgetPayload | null;
+  threadId?: string | null;
+  streaming?: boolean;
+}) {
+  if (!budget || !shouldShowBudgetBar(budget, { threadId, streaming })) return null;
 
   const used = budget.steps_used ?? 0;
   const limit = budget.steps_limit ?? 1;
@@ -25,11 +30,13 @@ export function ContextBudgetBar({ budget }: { budget: BudgetPayload | null }) {
         : "bg-accent";
 
   return (
-    <div className="mb-2 rounded-xl border border-ink-200/80 bg-white/80 px-3 py-2 text-xs text-ink-600">
+    <div className="mb-2 rounded-xl border border-ink-200/80 bg-white/80 px-3 py-2 text-xs text-ink-600" data-testid="context-budget-bar">
+      <RunPhaseBar budget={budget} />
       <div className="mb-1 flex items-center justify-between gap-2">
         <span className="font-medium text-ink-700">Agent steps</span>
         <span className="tabular-nums text-ink-500">
           {used} / {limit}
+          {budget.sql_queries_used ? ` · ${budget.sql_queries_used} queries` : ""}
           {budget.run_segment != null ? ` · seg ${budget.run_segment}` : ""}
         </span>
       </div>

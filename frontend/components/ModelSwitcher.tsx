@@ -39,7 +39,7 @@ export function ModelSwitcher({ disabled }: Props) {
 
   const currentId = cfg?.model.model || "";
   const isSynnex = Boolean(catalog && cfg?.model.provider === catalog.provider_id);
-  const inCatalog = Boolean(catalog?.models.some((m) => m.id === currentId));
+  const inCatalog = Boolean(catalog?.models?.some((m) => m.id === currentId));
 
   async function onSelect(modelId: string) {
     if (!cfg || !catalog || !modelId || (modelId === currentId && isSynnex)) return;

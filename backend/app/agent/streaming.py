@@ -9,13 +9,19 @@ from typing import Any
 
 from langgraph.errors import GraphRecursionError
 
+from app.agent.harness.context import get_harness_context
 from app.agent.harness.config import load_harness_config, step_limit
 from app.agent.harness.step_budget import get_segment_budget
 from app.agent.harness.wrapup import (
+    count_research_tool_calls,
+    count_sql_evidence_in_messages,
     last_ai_text,
-    needs_synthesis_wrapup,
+    missing_answer_in_stream,
+    needs_final_answer_wrapup,
     stream_wrapup_tokens,
+    _has_synthesis_headings,
 )
+from app.agent.harness.task_output import humanize_task_tool_output
 
 logger = logging.getLogger(__name__)
 
@@ -119,8 +125,49 @@ def _preview_tool_input(raw_input: Any, tool: str, limit: int = 2000) -> Any:
     return _safe_preview(raw_input, limit)
 
 
-async def _emit_budget() -> str:
-    return sse("budget", get_segment_budget())
+async def _emit_budget(sql_queries_used: int = 0) -> str:
+    payload = get_segment_budget()
+    payload["sql_queries_used"] = sql_queries_used
+    return sse("budget", payload)
+
+
+async def _flush_checkpoint_answer_sse(
+    agent: Any,
+    config: dict[str, Any],
+    streamed_text: str,
+) -> AsyncIterator[str]:
+    """Emit checkpoint answer text that never arrived via on_chat_model_stream."""
+    try:
+        state = await agent.aget_state(config)
+        values = getattr(state, "values", None) or {}
+        msgs = values.get("messages") or []
+        delta = missing_answer_in_stream(streamed_text, last_ai_text(msgs))
+        if delta:
+            yield sse("token", {"text": delta})
+    except Exception:
+        logger.debug("checkpoint answer flush failed", exc_info=True)
+
+
+def _preview_tool_output(output: Any, tool: str, *, inline_limit: int) -> Any:
+    if tool == "task":
+        return humanize_task_tool_output(output, limit=inline_limit)
+    if hasattr(output, "content"):
+        output = output.content
+    if isinstance(output, str) and "Command(update=" in output:
+        return humanize_task_tool_output(output, limit=inline_limit)
+    return _safe_preview(output, inline_limit)
+
+
+def _sse_token_text(chunk: str) -> str:
+    for line in chunk.split("\n"):
+        if line.startswith("data:"):
+            try:
+                payload = json.loads(line.removeprefix("data:").strip())
+            except Exception:
+                return ""
+            text = payload.get("text")
+            return text if isinstance(text, str) else ""
+    return ""
 
 
 async def _stream_wrapup_sse(
@@ -148,6 +195,55 @@ async def _stream_wrapup_sse(
     yield sse("wrapup_done", {"ok": True})
 
 
+async def _try_synthesis_wrapup(
+    agent: Any,
+    config: dict[str, Any],
+    wrapup_model: Any,
+    harness_cfg: Any,
+    *,
+    executed_queries: list[dict[str, str]],
+    streamed_text: str = "",
+) -> AsyncIterator[str] | None:
+    """Yield wrap-up SSE chunks when evidence exists but the answer is incomplete."""
+    if not harness_cfg.auto_wrapup or wrapup_model is None:
+        return None
+    try:
+        state = await agent.aget_state(config)
+        values = getattr(state, "values", None) or {}
+        msgs = values.get("messages") or []
+        cumulative_q = max(len(executed_queries), count_sql_evidence_in_messages(msgs))
+        require_synthesis = bool(get_harness_context().get("require_synthesis"))
+        research_count = count_research_tool_calls(msgs)
+        if cumulative_q <= 0 and not require_synthesis and research_count < 8:
+            return None
+        prior = last_ai_text(msgs)
+        if not needs_final_answer_wrapup(
+            prior,
+            query_count=cumulative_q,
+            require_synthesis=require_synthesis,
+            research_tool_count=research_count,
+        ):
+            return None
+        if _has_synthesis_headings(streamed_text):
+            return None
+    except Exception:
+        logger.debug("wrap-up precheck failed", exc_info=True)
+        return None
+
+    async def _gen() -> AsyncIterator[str]:
+        yield sse("status", {"text": "Composing final answer…", "phase": "wrapup"})
+        async for piece in stream_wrapup_tokens(
+            wrapup_model,
+            agent,
+            config,
+            harness_cfg=harness_cfg,
+        ):
+            yield sse("token", {"text": piece})
+        yield sse("wrapup_done", {"ok": True})
+
+    return _gen()
+
+
 async def stream_agent_events(
     agent: Any,
     input_payload: dict[str, Any] | Any,
@@ -158,13 +254,46 @@ async def stream_agent_events(
     """Yield SSE strings from agent.astream_events(version='v2')."""
     executed_queries: list[dict[str, str]] = []
     seen_sql: set[str] = set()
+    streamed_text = ""
     extended = bool(config.get("configurable", {}).get("extended_run"))
     harness_cfg = load_harness_config(extended_run=extended)
     budget_every = 0
 
+    # Continue on a completed graph (next=[]): synthesize from checkpoint evidence.
+    if input_payload is None:
+        try:
+            state = await agent.aget_state(config)
+            if not list(getattr(state, "next", ()) or []):
+                wrapup = await _try_synthesis_wrapup(
+                    agent,
+                    config,
+                    wrapup_model,
+                    harness_cfg,
+                    executed_queries=executed_queries,
+                )
+                if wrapup is not None:
+                    async for chunk in wrapup:
+                        yield chunk
+                    if executed_queries:
+                        yield sse("executed_sql", {"queries": executed_queries})
+                        yield sse("query_appendix", {"queries": executed_queries})
+                    async for chunk in _flush_checkpoint_answer_sse(agent, config, streamed_text):
+                        yield chunk
+                    yield await _emit_budget(len(executed_queries))
+                    yield sse(
+                        "done",
+                        {
+                            "thread_id": config.get("configurable", {}).get("thread_id"),
+                            "incomplete": True,
+                        },
+                    )
+                    return
+        except Exception:
+            logger.debug("continue-at-end wrap-up check failed", exc_info=True)
+
     try:
         yield sse("status", {"text": "Running agent…", "phase": "run"})
-        yield await _emit_budget()
+        yield await _emit_budget(len(executed_queries))
 
         async for event in agent.astream_events(input_payload, config=config, version="v2"):
             kind = event.get("event")
@@ -178,12 +307,13 @@ async def stream_agent_events(
                 )
                 budget_every += 1
                 if budget_every % 2 == 0:
-                    yield await _emit_budget()
+                    yield await _emit_budget(len(executed_queries))
 
             elif kind == "on_chat_model_stream":
                 chunk = (event.get("data") or {}).get("chunk")
                 text = _message_text(chunk)
                 if text:
+                    streamed_text += text
                     yield sse("token", {"text": text})
 
             elif kind == "on_tool_start":
@@ -219,18 +349,19 @@ async def stream_agent_events(
                         "tool": tool,
                     },
                 )
-                yield await _emit_budget()
+                yield await _emit_budget(len(executed_queries))
 
             elif kind == "on_tool_end":
                 data = event.get("data") or {}
                 tool = _tool_name(event)
                 output = data.get("output")
-                if hasattr(output, "content"):
-                    output = output.content
                 inline_limit = harness_cfg.tool_result_inline_max_chars
+                preview_output = _preview_tool_output(
+                    output, tool, inline_limit=min(2000, inline_limit // 4)
+                )
                 payload = {
                     "tool": tool,
-                    "output": _safe_preview(output, min(2000, inline_limit // 4)),
+                    "output": preview_output,
                     "run_id": event.get("run_id"),
                 }
                 if tool == "task" or "subagent" in str(tags).lower():
@@ -274,35 +405,31 @@ async def stream_agent_events(
                 )
             else:
                 incomplete = False
-                if (
-                    harness_cfg.auto_wrapup
-                    and wrapup_model is not None
-                    and executed_queries
-                ):
+                async for chunk in _flush_checkpoint_answer_sse(agent, config, streamed_text):
+                    if chunk:
+                        streamed_text += _sse_token_text(chunk) or ""
+                        incomplete = True
+                    yield chunk
+                wrapup = await _try_synthesis_wrapup(
+                    agent,
+                    config,
+                    wrapup_model,
+                    harness_cfg,
+                    executed_queries=executed_queries,
+                    streamed_text=streamed_text,
+                )
+                if wrapup is not None:
                     try:
-                        values = getattr(state, "values", None) or {}
-                        prior = last_ai_text(values.get("messages") or [])
-                        if needs_synthesis_wrapup(
-                            prior, query_count=len(executed_queries)
-                        ):
-                            yield sse(
-                                "status",
-                                {"text": "Composing final answer…", "phase": "wrapup"},
-                            )
-                            async for piece in stream_wrapup_tokens(
-                                wrapup_model,
-                                agent,
-                                config,
-                                harness_cfg=harness_cfg,
-                            ):
-                                yield sse("token", {"text": piece})
-                            yield sse("wrapup_done", {"ok": True})
-                            incomplete = True
+                        async for chunk in wrapup:
+                            yield chunk
+                        incomplete = True
                     except Exception:
                         logger.exception("synthesis wrap-up after normal completion failed")
 
                 if executed_queries:
                     yield sse("executed_sql", {"queries": executed_queries})
+                    yield sse("query_appendix", {"queries": executed_queries})
+                yield await _emit_budget(len(executed_queries))
                 yield sse(
                     "done",
                     {
@@ -314,6 +441,7 @@ async def stream_agent_events(
             logger.debug("post-stream state inspect failed", exc_info=True)
             if executed_queries:
                 yield sse("executed_sql", {"queries": executed_queries})
+                yield sse("query_appendix", {"queries": executed_queries})
             yield sse(
                 "done",
                 {
@@ -332,13 +460,23 @@ async def stream_agent_events(
         # Auto wrap-up: synthesize a final answer when the model did not finish.
         if harness_cfg.auto_wrapup and wrapup_model is not None:
             try:
-                state = await agent.aget_state(config)
-                values = getattr(state, "values", None) or {}
-                prior = last_ai_text(values.get("messages") or [])
-                async for chunk in _stream_wrapup_sse(wrapup_model, agent, config):
+                async for chunk in _flush_checkpoint_answer_sse(agent, config, streamed_text):
                     yield chunk
-                if prior:
-                    yield sse("status", {"text": "Appended wrap-up conclusion.", "phase": "wrapup"})
+                    streamed_text += _sse_token_text(chunk) or ""
+                wrapup = await _try_synthesis_wrapup(
+                    agent,
+                    config,
+                    wrapup_model,
+                    harness_cfg,
+                    executed_queries=executed_queries,
+                    streamed_text=streamed_text,
+                )
+                if wrapup is not None:
+                    async for chunk in wrapup:
+                        yield chunk
+                elif not streamed_text.strip():
+                    async for chunk in _stream_wrapup_sse(wrapup_model, agent, config):
+                        yield chunk
             except Exception:
                 logger.exception("wrap-up after recursion limit failed")
 

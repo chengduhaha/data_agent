@@ -15,12 +15,11 @@ All routing, semantics, grain, joins, metric formulas, and SQL shape must be res
 |------|------|
 | Domain | `/knowledge/org/source/contracts/{domain}/domain-knowledge.md` |
 | Metrics | `/knowledge/org/source/contracts/{domain}/metric-index.md` |
-| Golden eval | `/knowledge/org/source/contracts/{domain}/eval/golden_cases.md` (if file exists) |
 | Special logic | `/knowledge/org/source/ref/{domain}/special_logic.txt`, `table list.txt`, `table relationship.txt` (if present for domain) — always check `special_logic.txt` for the resolved table(s), see [`special-logic-check.md`](special-logic-check.md) |
 | Storage metadata | `/knowledge/org/target/storage/wkb/snapshots/_snapshot_id_template/l1_catalog/` (table/column metadata), `/knowledge/org/target/storage/wkb/indexes/**` |
 | Tables | `/knowledge/org/target/knowledgebase/{domain}/{stem}.md` (L1/L2/L3/L6 as needed); **NEVER** read `/knowledge/org/source/contracts/{domain}/tables/*.md` |
 
-WKB catalogue is local — use `cd "$DATA_AGENT_ORG_KNOWLEDGE" && python -m tools.wkb.indexing.run_query` (shell), not full-tree grep. File research stays under `/knowledge/org/`.
+WKB catalogue is local — use `python /knowledge/org/target/storage/wkb/indexing/run_query.py`, not full-tree grep.
 
 ---
 
