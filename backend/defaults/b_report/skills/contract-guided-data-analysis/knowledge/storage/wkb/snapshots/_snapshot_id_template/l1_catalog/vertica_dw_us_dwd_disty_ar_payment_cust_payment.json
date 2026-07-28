@@ -1,0 +1,173 @@
+{
+  "entity_id": "dw_us.dwd_disty_ar_payment_cust_payment",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dw_us.dwd_disty_ar_payment_cust_payment",
+  "schema_name": "dw_us",
+  "table_name": "dwd_disty_ar_payment_cust_payment",
+  "columns": [
+    {
+      "name": "pay_no",
+      "type": "int"
+    },
+    {
+      "name": "u_version",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "batch_no",
+      "type": "int"
+    },
+    {
+      "name": "batch_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "cust_no",
+      "type": "int"
+    },
+    {
+      "name": "loc_no",
+      "type": "int"
+    },
+    {
+      "name": "check_no",
+      "type": "int"
+    },
+    {
+      "name": "gl_acct_no",
+      "type": "int"
+    },
+    {
+      "name": "disc_gl_acct_no",
+      "type": "int"
+    },
+    {
+      "name": "pay_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "disc_amt_taken",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "entry_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "entry_id",
+      "type": "int"
+    },
+    {
+      "name": "void_flag",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "chk_rcv_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "usd_pay_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "usd_disc_taken",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "company_no",
+      "type": "int"
+    },
+    {
+      "name": "fx_currency",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cust_check_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "je_no",
+      "type": "int"
+    },
+    {
+      "name": "source",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "payment_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "pay_currency",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "pay_rate",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "cust_bank_id",
+      "type": "int"
+    },
+    {
+      "name": "receive_bank_id",
+      "type": "int"
+    },
+    {
+      "name": "value_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "batch_date_system",
+      "type": "timestamp"
+    },
+    {
+      "name": "local_currency",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cust_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "entry_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "trading_partner",
+      "type": "int"
+    },
+    {
+      "name": "internal_reference",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "download_file",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "payment_type_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "receive_bank",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "payment_bank",
+      "type": "varchar(100)"
+    }
+  ],
+  "column_count": 38,
+  "partition_keys": [],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dwd_disty_ar_payment_cust_payment.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:48.174275+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dwd_disty_ar_payment_cust_payment.md"
+}

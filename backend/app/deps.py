@@ -51,3 +51,14 @@ async def get_user_id(
 ) -> str:
     """Resolve per-user workspace slug from authenticated session."""
     return user.workspace_slug
+
+
+async def require_admin(
+    user: AuthenticatedUser = Depends(get_current_user),
+) -> AuthenticatedUser:
+    """Settings and admin APIs — only workspace admins (see auth.roles)."""
+    from app.auth.roles import is_admin
+
+    if not is_admin(user.workspace_slug):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return user

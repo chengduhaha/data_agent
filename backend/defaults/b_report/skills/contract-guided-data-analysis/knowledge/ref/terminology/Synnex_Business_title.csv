@@ -1,0 +1,1024 @@
+"name","title","params_text"
+AP,ACH,<p>Automated Clearing House<\/p>\n<p>&nbsp;<\/p>
+AP,Adjustment Form,"\n    A function of AP, if there is anything that we need to pay back whether its for invoices, PO gain, RM\n"
+AP,Allow Amount,Allow amount only appears on the PO of Expense invoices. Allow amount is the maximum amount of EXP PO
+AP,AP Auto Payback,A tool that analyst can use it to do payback for debit of short\/miss shipments.
+AP,AP Hold Query,AP Hold Query
+AP,AP Link,AP Vendor Maintenance
+AP,AP Voucher Query,"<p>Query for Receiving Status. Use this function to view details of a vouched document, type the documen<\/p>"
+AP,AP Vouchering,Description: Authorized Accounts Payable Associates use the AP Vouchering Screen for posting document
+AP,CAD,The Canadian currency. Short for the Canadian dollar sign $C.
+AP,Claim Reason ,"the reason why do claim. According to traffic rules, when report the claim issue to carrier, must has"
+AP,Claimant,"The person\/organization who doing claim. when filing claim, the member who present the organization t"
+AP,Credit Card Account,BOA credit card procedure
+AP,Customs Duty,Customs Duty is a tariff or tax imposed on goods when transported across international borders. The p
+AP,Cut $0 Check,cut $0 check
+AP,Debit,Debit
+AP,Dispute,Ask credits from vendor for DM and VR items
+AP,DND,Its a symbol that control debits will not be deducted at certain time.
+AP,Doc #,<p>A sequential number issued by CIS to identify the document. And we can check the document number to g<\/p>
+AP,Double Bill,Double Bill is vendor billed same units same parts for same PO twice on different invoices.
+AP,FIFO,"<p>first-in, first-out<\/p>"
+AP,Freight In ,freight in
+AP,Freight Out,freight out
+AP,Freight Term,Freight term
+AP,IBF,"The vendor which belongs to Iron Bow, but SYNNEX helps them to book, provides payment information and"
+AP,Inbound Claim,<p>inbound is one of two basic shipping direction (inbound and outbound). Inbound means the products shi<\/p>
+AP,Inv Approver,Inv Approver
+AP,Invoice Type,<p>invoice type<\/p>
+AP,LIFO,LIFO
+AP,LVS,<p>Low Value Shipments. There are many shipments from US to CA. For the shipments with low value&nbsp;<\/p>
+AP,NOPO Type,\n    A type of invoice need to process without expense PO.\n
+AP,Offset DM,Offset Debit Memo
+AP,Outbound Claim,<p>outbound is one of two basic shipping direction (inbound and outbound).<\/p>
+AP,Outstanding Check,"<p>The check we didn't send to vendor yet , need manager sign for it .<\/p>"
+AP,PB,payback
+AP,PG,<p>PO gain<\/p>
+AP,PMT TYPE,"<p>PMT TYPE is to distinguish if payments are going to be paid by CK or thru ACH\/Wire, you can check the<\/p>"
+AP,Prepaid Expenses,"For prepaid vendor, we will pay for the product what we ordered before we received them. We will save"
+AP,Price Drop In transit,<p>The price of product has been dropped before TD SYNNEX rec\u2019d.<\/p>
+AP,RMD,<p>Requiring Minimal Documentation. It is a kind of file format.<\/p>
+AP,Tax Certificate,Tax Certificate
+AP,TEMP Invoices,<p>A type of invoice need to pay the salary by weekly for the employee who works in our warehouse.&nbsp;<\/p>
+AP,Weekly POS Report,weekly point of sale report
+AP,AP Aging,""
+AP,Discrepancy,The resolution ways to fix difference between invoice and purchase order
+AP,Early Payment Discount,Early Payment Discount
+AP,Pay High,"When vendor invoice billed price is higher than PO received, we pay the invoice as billed price if it"
+AP,APCM,<p>APCM is for drop shipments that either customer refused shipment or returned them to SYNNEX. The anal<\/p>
+AP,COO,"<p>Country of original. When doing&nbsp;LVS entry , we need to know which country the goods are made in.<\/p>"
+AP,Discount,Vendor can allow us to short pay some money if we can issue payment ahead based on the contract.
+AP,EDI Invoice,<p>An EDI 810 Invoice is an electronic version of a paper invoice or bill. EDI stands for Electronic Dat<\/p>
+AP,Pay Date,<p>Pay Date: The date that we issue payment for vendor billed invoice.<\/p>
+AP,Pay Terms,To calculate when we need to issue payment to vendor.
+AP,Payment,Payment
+AR & Credit,Bank Statement,different bank statments and GL acct accordingly
+AR & Credit,Bill Only,need to bill
+AR & Credit,Bill To Address,Bill To Address
+AR & Credit,CAC,screenshots
+AR & Credit,Charge Back Form,Charge Back Form
+AR & Credit,Clearance Sales Order (OT 20),Clearance Sales Order
+AR & Credit,Collections,Collections
+AR & Credit,Consignment,<p>Consignment<\/p>
+AR & Credit,Credit Investigation,screenshots
+AR & Credit,Credit Limit,screenshots
+AR & Credit,Credit Review,flowchart
+AR & Credit,Customer History Query,Customer History Query
+AR & Credit,Customer Notes,<p>Customer Notes<\/p>
+AR & Credit,Customer Term,Acct terms:
+AR & Credit,Doc Date,doc date \/ inv date
+AR & Credit,Drop Ship,<p>shipped from the vendor<\/p>
+AR & Credit,Due Date,Customer need pay within due date
+AR & Credit,Expense Code,Expense Code
+AR & Credit,Flooring Company,Flooring Company
+AR & Credit,Packing Slip,Packing Slip \/ Packing list
+AR & Credit,POR,Proof of Return
+AR & Credit,Reason Code,reason code
+AR & Credit,Statement,statement
+AR & Credit,Total AR Balance,Total AR Balance
+AR & Credit,Tracking,tracking number
+AR & Credit,Unit Price,Unit Price
+AR & Credit,Write Off Form,write off form
+AR & Credit,Zip Zone,Zip Zone
+AR & Credit,FRT,Freight
+AR & Credit,Major Account,important and big account
+AR & Credit,Past Due,Past Due
+AR & Credit,POD,POD
+AR & Credit,Refuse Shipment,Customer refused to accept the product(s) shipped from SYNNEX and product(s) returned back to us. Thi
+AR & Credit,Advance Swap,Advance Swap (OT 11)
+AR & Credit,AR Aging,<p>AR Aging<\/p>
+AR & Credit,AR Open Items,Overall screen of account current status
+AR & Credit,DFI,Deduct From Invoice
+AR & Credit,EDI,Electronic Data Interchange
+AR & Credit,End User,End User
+AR & Credit,Expense Type,Expense Type
+AR & Credit,FADD,Freight ADDer
+AR & Credit,FDS,Freight Discounts
+AR & Credit,GL,General Ledger
+AR & Credit,GM,GM
+AR & Credit,MOF,"Minimum Order Fee charged to customers, based on the MOF fee policy set-up and maintained by Sales"
+AR & Credit,Order Type,order type
+AR & Credit,Part Number,Part Number
+AR & Credit,Sku No,"In SYNNEX, it is a seven-digit numeric number assigned by then system when creating new parts, it is"
+AR & Credit,Unit Cost,Unit Cost
+AR & Credit,MyCIS CAC,Mycis CAC
+VCM,SCM,"<p>The environment in which TD SYNNEX establishes, tracks and manages soft cost dollars involving vendor re<\/p>"
+VCM,PP,Price Protection
+VCM,"336/337 Report",<p>336\/337 Report; inventory report<\/p>
+VCM,Auto SPA/Manual SPA ,{
+VCM,Backend Claim,<p>Backend&nbsp;Rebate<\/p>
+VCM,Backup Document (Vendor Document),backup doc
+VCM,Bid Effective Date,Bid effective date
+VCM,Bliz Day Product Rebate,<p>Blitz Day Rebate<\/p>
+VCM,Bundle Discount,Bundle Discount
+VCM,Buy In Rebate,<p>Buy in rebate<\/p>
+VCM,Charge Back Sales,<p>Charge Back Sales<\/p>
+VCM,Claim / Dispute Window,Claim\/Dispute Window
+VCM,Claim Reverse,<p>Claim Reverse<\/p>
+VCM,Cost Change,<p>Cost Change<\/p>
+VCM,Credit Vouch,<p>Credit Vouch<\/p>
+VCM,Customer / Enduser Mismatch,<p>Customer Enduser Mismatch<\/p>
+VCM,Customer PP,<p>Customer PP<\/p>
+VCM,Demo Pricing,<p>DEMO<\/p>
+VCM,Dispute Package,Dispute Package
+VCM,Extra Claim,<p>Extra claim<\/p>
+VCM,Follow Up Payment,Follow up Payment
+VCM,Full PP,Full PP
+VCM,Fund / Usage transfer,Fund or Usage transfer
+VCM,Government Rebate,<p>Government Rebate<\/p>
+VCM,HP Big Deal,HP Big Deal
+VCM,HP NBO,HP NBO
+VCM,HP Serial Number Issue,HP Serial number issue
+VCM,P1 Internal Margin Hit,<p>P1 Internal Margin Hit<\/p>
+VCM,Invalid Bid,Invalid Bid
+VCM,Inventory Write-Up SCM,Inventory Write-up
+VCM,LB,<p>LB = Look Back<\/p>
+VCM,Marketing Fund,<p>Marketing Fund<\/p>
+VCM,Open Order,Open Order
+VCM,Over Usage,<p>Over Usage<\/p>
+VCM,Overpayment,Overpayment
+VCM,Payback,Payback
+VCM,P1 Online PM Claim Report,<p>Product Manager Online Report<\/p>
+VCM,POS Rebate,<p>POS rebate is one of the claim types in SYNNEX System. It\u2019s also called \u2018Instant Rebate\u2019 on some vend<\/p>
+VCM,Post Claim,Post Claim
+VCM,Reseller,reseller
+VCM,RMA Reserve,RMA Reserve
+VCM,SCM Approval,SCM Approval
+VCM,SCM Combinability,<p>SCM Combinability<\/p>
+VCM,Sell Out Rebate,<p>sell out rebate<\/p>
+VCM,SO Usage,SO usage
+VCM,SPA / SCM Not Working,SPA \/SCM Not Working
+VCM,SPA Active,<p>SPA Active<\/p>
+VCM,SPA Rebate,SPA Rebate is one of the claim types in SYNNEX System. Its full mane is \u201cSpecial Pricing Approval Reb
+VCM,Spiff Calculation,Spiff Calculation
+VCM,Frontend Claim,<p>Frontend&nbsp;Claim<\/p>
+VCM,USD Vendor vs. CAD vendor,<p>USD vendor vs. CAD vendor<\/p>
+VCM,Vendor,<p>vendor<\/p>
+VCM,Vendor Audit,Vendor Audit
+VCM,Vendor CB,<p>Vendor Charge Back<\/p>
+VCM,Vendor Credit Memo,Vendor Credit Memo
+VCM,Vendor Reserve,Vendor Reserve
+VCM,VIR SCM Tracking,<p>VIR SCM Tracking<\/p>
+VCM,P1 SCM,<p>P1 SCM<\/p>
+VCM,P1 SPA,<p>P1 spa<\/p>
+VCM,Claim Type,Claim Type
+VCM,Credit Memo (CM),<p>Credit Memo<\/p>
+VCM,Debit Memo (DM),<p>Debit Memo<\/p>
+VCM,Pass Through To Customer Rebate,<p>Pass Thru to Customer Rebate<\/p>
+VCM,Claimable Amount,Claimable Amount
+VCM,SCM SO Budget Amount,<p>SCM&nbsp;SO Budget Amount<\/p>
+VCM,TAX,<p>TAX<\/p>
+VCM,VIR,<p>Volume Incentive Rebate<\/p>
+IMT,UPC,UPC code general
+IMT,"3RDSRVC","3RDSRVC"
+IMT,ADS,ADS
+IMT,ADS Code,ADS Code
+IMT,ADS Group,ADS Group
+IMT,ADS Group 1,ADS Group 1
+IMT,ADS Group 2,ADS Group 2
+IMT,ADS Group 3,ADS Group 3
+IMT,ADS Group 4,ADS Group 4
+IMT,ADS Group 5,ADS Group 5
+IMT,ADS Group 6,ADS Group 6
+IMT,Asus ROG,Asus ROG
+IMT,AV Tuner Cards,AV Tuner Cards
+IMT,Bare-Bone Computers,Bare-Bone Computer
+IMT,Base Warranty,Base Warranty
+IMT,Batteries,Battery
+IMT,Brochure/Newsletter,Brochure\/Newsletter
+IMT,Bullet,Bullet
+IMT,Bundle,Bundle
+IMT,C(Combination),C(Combination)
+IMT,Cache Memory Upgrades,Cache Memory Upgrades
+IMT,CD R/RW,<p>CD R\/RW<\/p>
+IMT,CD ROM; DVD ROM Drives,CD DVD ROM Drive
+IMT,CD-R/RW; DVD-R/RW Drives,CD-R\/RW; DVD-R\/RW Drives
+IMT,ChromeBook,ChromeBook
+IMT,Cleaning Accessories,Cleaning Accessories
+IMT,CMOS,CMOS Complementary metal\u2013oxide\u2013semiconductor
+IMT,Communication Servers,Communication Servers
+IMT,Connected Handhelds Accessories,Connected Handhelds Accessories
+IMT,Connected Handhelds Cases,Connected Handhelds Cases
+IMT,Contnet Of Package,Content Of Package
+IMT,Customer No.,Customer No.
+IMT,Default Coverage,Default Coverage
+IMT,Desktop Cases,Desktop Cases
+IMT,Desktop Computers,Desktop Computers
+IMT,Desktop/Server Memory,Desktop Server Memory ECC
+IMT,Dot Matrix Printers,Dot matrix printers
+IMT,Drive/Media Cleaners,Drive\/Media Cleaners
+IMT,Duration ,Duration
+IMT,Edition,Edition
+IMT,ENERGY STAR,ENERGY STAR
+IMT,EPEAT,EPEAT Electronic Product Environmental Assessment Tool
+IMT,E-Readers,E-Readers
+IMT,ESRB,ESRB
+IMT,Exchange Service,Exchange Service
+IMT,Fax Machines,Fax Machines
+IMT,Fax Servers,Fax Servers
+IMT,Fingerprint Identification,Fingerprint Identification Latent
+IMT,Firewire Cards,Firewire Cards
+IMT,Firewire Hubs,Firewire Hub USB IEEE 1394
+IMT,Gamepads,Gamepads
+IMT,Glare Screen,Glare Screen
+IMT,Graphic Tablets,Graphic Tablets
+IMT,GWG,"GWG, Global Warranty Group"
+IMT,Headliner,Headliner
+IMT,I(Inactive),I(Inactive)
+IMT,I/O Cards,I\/O Cards
+IMT,IDE/EIDE - I/O Controllers,IDE\/EIDE - I\/O Controllers
+IMT,Ink Jet Cartridges,Ink Jet Cartridges
+IMT,Inkjet MF Printers,<p>Inkjet Multifunction Printer MFP<\/p>
+IMT,Inkjet SF Printers,Inkjet SF Printers
+IMT,IPS,IPS
+IMT,Itanium,Itanium CPU Processor Intel
+IMT,Joysticks,Joysticks
+IMT,Keyboard Drawers,"Keyboard Drawers, KVM"
+IMT,Keyboards,Keyboards
+IMT,Keywords,Keywords
+IMT,Label Printer Tapes,Label Printer Tapes
+IMT,Label Printers,Label Printers
+IMT,Laptop Cases,Laptop Cases
+IMT,Large Format Commercial Displays,Large Format Commercial Displays
+IMT,Laser MF Printers,Laser MF Printers
+IMT,Laser SF Printers,Laser SF Printers
+IMT,Laser Toner,Laser Toner
+IMT,LCD Panels,LCD Panels
+IMT,LifeSize ,LifeSize
+IMT,Long Description,Long Description Technote
+IMT,Master Flag,Master Flag
+IMT,Mice,Mice Mouse
+IMT,Model#,Model#
+IMT,Monitor Stands/Arms,Monitor Stands\/Arms
+IMT,Monitors,Monitors
+IMT,Motherboards,Motherboards
+IMT,Mouse Pads,Mouse Pads
+IMT,MSRP Flag,MSRP Flag
+IMT,Multifunction,Multifunction
+IMT,Multi-Line Serial I/O,Multi-Line Serial I\/O
+IMT,Net/Comm Memory Upgrades,Net\/Comm Memory Upgrades
+IMT,Network Storage,Network Storage NAS SAN
+IMT,Networked Content Devices,Networked Content Devices
+IMT,Notebook Batteries,Notebook Batteries
+IMT,Notebook Computers,Notebook Computers Laptop
+IMT,Notebook Memory,Notebook Memory SO-DIMM
+IMT,NR,Term NR
+IMT,OEM,OEM
+IMT,OS,OS
+IMT,Other Connectors,Other Connectors
+IMT,Other Entertainment Devices,Other Entertainment Devices
+IMT,Other Multimedia Accessories,Other Multimedia Accessories
+IMT,Other Pointing Devices,Other Pointing Devices
+IMT,Other Portable Accessories,Other Portable Accessories
+IMT,Other Presentation Accessories,Other Presentation Accessories
+IMT,Other Printer Accessories,Other Printer Accessories
+IMT,Other Printers,Other Printers
+IMT,P(Product),P(Product)
+IMT,Pallet,Pallet
+IMT,Part Status,Part Status
+IMT,PCMCIA I/O Adapters,PCMCIA I\/O Adapters
+IMT,PDA,PDA personal digital assistant
+IMT,Peripheral Cables,Peripheral Cables
+IMT,Personal Organizers,Personal Organizers
+IMT,PIM ID,PIM Personal information management
+IMT,Port Replicator,Port Replicator
+IMT,POS PCs,POS PCs
+IMT,Power Distribution Units ,Power Distribution Unit PDU
+IMT,Power Pack,Power Pack
+IMT,Power Supplies,Power Supply Battery
+IMT,Presentation Devices,Presentation Devices projector transparencies
+IMT,Printer Memory,Printer Memory
+IMT,Printer Stands,Printer Stand
+IMT,Program Type,Program Type
+IMT,Projector,Projector
+IMT,QC Status,QC Status
+IMT,"Racks, Chassis & Mounts","Racks, Chassis, Mounts"
+IMT,Raid Interface,Raid Interface
+IMT,Reactivate,Reactivate
+IMT,Receipt Printers,Receipt Printers
+IMT,Reference Data Banks,Reference Data Banks
+IMT,RFID,RFID Tag Reader Radio-frequency identification
+IMT,RISC Chips,RISC Chips
+IMT,RISC Computers,RISC Computers
+IMT,RISC Servers,RISC Servers
+IMT,RISC Workstations,RISC Workstations NeXT NRW
+IMT,S(Service),S(Service)
+IMT,Scanner Accessories,Scanner Accessories
+IMT,Scanners,Scanners
+IMT,SCSI-I/O Controllers,SCSI-I\/O Controllers
+IMT,Security Cables and Kits,Security Cables and Kits
+IMT,Servers,Server Computer
+IMT,Shipping Dimension,Shipping Dimension
+IMT,Shredders,Shredder Office Paper
+IMT,Simm Extenders/Expanders,Simm Extenders\/Expanders
+IMT,Sound Cards,Sound Cards
+IMT,Specialty All Other,Specialty All Other
+IMT,Specialty Banner,Specialty Banner
+IMT,Specialty Business Cards,Specialty Business Cards
+IMT,Specialty Canvas,Specialty Canvas
+IMT,Specialty Card Stock,Specialty Card Stock
+IMT,Specialty CD Labels,Specialty CD Labels
+IMT,Specialty Greeting Cards,Specialty Greeting Cards
+IMT,Specialty Invitations,Specialty Invitations
+IMT,Specialty Iron-Ons,Specialty Iron-Ons
+IMT,Specialty Labels,Specialty Label
+IMT,Specialty Note Cards,"Specialty Note Cards, Printable index card, rolodex, tent cards"
+IMT,Specialty Other Cards,Specialty Other Cards
+IMT,Specialty Postcards,Specialty Postcards
+IMT,Specialty Pre-printed,Specialty Pre-printed
+IMT,Specialty Stickers,Specialty Stickers
+IMT,Stylus Pen,Stylus Pen
+IMT,Surge Protectors,Surge Protectors
+IMT,Tablet PC,Tablet PC
+IMT,TBD Review,TBD Review
+IMT,TD-LTE,TD-LTE Time-Division Long-Term Evolution Broadband Wireless Mobile Communication FD-LTE HSPA+ TD-SCDM
+IMT,Technote Attribute,Technote Attribute
+IMT,Telecom Equipment,Telecom Equipment
+IMT,Term 1,Term 1
+IMT,Term 10,Term 10
+IMT,Term 2,Term 2
+IMT,Term 3,Term 3
+IMT,Term 4,Term 4
+IMT,Term 5,Term 5
+IMT,Term 6,Term 6
+IMT,Term 7,Term 7
+IMT,Term 8,Term 8
+IMT,Term 9,Term 9
+IMT,Term AE,Term AE
+IMT,Term AMAZ,Term AMAZ
+IMT,Term B,Term B
+IMT,Term BD,Term BD
+IMT,Term C,Term C
+IMT,Term CRW,Term CRW
+IMT,Term CS,Term CS
+IMT,Term DRM,Term DRM
+IMT,Term DUR,Term DUR
+IMT,Term E,Term E
+IMT,Term E60,Term E60
+IMT,Term L,Term L
+IMT,Term MV,Term MV
+IMT,Term N,Term N
+IMT,Term O,Term O
+IMT,Term Q,Term Q
+IMT,Term SAP,Term SAP
+IMT,Term T,Term T
+IMT,Term U,Term U
+IMT,Term W,Term W
+IMT,Term X,Term X
+IMT,Term Y,Term Y
+IMT,Terminals,Terminals
+IMT,Terr 998,Terr 998
+IMT,Terr 999,Terr 999
+IMT,Thin Clients,Thin Clients
+IMT,TopSeller,TopSeller
+IMT,Total Notebook Adapters,Total Notebook Adapters
+IMT,Touchpads,touchpad trackpad pointing laptop mobile
+IMT,Trackballs,Trackball
+IMT,Trays/Feeders,Trays Feeders
+IMT,Ultra Mobile PC's,Ultra Mobile PC
+IMT,Ultrabook,Ultrabook
+IMT,Uncover Attach,Uncover Attach
+IMT,Uninterruptible Power Supply,Uninterruptible Power Supply
+IMT,Unit Dimension,Unit Dimension
+IMT,UNSPSC,UNSPSC
+IMT,UPC Check Digit,UPC Check Digit
+IMT,UPC Flag,UPC Flag
+IMT,USB Connectivity,USB Connectivity
+IMT,USB HUB,USB HUB
+IMT,Video Cards,Video Cards
+IMT,Video Ram,"Video RAM, VRAM"
+IMT,Video/Capture/Edit,Video\/Capture\/Edit
+IMT,Warranty,Warranty
+IMT,WIMAX,WIMAX
+IMT,Wired Networking Devices,Wired Networking Device
+IMT,Wireless Networking Devices,Wireless Networking Devices
+IMT,Workstations,Workstations
+IMT,Wrist Rests,Wrist Rests
+IMT,X86 CPU Chips,X86 CPU Chips Intel AMD
+IMT,ABC Code,ABC Code
+IMT,Docking Station,Docking Station
+IMT,EOL,"EOL, End of life"
+IMT,MSRP,Manufacturer's suggested retail price
+IMT,Net Price,Net Price
+IMT,SD,"Service Design, A stage in the Lifecycle of an IT Service.Service Design includes a number of Process"
+IMT,StorageCraft ,StorageCraft
+IMT,SWL,SWL Software Long description
+IMT,Techsmith ,Techsmith
+IMT,Unique SKU,Unique SKU
+Procurement,Receiving Discrepancy,"<p>Sometimes when the warehouse processes to receive, the discrepancy will happen and then the buyer will take proper action to close it.<\/p>"
+Procurement,DTRD,<p>DTRD is&nbsp;the useful tool that displays purchasing transactions. BUYERs can use DTRD to query both <span style=\
+Procurement,Base Cost ,<p>Base Cost<\/p>
+Procurement,Bill of Material (BOM),Bill of Material (BOM)
+Procurement,Bill Only PO,<p>Bill only PO<\/p>
+Procurement,Buffer Stock,Buffer stock is a term to describe a level of extra stock that is maintained to mitigate risk of stoc
+Procurement,Buy-In,The action that Buyer brings lots of products into stock. SYNNEX can get more rebates from vendor.
+Procurement,CDW weekly suggest report,This report is designed to maintain enough inventory for CDW and to avoid potential heavy aging risk.
+Procurement,CDW 7 Day Report,Description is the same as above.
+Procurement,CDW C Part Report,This report reviews the EOL parts retrieved from a RDS report and asks sales to take actions accordin
+Procurement,CDW KPI Scorecard ,<p>CDW KPI Scorecard<\/p>
+Procurement,CDW Score (CDW Daily Monitor Report),<p>The purpose of this report is to control the inventory and keep all buyers posted on inventory balanc<\/p>
+Procurement,Constraint Product,Vendor unable to ship out the product due to special reason. The lead time for constraint products ar
+Procurement,Cost Adj,"Cost Adjustment include freight in, freight out, write up, other variance and some special rebate."
+Procurement,Cust PO#,CUST PO#
+Procurement,CWS,CIS Warehouse System
+Procurement,Dell weekly Monitor report,Description is as above.
+Procurement,Dell DNR File,Description is the same as above.
+Procurement,Drop Ship PO,<p>Drop Ship PO is an order which vendor ships products to the customer directly.<\/p>
+Procurement,Drop Ship PO Receiving,"<p>For drop ship POs, products do not receive in SYNNEX warehouse, BUYER need to do virtual receiving after vendor shipped out.<\/p>"
+Procurement,DSI,DSI--Days of Sales Inventory
+Procurement,Econ Qty,<p><span style=\
+Procurement,EOL Part,EOL Part - End of Life Part
+Procurement,ETA,<p>Estimated Time of Arrival. Usually such information is provided by vendor or calculated from ship date.<\/p>
+Procurement,ETA code,<p>The Estimated Time of Arrival (ETA) is a measure of when a shipment is expected to arrive at a certain place.<\/p>
+Procurement,Front End Price,- Front end Price = Synnex Base Cost \u2013 Front end Rebate. Front end rebate means vendor pay for it whe
+Procurement,FX,FX is Foreign Exchange.
+Procurement,Inventory Type,<p>Inventory type is a type that we use to categorize inventories.<\/p>
+Procurement,Kit Sku,"A Kit SKU is a group of sub-SKUs sold together in one separate SKU. Every time a kit is built, the qu"
+Procurement,Launch Date,The date that the product will start shipping from the vendor and becomes officially launched.
+Procurement,Lead-Time ,"<p>Commerce the time from the placing of an order to the delivery of the goods, Purchasing needs to know and update the lead time for each part in order to control and keep our inventory level (Product Profile Maintenance )<\/p>"
+Procurement,Limited Stock,"<p>When setting up a part number in SYNNEX system, we can set up as \u201cLimited Stock\u201d and indicate the specific location numbers in the field of \u201cSource Status\u201d.&nbsp; Then, the part can only be purchased in the specific locations as we settled in the system.<\/p>"
+Procurement,Location,The location is a place where could store goods and merchandise up.
+Procurement,Marketing Comments,"Marketing Comments is a special note for a SKU, such as product attribute."
+Procurement,Min Qty,<p>Description:A minimum qty is the minimum order size accepted by a supplier.<\/p>
+Procurement,MSO Queue Back,"<p>Once drop ship PO is rejected by vendor or not qualified for relevant placing PO rules, BUYERS need to queue back to sales to make necessary change.<\/p>"
+Procurement,OnHand,OnHand
+Procurement,OnOrder,OnOrder
+Procurement,Part ABC Code,<p>A code that identifies part category.<\/p>
+Procurement,Part Active Status,The code that identifies part active status. A \u2013 Active: Active products I-Inactive: future is no lon
+Procurement,Part ADS Group,Part ADS group is the Recycle Rate ($) for the Electronic part with screen.
+Procurement,Part Long Description,The complete description of products Synnex bring in from vendor. The information of Long Description
+Procurement,Part Portal,<p>Part Portal<\/p>
+Procurement,Part Replacement,It means can be equal to or substantially equal to the value of another commodity product using it to
+Procurement,Part Short Description,The short description of the product Synnex bring in from Vendor.  When buyer set up the new part in
+Procurement,Past Due ETA,<p>Past Due ETA means the ETA Date on PO is less than today.<\/p>
+Procurement,PDSS,<p>PDSS<\/p>
+Procurement,PDSS cat1,Description:  Category 1 indicates detailed management of the forecast and applies to SKUs that are n
+Procurement,PDSS cat2,Category 2
+Procurement,PO EDI Release,PO EDI Release is widely used for daily POs.
+Procurement,PO Freight,"1"
+Procurement,PO Maker,print the PO to a PDF file
+Procurement,PO Manual Release,Manual release order just sent to our system vendor haven't receive
+Procurement,PO PDF Release,PO PDF Release a method of sending PO to vendor.
+Procurement,PO Queue,It is a tool to place orders in SYNNEX system. Buyer fill in template and then system can create orde
+Procurement,PO Ship Meth,PO Ship Meth
+Procurement,PO Ship Terms,<p>PO Ship Terms<\/p>
+Procurement,PPDC Code,PPDC code
+Procurement,Price Effective Date,The Price Effective Date is the date on which a price change takes effect.
+Procurement,Product Code,<p>Product code also can be called as PM code. Every product is categorized by Synnex product manager<\/p>
+Procurement,RMA Warehouse,receiving the return from customer
+Procurement,RTVC,vendor return for credit (order type 12)
+Procurement,Run Rate ,<p>Run Rate is the shipment rate which means the rate of the products are sold and also shipped out from warehouse.<\/p>
+Procurement,Set up New Part,<p style=\
+Procurement,Sheet Price,<p class=\
+Procurement,Source Status,<p class=\
+Procurement,Spike For Inventory,<p class=\
+Procurement,Stock Out for Inventory,<p>&nbsp;<\/p>\n<p class=\
+Procurement,Stock Rotation,<p><span lang=\
+Procurement,Street Date,<p style=\
+Procurement,SYNNEX RMA ,Synnex rma
+Procurement,System Cost,System cost is the base cost in our system as well as the unit cost for sales. It is calculated by ba
+Procurement,Transaction Register Query(DTRD) ,<p>Transaction Register Query (DTRD)<\/p>
+Procurement,Transit Time,""
+Procurement,Variance Maintenance,"It is the function to maintain variance in Central, which ensures POCV to process with the correct pr"
+Procurement,Vendor Number,<p>numeric code for vendors<\/p>
+Procurement,Vendor Segment,"<p>The field in vendor maintenance to decide what type, class and segmentation the vendor belongs to.<\/p>"
+Procurement,VPL Code,.
+Procurement,WTD Run Rate,""
+Procurement,Allocated Quantity,Allocated Quantity
+Procurement,Available Quantity,Available Quantity
+Procurement,Available For Sell,<p>Available For Sell<\/p>
+Procurement,Bill of Lading (BOL),<p>BOL<\/p>
+Procurement,CTO,Configure to order
+Procurement,Inventory Aging,Inventory Aging means how long the product has been stored in the warehouse.
+Procurement,POCV,<p>.<\/p>
+Procurement,Product Type,"it is a necessary factor when set up new parts, it decides attribute for new parts. there are 3 kinds"
+Procurement,Red tag,<p>create red tag SKU for the product that damaged or open box in transit Red Tag SKUs are Assembly SKU<\/p>
+Procurement,Serial# Flag ,<p style=\
+Procurement,Stock Keeping Unit ,<p class=\
+Procurement,TD SYNNEX Part Number,""
+Procurement,UPC Code,<p>UPC--- It stands for Universal Product Code.<\/p>
+Procurement,VPC Code,.
+Procurement,Manufacture Part Number,A code or number used by a manufacturer or vendor to identify a material or part.
+Procurement,Price Protection,<h3 class=\
+Procurement,Purchase Order (PO),<p>&nbsp;<\/p>\n<p style=\
+Procurement,RTVN,""
+Procurement,Serial Number,<h4 style=\
+Procurement,Suggest Buy,<p><strong style=\
+Procurement,Tracking#,Tracking#
+Procurement,Vendor Return,The process of returning products back to a vendor.
+Procurement,SkuProfile,<h4 style=\
+Procurement,Part Upload,New Part Upload
+Procurement,Part Batch Update,Use this function to update the part attributes by batch.
+Procurement,Part 52 Weeks Runrate,This is 52 weeks run rate for the part.
+Procurement,Product Profile,<h3 style=\
+Procurement,POCV Var,<p>POCV Var<\/p>
+Procurement,POCV Preview Cost,POCV Preview Cost
+Procurement,POCV Query,POCV Query
+Procurement,Vendor Status Lookup,Vendor Status Lookup
+Procurement,Vendor Management,<p>Vendor&nbsp;Management<\/p>
+Procurement,MT batch Queue,<p>MT Batch Queue<\/p>
+Procurement,MT Upload,<p>MT upload<\/p>
+Procurement,PO Fulfillment,<p>PO Fulfillment will only gives you the MSO\/BO data that are available to create PO. when the order is<\/p>
+Procurement,PO Discount Maintenance,PO Discount Maintenance is used to maintain those discount informations that can be used on Purchase
+Procurement,PO Review,<p>PO Review is a kind of checking process. It is used to validate the Purchase Order before it\u2019s released.<\/p>
+Procurement,P1 PO Look Up,<p>P1 PO Look Up is a searching tool. It is used to query purchase order by different conditions.<\/p>
+Procurement,Product Attributes,<h4 style=\
+Procurement,Dell Forecast Report,<p class=\
+Procurement,Dell Forecast Report,<p>Description is the same as above.<\/p>
+Sales Management,Sales Order,""
+Sales Management,Credit Release,""
+Sales Management,Customer Type,""
+Sales Management,Direct Ship,""
+Sales Management,Dock-To-Stock,""
+Sales Management,EMS,<p>Electronic Manufacturing Services<\/p>
+Sales Management,Field Min,""
+Sales Management,Fulfillment,""
+Sales Management,Intranet,""
+Sales Management,Large Order,""
+Sales Management,Lost Sales,""
+Sales Management,Materials Requirement Planning,""
+Sales Management,MSO,""
+Sales Management,MSP,""
+Sales Management,NL,""
+Sales Management,Open Order Status,""
+Sales Management,Order Quantity Details,""
+Sales Management,Order Quantity Header,""
+Sales Management,Order Status,""
+Sales Management,OSP,""
+Sales Management,Overnight,""
+Sales Management,Overweight ,""
+Sales Management,Parts Location,""
+Sales Management,PCE,""
+Sales Management,Pick Date,""
+Sales Management,POE,""
+Sales Management,Primary Contacts,""
+Sales Management,Production Flag,""
+Sales Management,Queue,""
+Sales Management,RMA Disposition,""
+Sales Management,RMA Type,""
+Sales Management,Sales Release,<p>Sales Release&nbsp;<\/p>
+Sales Management,SDL,""
+Sales Management,SDS,""
+Sales Management,Ship Date,""
+Sales Management,Ship To Address,""
+Sales Management,Supplier,""
+Sales Management,TD SYNNEX Complete,""
+Sales Management,WC,""
+Sales Management,Sales Order (SO),<p>Sales order<\/p>
+Sales Management,Territory,""
+Sales Management,BO,<p>Back Order&nbsp;<\/p>
+Sales Management,COD,""
+Sales Management,PA,""
+Sales Management,PDT,""
+Sales Management,Quality Assurance,""
+Sales Management,Ship Method ,""
+Sales Management,Vendor Return,""
+Sales Management,Customer Pickup,<p class=\
+Sales Management,Customer Pickup,""
+PM Management,Activation  Code,<p>Activation Code<\/p>
+PM Management,Available Budget,Available budget shows how much money available in an SCM for sales to use.
+PM Management,Bid Calculation,Bid Calculation
+PM Management,Box Condition,Box Condition
+PM Management,CAR,CAR
+PM Management,Claimable Rebate Factor,Claimable Rebate Factor
+PM Management,Close Date,Close date shows when the SCM was closed
+PM Management,Combine Type,Combine Type will determine if the SCM can be combined with other SCMs for the same order that will b
+PM Management,Concealed Damage,Concealed damage
+PM Management,Consignment Material Transfer,Consignment Material Transfer
+PM Management,Contact,Contact
+PM Management,CSIF,Customer Support Information Form
+PM Management,CSN,CSN
+PM Management,D1 Contract,D1 Contract
+PM Management,Damage,Damage
+PM Management,Denial Of Signature,Denial of signature
+PM Management,Display Only ,<p>Display Only<\/p>
+PM Management,EPP,<p>Employee Purchases<\/p>
+PM Management,ERMA,ERMA
+PM Management,ERT,ERT
+PM Management,External Comment,test
+PM Management,FED,FED
+PM Management,Flexible Carepack,Flexible Carepack
+PM Management,AMP ID,<p>AMP&nbsp;ID<\/p>
+PM Management,Internal Comment,Internal Comment
+PM Management,LOD,letter\/certificate of destruction
+PM Management,Lost Shipment,Lost Shipment
+PM Management,Manually MT Receiving,Manually Material Transfer Receiving
+PM Management,MAP,MAP
+PM Management,Max Cust Total Qty,"<p>If the&nbsp;bid has a limit of quantity allowed per customer for this line item, Max Cust Quantity should be added.<\/p>"
+PM Management,Max Total Qty,The estimated max number of units that are eligible for the rebate. If a max customer quantity is ent
+PM Management,MDF,Market development funds
+PM Management,Min Cust Total Qty,This is for the rebate has a minimum that must be purchased by the customer on one order.
+PM Management,Multi SKU Refresh,"Multi SKU Refresh will update the SKU list based on VPC. If new parts are added to a VPC, a refresh w"
+PM Management,MYD,MYD
+PM Management,NBD,NBD
+PM Management,Over Shipment,Over Shipment
+PM Management,Partner Delivered,Partner Delivered
+PM Management,PM Code,Every PM has a code in system
+PM Management,POP,<p>POP<\/p>
+PM Management,Prod Type ,Product Type = PM code
+PM Management,PSP ID,PSP ID
+PM Management,Quotation,Sales Quotation
+PM Management,RAM,Random-access memory
+PM Management,Real Deal Adminstrator,This is a tool used by the PM to post items to the Sales Real Deal Shortstop site;
+PM Management,Rebate,<p>1.A deduction from an amount to be paid; an abatement. 2.The return of part of an amount already paid.<\/p>
+PM Management,Reference Number,Reference Number is a code that we usually use to distinguished and representative SPA &amp; SCM and the
+PM Management,Registration Certification,<p>Registration Certification<\/p>
+PM Management,Replacement Order,Replacement order
+PM Management,Restocking Fee,Restocking Fee
+PM Management,Rev Scan,Rev Scan
+PM Management,RFP,<p>RFP<\/p>
+PM Management,RIO,PMs (Product Manager) can control inventory which allows them to determine what customers get product
+PM Management,RMA Discrepancy,RMA Discrepancy
+PM Management,RMA Review Queue,Return Merchandise Authority Review Queue\r\nRMA Review Queue
+PM Management,RTC,RTC
+PM Management,SAID,SAID
+PM Management,SAR,SAR
+PM Management,SCA,SCA
+PM Management,Ship Qty,The quantity of your order which has successfully shipped from our warehouse(s)
+PM Management,Short Shipment,Short Shipment
+PM Management,SND,SND
+PM Management,SPA Description,Provide a description of the SPAs purpose.
+PM Management,SPA Keep ,To allow customers the rebate
+PM Management,SPA Type,Spa type is a tool to control different rebate according different Status.
+PM Management,VAR,VAR
+PM Management,Var Code,Var Code
+PM Management,Vendor Approval,Vendor Approval
+PM Management,Virtual RMA,Virtual RMA
+PM Management,VPL,.
+PM Management,VRMA,<p>VRMA<\/p>
+PM Management,Work Order,"it  is an order received by an organization from a customer or client, or an order created internally"
+PM Management,DIF,DIF;Destroy In Field
+PM Management,DOA,DOA; Defective
+PM Management,Dynamic Budget,"No fixed budget. If an Avail Budget is not calculated, i.e. a budget or max quantity has not been set"
+PM Management,Mis-shipment,Mis-shipment
+PM Management,VPC,VPC code is a code that we use to categorize product.
+PM Management,BOL,BOL
+PM Management,Fixed Carepack,RENEWSolv document type - HP Fixed Care Pack introduce.
+PM Management,Incident,Incident
+PM Management,POS,POS
+PM Management,RMA,RMA
+PM Management,RTS,RTS
+PM Management,RTV,RTV
+PM Management,Freight Pay Type C and P,<p class=\
+PM Management,Freight Pay Type C and P,""
+PM Management,Bulk Registration,<p>&nbsp;<\/p>\n<p style=\
+PM Management,Bulk Registration,Bulk Registration
+PM Management,Flexible Carepack_copy,<p>&nbsp;<\/p>\n<p style=\
+PM Management,Flexible Carepack_copy,Flexible Carepack
+PM Management,MYD_copy,MYD
+PM Management,MYD_copy,<p>&nbsp;<\/p>\n<p style=\
+S-WIKI,HC_SALES,"Sales headcount expense including commission, salary, and office supplies; applied by Cust Type and a"
+S-WIKI,MARGIN_SHARE,The profit from Iron Bow company
+S-WIKI,HBTL,"It is a special case of 1 time BTL, it is submitted by VCM when a SCM is closed;It is auto calculated"
+S-WIKI,SCM_PROFIT_ADJ,"A special HBTL that PM can\u2019t control,Profit of Operation related SCM which is closed 30days before"
+S-WIKI,TGM,"<p>A group of P&amp;L items to evaluate SYNNEX profit , a subset of NGM<\/p>"
+S-WIKI,Gross sales,"Gross Sales=isnull(u_price,0)*isnull(ship_qty,0)"
+S-WIKI,run rate sales,run rate sales=sales(MTD)* sales days of month\/sales days of MTD
+S-WIKI,goal achieve,goal achieve=rr_sales*100\/sales_goal
+S-WIKI,bo aging,"In B30 Report, we analysis the back order by aging (four date range), and the back order information"
+S-WIKI,DOS,DOS=oh_cost\/rr_sales
+S-WIKI,TAM,target marketing share
+S-WIKI,TC,<p>Technote<\/p>
+S-WIKI,Toner Level,Toner Level
+S-WIKI,Page count,Page count
+S-WIKI,Service Level,PrintSolv service level
+S-WIKI,Toner Rep,Toner Rep
+S-WIKI,Supply type,PrintSolv Supply type
+S-WIKI,Auto toner fulfillment,PrintSolv Auto toner fulfillment
+S-WIKI,Hybrid printer,A printer having two or more printing mechanisms mounted therein
+S-WIKI,Toner swap,Detect toner swap event and check if the swap should happen
+S-WIKI,PRC document printing,"biz concept ,tech requirement\/solution define"
+S-WIKI,PRC journal printing,biz concept\/description to attached documents.
+S-WIKI,PRC document# assign,"biz concept ,tech solution description"
+S-WIKI,chart of account hierarchy,biz concept\/CIS solution.
+S-WIKI,US HQ GL Consolidation,biz flow introduction;application program flow brief description
+S-WIKI,GL Reversal flow (MJE vs. AP subledger),biz concept\/flow ;IT solution description
+S-WIKI,PRC P&L gl's month-end auto transfer,"biz concept ,program parm configuration"
+S-WIKI,GAAP,biz concept of GAAP.how it is used in CIS
+S-WIKI,Subledger,"biz concept ,CIS dataflow"
+S-WIKI,Trial Balance Sheet,"biz concept ,dataflow description"
+S-WIKI,BS,"definition for BS ,and its content\/formula ,biz purpose."
+S-WIKI,P&L (IS),"biz concept definition ,basic formula\/content description"
+S-WIKI,PRC-sense DR/CR rule in CIS,biz concept\/project introduction
+S-WIKI,financial calendar,biz concept introduction\/usage\/control flow
+S-WIKI,BS Monthly report,biz usage\/purpose.
+S-WIKI,IS Monthly report,"report biz purpose ,model configuration."
+S-WIKI,CIS' financial dataflow,brief description to CIS flow related with accounting book
+S-WIKI,GL Posting,concept definition\/major code
+S-WIKI,USGAAP dataflow(data model - JE/TB),tech solution
+S-WIKI,MJE Upload,tech flow description;biz definition
+S-WIKI,KPM,Key Process Monitoring
+S-WIKI,Resource Plan,"<p>The TRDC (IT) Resource Plan is coordinated by the China Service Desk prior to each public holiday. To ensure the stability of the ERP system during holiday periods, we require each department to submit their resource plan in advance.<\/p>\n<p>Key requirements include:<\/p>\n<ul>\n<li><strong>Support Coverage<\/strong>: Each support team must ensure that at least&nbsp;<strong>50% of their staff<\/strong>&nbsp;are either&nbsp;<strong>on duty or on-call<\/strong>&nbsp;during the holiday.<\/li>\n<li><strong>Domain Standby<\/strong>: Every support domain must have designated&nbsp;<strong>standby personnel<\/strong>&nbsp;available to respond to any critical issues.<\/li>\n<\/ul>\n<p>This proactive planning helps maintain operational continuity and minimizes the risk of service disruptions during holiday periods.<\/p>"
+S-WIKI,OT125,"<p>OT125 is the orders which order type equals 125, it was defined for Cloud subsprition\/service products billing, it is generated by Cloud Billing Engine\/Portal. Once Cloud subsprition\/service products are purchased, Cloud Billing Engine\/Portal will generate a one-time\/recurring billing, it will generate an OT125 order.<\/p>\n<p>Once an OT125 order was generated, it will be put into a review flow: buyer review, sales review, credit review, all review step are passed,it's status will become invoiced, will go to AR process to charge reseller\/end customer.<\/p>\n<p>AP parts will use OT1125 to store.<\/p>\n<p>Related Table:<\/p>\n<ul>\n<li>order_header<\/li>\n<\/ul>\n<ul>\n<li>history_header<\/li>\n<\/ul>\n<ul>\n<li>order_detail<\/li>\n<\/ul>\n<ul>\n<li>history_detail<\/li>\n<li>...<\/li>\n<\/ul>"
+S-WIKI,OT1125,"<p>OT1125 is the order which order_type is 1125, OT1125 is designed for OT125 order's PO Cost part, it is generated along with OT125 by Cloud Billing Engine\/Portal, in other words,&nbsp; an OT125 order will have an\/multiple OT1125 orders in a bundle.<\/p>\n<p>OT1125 will have the same sku, qty, cost information with OT125's. OT1125 will be used to address the PO Cost amount, AP department will do AP process according to it.<\/p>\n<p>Once OT125 order was invoiced, OT1125 will go into ap_hold table.<\/p>\n<p>Related tables:<\/p>\n<ul>\n<li>order_header<\/li>\n<\/ul>\n<ul>\n<li>history_header<\/li>\n<\/ul>\n<ul>\n<li>order_detail<\/li>\n<\/ul>\n<ul>\n<li>history_detail<\/li>\n<li>...<\/li>\n<\/ul>"
+S-WIKI,Google Chromebook,Chromebooks are new type of computer designed to help you get things done faster and easier in and ou
+S-WIKI,Cloud Subscription/Services Usage Report,Usage report
+S-WIKI,Cloud Billing Engine,"<p>Cloud Billing engine is a billing platform designed for one-time &amp; recurring billing, including Cloud subscription, service businesses etc..<\/p>"
+S-WIKI,Provision,Provision
+S-WIKI,LPI,LPI
+S-WIKI,Microsoft SPLA,<div class=\
+S-WIKI,Microsoft ISV,<div class=\
+S-WIKI,Cloud Billing System,"<p>Cloud Billing is the billing for cloud services\/subscriptions products purchase\/renew. the system includes cloud billing engine and cloud billing portal.&nbsp;<\/p>\n<p>Cloud Billing Engine is composed of a series of schedule jobs, create pre-view billing or billing orders automatically for different billing source, different raw data formats, also generate consolidate invoices and send VPO to vendor automatically.&nbsp;<\/p>\n<p>Cloud Billing Portal is user facing, supports manually uploading billing in different vendor data formats, open orders managment, order reversal &amp; rebill, consolidate invoice management as well as all failed billlings process.&nbsp;<\/p>\n<p>The system overview:&nbsp;<\/p>\n<p><img title=\"
+S-WIKI,Trial,Trial
+S-WIKI,Provision form,Provision Form
+S-WIKI,ADHOC Report,The definition of ADHOC Report
+S-WIKI,External Report,RDS External Report
+S-WIKI,Frequency,The definition of frequency
+S-WIKI,Net Gross Margin,"The final P&amp;L to evaluate SYNNEX profit ability, so more P&amp;L item than OPL are included in NGM, such"
+S-WIKI,RDS Engine,To show what is RDS engine.
+S-WIKI,RDS Report,The definition of RDS Report
+S-WIKI,RDS Report Schedule,The defintion of RDS Report Schedule
+S-WIKI,RDS Subscription,RDS Subscription
+S-WIKI,RDS TOOL,The definition of RDS tool
+S-WIKI,RDSP,The defintion of RDSP
+S-WIKI,China Service Desk,The Service Desk is a Single Point of Contact (&quot;SPOC&quot;) to meet the communication needs of both User
+S-WIKI,HOS,<p>HOS is abbreviated with History Order Search which is used for search History order and cpo info.<\/p>
+S-WIKI,Jboss deployment,Jboss deployment
+S-WIKI,Jetty deployment,Jetty UAT deployment
+S-WIKI,Mule deployment,Mule deployment
+S-WIKI,PartSearch deployment,PartSearch deployment
+S-WIKI,"2-tier deployment","2-tier deployment"
+S-WIKI,static deployment,Static deployment
+S-WIKI,online support,Online support
+S-WIKI,Jboss server setup,Jboss server setup
+S-WIKI,Apache server setup,Apache server setup
+S-WIKI,openssl server setup,OpenSSL server setup
+S-WIKI,Ldap server setup,LDAP server Setup
+S-WIKI,Jetty server setup,Jetty server setup
+S-WIKI,Mule server setup,Mule server setup
+S-WIKI,redis server setup,Redis server setup
+S-WIKI,server upgrade,Server upgrade
+S-WIKI,BCP test,Operation Manual For BCP test
+S-WIKI,Certificate apply,Certificate apply
+S-WIKI,System Health,"If an enterprise application system is fairly mature and successfully running for years, just slowly"
+S-WIKI,Enterprise Search,"<p>Enterprise Search is a framework which is based on Nutch to gather information, use Tika parse the da, is ready retired, please use P1 HOS<\/p>"
+S-WIKI,Cache,Synnex Cache is a cache library based on Redis with the key goal of improving performance by reducing
+S-WIKI,JSF/Coding Convention,JSF convention a.k.a Synnex JSF guideline.
+S-WIKI,Web Security,"OWASP Top 10 - 2013\r\n\r\nIcon \r\nInsecure software is undermining our financial, healthcare, defense, en"
+S-WIKI,JBPM,jBPM is an open-source workflow engine written in Java that can execute business processes described
+S-WIKI,Setting up a replication system,Setting up a replication system
+S-WIKI,Creating connections and routes,Creating connections and routes
+S-WIKI,Backing Up and Restoring User Databases,Backing Up and Restoring User Databases
+S-WIKI,Managing Database Connections,Managing Database Connections
+S-WIKI,Creating replication definitions,Creating replication definitions
+S-WIKI,Performance Tuning,Performance Tuning
+S-WIKI,Starting Replication Server,Starting Replication Server
+S-WIKI,Shutting down Replication Server,Shutting down Replication Server
+S-WIKI,Adding a Replication Server,Adding a Replication Server
+S-WIKI,Adding a replication system domain,Adding a replication system domain
+S-WIKI,Managing the RSSD,Managing the RSSD
+S-WIKI,Managing RepAgent,Managing RepAgent
+S-WIKI,Configuring RepAgent,Configuring RepAgent
+S-WIKI,Managing Routes,Managing Routes
+S-WIKI,Managing Replication Server Security,Managing Replication Server Security
+S-WIKI,Managing Replicated Tables,Managing Replicated Tables
+S-WIKI,Replication procedure,Replication procedure
+S-WIKI,Managing Replicated Functions,Managing Replicated Functions
+S-WIKI,Managing Subscriptions,Managing Subscriptions
+S-WIKI,Managing Replicated Objects Using Multisite Availability,Managing Replicated Objects Using Multisite Availability
+S-WIKI,Setting up an MSA system,Setting up an MSA system
+S-WIKI,Managing database subscriptions,Managing database subscriptions
+S-WIKI,Replicating DDL and system procedures,Replicating DDL and system procedures
+S-WIKI,Diagnosing System Problems,Diagnosing System Problems
+S-WIKI,Customizing function strings,Customizing function strings
+S-WIKI,Managing Warm Standby Applications,Managing Warm Standby Applications
+S-WIKI,Resource limits,Resource limits
+S-WIKI,Replication System Recovery,Replication System Recovery
+S-WIKI,Backing up the RSSDs,Backing up the RSSDs
+S-WIKI,Truncated message recovery from the database log,Truncated message recovery from the database log
+S-WIKI,Applied stored procedures,Applied stored procedures
+S-WIKI,Request stored procedures,Request stored procedures
+S-WIKI,master database,master database
+S-WIKI,Backing up master and keeping copies of system tables,Backing up master and keeping copies of system tables
+S-WIKI,model database,model database
+S-WIKI,System Administration for Beginners,System Administration for Beginners
+S-WIKI,Backup and recovery,Backup and recovery
+S-WIKI,Monitor the log size,Monitor the log size
+S-WIKI,dbcc tablealloc,dbcc tablealloc
+S-WIKI,Choosing and creating a password,Choosing and creating a password
+S-WIKI,Creating groups,Creating groups
+S-WIKI,Adding users to databases,Adding users to databases
+S-WIKI,Number of user and login IDs,Number of user and login IDs
+S-WIKI,Dropping users,Dropping users
+S-WIKI,Dropping groups,Dropping groups
+S-WIKI,Changing passwords,Changing passwords
+S-WIKI,Thresholds,Thresholds
+S-WIKI,dbcc checktable,dbcc checktable
+S-WIKI,Creating segments,Creating segments
+S-WIKI,User connections,User connections
+S-WIKI,DMS,"<p>DMS, Data Management System, a tool for collecting, maintaining and sharing the medata about TD SYNNEX.<\/p>"
+S-WIKI,UI,UI\u5373User Interface\uff08\u7528\u6237\u754c\u9762\uff09\u7684\u7b80\u79f0\u3002UI\u8bbe\u8ba1\u5219\u662f\u6307\u5bf9\u8f6f\u4ef6\u7684\u4eba\u673a\u4ea4\u4e92\u3001\u64cd\u4f5c\u903b\u8f91\u3001\u754c\u9762\u7f8e\u89c2\u7684\u6574\u4f53\u8bbe\u8ba1\u3002\u597d\u7684UI\u8bbe\u8ba1\u4e0d\u4ec5\u662f\u8ba9\u8f6f\u4ef6\u53d8\u5f97\u6709\u4e2a\u6027\u6709\u54c1\u5473\uff0c\u8fd8\u8981\u8ba9\u8f6f\u4ef6\u7684\u64cd\u4f5c\u53d8\u5f97\u8212\u9002\u3001\u7b80\u5355\u3001\u81ea\u7531\u3001\u5145\u5206\u4f53
+S-WIKI,Primefaces,PrimeFaces\u662f\u4e00\u4e2a\u7528\u4e8e\u63d0\u9ad8JSF Web\u5e94\u7528\u7a0b\u5e8f\u5f00\u53d1\u6548\u7387\u7684\u5f00\u6e90\u7c7b\u5e93\u3002
+S-WIKI,DIV,DIV\u5143\u7d20\u662f\u7528\u6765\u4e3aHTML\u6587\u6863\u5185\u5927\u5757\uff08block-level\uff09\u7684\u5185\u5bb9\u63d0\u4f9b\u7ed3\u6784\u548c\u80cc\u666f\u7684\u5143\u7d20\u3002DIV+CSS\u662fWEB\u8bbe\u8ba1\u6807\u51c6\uff0c\u5b83\u662f\u4e00\u79cd\u7f51\u9875\u7684\u5e03\u5c40\u65b9\u6cd5\u3002\u4e0e\u4f20\u7edf\u4e2d\u901a\u8fc7\u8868\u683c\uff08table\uff09\u5e03\u5c40\u5b9a\u4f4d\u7684\u65b9\u5f0f\u4e0d\u540c\uff0c\u5b83\u53ef\u4ee5
+S-WIKI,Adobe,Adobe\u521b\u5efa\u4e8e1982\u5e74\uff0c\u662f\u4e16\u754c\u9886\u5148\u7684\u6570\u5b57\u5a92\u4f53\u548c\u5728\u7ebf\u8425\u9500\u89e3\u51b3\u65b9\u6848\u4f9b\u5e94\u5546\u3002\u516c\u53f8\u603b\u90e8\u4f4d\u4e8e\u7f8e\u56fd\u52a0\u5229\u798f\u5c3c\u4e9a\u5dde\u5723\u4f55\u585e\uff0c\u5728\u4e16\u754c\u5404\u5730\u5458\u5de5\u4eba\u6570\u7ea67000\u540d\u3002Adobe\u7684\u5ba2\u6237\u5305\u62ec\u4e16\u754c\u5404\u5730\u7684\u4f01\u4e1a\u3001\u77e5\u8bc6\u5de5\u4f5c\u8005\u3001\u521b\u610f\u4eba\u58eb\u548c\u8bbe
+S-WIKI,Photoshop,Adobe Photoshop\uff0c\u7b80\u79f0\u201cPS\u201d\uff0c\u662f\u4e00\u4e2a\u7531Adobe Systems\u5f00\u53d1\u548c\u53d1\u884c\u7684\u56fe\u50cf\u5904\u7406\u8f6f\u4ef6\u3002Photoshop\u4e3b\u8981\u5904\u7406\u4ee5\u50cf\u7d20\u6240\u6784\u6210\u7684\u6570\u5b57\u56fe\u50cf\u3002\u4f7f\u7528\u5176\u4f17\u591a\u7684\u7f16\u4fee\u4e0e\u7ed8\u56fe\u5de5\u5177\uff0c\u53ef\u4ee5\u66f4\u6709\u6548\u7684\u8fdb\u884c\u56fe
+S-WIKI,illustrator,Adobe Illustrator\u662f\u4e00\u79cd\u5e94\u7528\u4e8e\u51fa\u7248\u3001\u591a\u5a92\u4f53\u548c\u5728\u7ebf\u56fe\u50cf\u7684\u5de5\u4e1a\u6807\u51c6\u77e2\u91cf\u63d2\u753b\u7684\u8f6f\u4ef6\uff0c\u4f5c\u4e3a\u4e00\u6b3e\u975e\u5e38\u597d\u7684\u56fe\u7247\u5904\u7406\u5de5\u5177\uff0cAdobe Illustrator\u5e7f\u6cdb\u5e94\u7528\u4e8e\u5370\u5237\u51fa\u7248\u3001\u4e13\u4e1a\u63d2\u753b\u3001\u591a\u5a92\u4f53\u56fe\u50cf\u5904\u7406
+S-WIKI,Fireworks,Adobe Fireworks\u662fAdobe\u63a8\u51fa\u7684\u4e00\u6b3e\u7f51\u9875\u4f5c\u56fe\u8f6f\u4ef6\uff0c\u8f6f\u4ef6\u53ef\u4ee5\u52a0\u901f Web \u8bbe\u8ba1\u4e0e\u5f00\u53d1\uff0c \u662f\u4e00\u6b3e\u521b\u5efa\u4e0e\u4f18\u5316 Web \u56fe\u50cf\u548c\u5feb\u901f\u6784\u5efa\u7f51\u7ad9\u4e0e Web \u754c\u9762\u539f\u578b\u7684\u7406\u60f3\u5de5\u5177\u3002
+S-WIKI,Firefox,Firefox\u5373\u706b\u72d0\u6d4f\u89c8\u5668\u3002Mozilla Firefox\uff0c\u4e2d\u6587\u540d\u901a\u5e38\u79f0\u4e3a\u201c\u706b\u72d0\u201d\uff0c\u662f\u4e00\u4e2a\u5f00\u6e90\u7f51\u9875\u6d4f\u89c8\u5668\uff0c\u4f7f\u7528Gecko\u5f15\u64ce\uff08\u5373\u975eie\u5185\u6838\uff09\uff0c\u53ef\u4ee5\u5728\u591a\u79cd\u64cd\u4f5c\u7cfb\u7edf\u5982Windows\uff0cMac\u548clinux\u4e0a\u8fd0\u884c
+S-WIKI,IE,IE\u5373Internet Explorer\u3002Windows Internet Explorer\uff0c\u539f\u79f0Microsoft Internet Explorer\uff0c\u7b80\u79f0MSIE\uff08\u4e00\u822c\u79f0\u6210Internet Expl
+S-WIKI,Chrome,Chrome\u5373Google Chrome\u6d4f\u89c8\u5668\uff0c\u53c8\u79f0Google\u6d4f\u89c8\u5668\uff0c\u662f\u4e00\u4e2a\u7531Google\uff08\u8c37\u6b4c\uff09\u516c\u53f8\u5f00\u53d1\u7684\u5f00\u653e\u539f\u59cb\u7801\u7f51\u9875\u6d4f\u89c8\u5668\u3002
+S-WIKI,Safari,Safari\u662f\u82f9\u679c\u516c\u53f8\u7684Safari\u6d4f\u89c8\u5668\u3002 \u6d4f\u89c8\u5668Safari\u662f\u82f9\u679c\u8ba1\u7b97\u673a\u7684\u6700\u65b0\u64cd\u4f5c\u7cfb\u7edfMac OS X\u4e2d\u7684\u6d4f\u89c8\u5668\uff0c\u4f7f\u7528\u4e86KDE\u7684KHTML\u4f5c \u4e3a\u6d4f\u89c8\u5668\u7684\u8fd0\u7b97\u6838\u5fc3\u3002
+S-WIKI,Opera,Opera\u5373Opera\u6d4f\u89c8\u5668\u3002Opera \u4f5c\u4e3a\u4e00\u6b3e\u7f51\u7edc\u6d4f\u89c8\u5668\uff0c \u529f\u80fd\u5f3a\u5927\uff0c\u4ee5\u4e0a\u7f51\u9ad8\u6548\u3001\u5b89\u5168\u3001\u6781\u901f\u8457\u79f0\u3002\u662f\u4e16\u754c\u4e0a\u6700\u6d41\u884c\u7684\u6d4f\u89c8\u5668\u4e4b\u4e00\u3002
+S-WIKI,DreamWeaver,"Dreamweaver\u5373Adobe Dreamweaver\u8f6f\u4ef6, \u7b80\u79f0\u201cDW\u201d\uff0c\u662f\u7f8e\u56fdMACROMEDIA\u516c\u53f8\u5f00\u53d1\u7684\u96c6\u7f51\u9875\u5236\u4f5c\u548c\u7ba1\u7406\u7f51\u7ad9\u4e8e\u4e00\u8eab\u7684\u6240\u89c1\u5373\u6240\u5f97\u7f51\u9875\u7f16\u8f91\u5668\uff0c\u5b83\u662f\u7b2c\u4e00\u5957\u9488\u5bf9\u4e13\u4e1a\u7f51\u9875\u8bbe\u8ba1\u5e08\u7279\u522b\u53d1\u5c55"
+S-WIKI,iOS,"iOS\u662f\u7531\u82f9\u679c\u516c\u53f8\u5f00\u53d1\u7684\u79fb\u52a8\u64cd\u4f5c\u7cfb\u7edf, \u5373iPad\u3001iPhone\u3001iPod touch\u3001Apple TV\u7684\u64cd\u4f5c\u7cfb\u7edf\u3002 iOS \u5177\u6709\u7b80\u5355\u6613\u7528\u7684\u754c\u9762\u3001\u4ee4\u4eba\u60ca\u53f9\u7684\u529f\u80fd\uff0c\u4ee5\u53ca\u8d85\u5f3a\u7684\u7a33\u5b9a\u6027\uff0c\u5df2\u7ecf\u6210\u4e3a iPhone"
+S-WIKI,Tablet,Tablet\u5373\u5e73\u677f\u7535\u8111\uff08\u82f1\u6587\uff1aTablet Personal Computer\uff09\uff0c\u662f\u4e00\u79cd\u5c0f\u578b\u3001\u65b9\u4fbf\u643a\u5e26\u7684\u4e2a\u4eba\u7535\u8111\uff0c\u4ee5\u89e6\u6478\u5c4f\u4f5c\u4e3a\u57fa\u672c\u7684\u8f93\u5165\u8bbe\u5907\u3002
+S-WIKI,Android,Android\u6307Android\u64cd\u4f5c\u7cfb\u7edf\u3002Android\u662f\u4e00\u79cd\u57fa\u4e8eLinux\u7684\u81ea\u7531\u53ca\u5f00\u653e\u6e90\u4ee3\u7801\u7684\u64cd\u4f5c\u7cfb\u7edf\uff0c\u4e3b\u8981\u4f7f\u7528\u4e8e\u79fb\u52a8\u8bbe\u5907\uff0c\u5982\u667a\u80fd\u624b\u673a\u548c\u5e73\u677f\u7535\u8111\uff0c\u7531Google\u516c\u53f8\u548c\u5f00\u653e\u624b\u673a\u8054\u76df\u9886\u5bfc\u53ca\u5f00\u53d1\u3002
+S-WIKI,WP8,WP8\u5373Windows Phone 8\u3002Windows Phone 8\u662f\u5fae\u8f6f\u516c\u53f82012\u5e746\u670821\u65e5\u6700\u65b0\u53d1\u5e03\u7684\u4e00\u6b3e\u624b\u673a\u64cd\u4f5c\u7cfb\u7edf\uff0c\u662fWindows Phone\u7cfb\u7edf\u7684\u6700\u65b0\u7248\u672c\uff0c\u4e5f\u662fWindows Phone
+S-WIKI,Blackberry,"BlackBerry OS\u662fRIM\u4e13\u7528\u7684\u64cd\u4f5c\u7cfb\u7edf\u3002Blackberry\uff08\u9ed1\u8393\uff09\u662f\u52a0\u62ff\u5927RIM\u516c\u53f8\uff08Research in Motion Ltd.,\uff0cRIM\uff09\u5236\u9020\u7684\u624b\u673a\u3002\u52a0\u62ff\u5927RIM\u516c\u53f8\u4e3b\u8981\u4ea7\u54c1\u4e3a\u624b\u63d0\u901a\u8baf"
+S-WIKI,APP,App \u5373 application \u7684\u7b80\u5199\uff0c\u56e0\u6b64\u88ab\u79f0\u4e3a\u5e94\u7528\u3002
+S-WIKI,Dashboard,Dashboard\uff08\u4e3a\u4eea\u8868\u677f\u4e4b\u610f\uff09\u662f\u4e00\u4e2a\u82f9\u679c\u516c\u53f8Mac OS X v10.4 Tiger\u64cd\u4f5c\u7cfb\u7edf\u4e2d\u7684\u5e94\u7528\u7a0b\u5e8f\uff0c\u7528\u4f5c\u79f0\u4e3a\u201cwidget\u201d\u7684\u5c0f\u578b\u5e94\u7528\u7a0b\u5e8f\u4e4b\u8fd0\u884c\u57fa\u7840\u3002
+S-WIKI,Landing,Landing Page\u5373\u5f15\u5bfc\u9875\uff0c\u5e38\u88ab\u8bd1\u4e3a\u201c\u7740\u9646\u9875\u201d\u3002
+S-WIKI,Spirit CSS,CSS Sprites\u5728\u56fd\u5185\u5f88\u591a\u4eba\u53ebcss\u7cbe\u7075\uff0c \u662f\u4e00\u79cd\u7f51\u9875\u56fe\u7247\u5e94\u7528\u5904\u7406\u65b9\u5f0f\u3002\u5b83\u5141\u8bb8\u4f60\u5c06\u4e00\u4e2a\u9875\u9762\u6d89\u53ca\u5230\u7684\u6240\u6709\u96f6\u661f\u56fe\u7247\u90fd\u5305\u542b\u5230\u4e00\u5f20\u5927\u56fe\u4e2d\u53bb\uff0c\u8fd9\u6837\u4e00\u6765\uff0c\u5f53\u8bbf\u95ee\u8be5\u9875\u9762\u65f6\uff0c\u8f7d\u5165\u7684\u56fe\u7247\u5c31\u4e0d\u4f1a\u50cf\u4ee5\u524d\u90a3\u6837\u4e00\u5e45 \u4e00\u5e45\u5730
+S-WIKI,PNG,PNG\u662f\u4e00\u79cd\u56fe\u50cf\u6587\u4ef6\u5b58\u50a8\u683c\u5f0f\uff0c\u5176\u76ee\u7684\u662f\u8bd5\u56fe\u66ff\u4ee3GIF\u548cTIFF\u6587\u4ef6\u683c\u5f0f\uff0c\u540c\u65f6\u589e\u52a0\u4e00\u4e9bGIF\u6587\u4ef6\u683c\u5f0f\u6240\u4e0d\u5177\u5907\u7684\u7279\u6027\u3002
+S-WIKI,JPG,jpg\u5168\u540d\u662fJPEG\u3002JPEG\u56fe\u7247\u4ee5 24 \u4f4d\u989c\u8272\u5b58\u50a8\u5355\u4e2a\u5149\u6805\u56fe\u50cf\u3002JPEG \u662f\u4e0e\u5e73\u53f0\u65e0\u5173\u7684\u683c\u5f0f\uff0c\u652f\u6301\u6700\u9ad8\u7ea7\u522b\u7684\u538b\u7f29\uff0c\u4e0d\u8fc7\uff0c\u8fd9\u79cd\u538b\u7f29\u662f\u6709\u635f\u8017\u7684\u3002\u6e10\u8fd1\u5f0f JPEG \u6587\u4ef6\u652f\u6301\u4ea4\u9519\u3002
+S-WIKI,GIF,GIF(Graphics Interchange Format)\u7684\u539f\u4e49\u662f\u201c\u56fe\u50cf\u4e92\u6362\u683c\u5f0f\u201d\uff0c\u662fCompuServe\u516c\u53f8\u5728 1987\u5e74\u5f00\u53d1\u7684\u56fe\u50cf\u6587\u4ef6\u683c\u5f0f\u3002
+S-WIKI,PSD,PSD\u6307PSD\u56fe\u7247\u6587\u4ef6\u683c\u5f0f\uff0c\u662fphotoshop\u7684\u4e13\u7528\u56fe\u50cf\u683c\u5f0f\u3002
+S-WIKI,AI,ai\u683c\u5f0f\u662fAdobe\u516c\u53f8\u53d1\u5e03\u7684\u77e2\u91cf\u8f6f\u4ef6illustrator\u7684\u4e13\u7528\u6587\u4ef6\u683c\u5f0f\u3002\u5b83\u7684\u4f18\u70b9\u662f\u5360\u7528\u786c\u76d8\u7a7a\u95f4\u5c0f\uff0c\u6253\u5f00\u901f\u5ea6\u5feb\uff0c\u65b9\u4fbf\u683c\u5f0f\u8f6c\u6362\u3002
+S-WIKI,UE,"User experience (UX) involves a person's behaviors, attitudes, and emotions about using a particular"
+S-WIKI,JSF,JavaServer Faces (JSF) is a Java specification for building component-based user interfaces for web a
+S-WIKI,XHTML,XHTML (Extensible HyperText Markup Language) is a family of XML markup languages that mirror or exten
+S-WIKI,HTML,HyperText Markup Language (HTML) is the main markup language for creating web pages and other informa
+S-WIKI,RIA,A rich Internet application (RIA) is a Web application that has many of the characteristics of deskto
+S-WIKI,JavaScript/JS,"JavaScript (JS) is an interpreted computer programming language. As part of web browsers, implementat"
+S-WIKI,ActionScript/AS,ActionScript is an object-oriented language originally developed by Macromedia Inc. (now owned by Ado
+S-WIKI,Apache Flex,"Apache Flex, formerly Adobe Flex, is a software development kit (SDK) for the development and deploym"
+S-WIKI,AIR,"Adobe Integrated Runtime, also known as Adobe AIR, is a cross-platform run-time system developed by A"
+S-WIKI,Charts,"A chart is a graphical representation of data, in which &quot;the data is represented by symbols, such as"
+S-WIKI,Form,"A webform, web form or HTML form on a web page allows a user to enter data that is sent to a server f"
+S-WIKI,Tree,Tree\u2014\u2014\u663e\u793a\u78c1\u76d8\u76ee\u5f55\u7ed3\u6784\u547d\u4ee4
+S-WIKI,SCSS,"SCSS is an R6RS Scheme library for parsing, querying, and emitting style information compatible with"
+S-WIKI,SASS,Sass (Syntactically Awesome Stylesheets) is a stylesheet language initially designed by Hampton Catli
+S-WIKI,Compass,Compass makes working with Sass even easier.
+S-WIKI,jQuery,jQuery is a cross-platform JavaScript library designed to simplify the client-side scripting of HTML.
+S-WIKI,jQueryUI,"jQuery UI is a JavaScript library that provides abstractions for low-level interaction and animation,"
+S-WIKI,jqGrid,"JqGrid was developed by Tony Tomov at Trirand Inc., a software development firm based in Sofia."
+S-WIKI,AJAX,Ajax (also AJAX; \/\u02c8e\u026ad\u0292\u00e6ks\/; an acronym for Asynchronous JavaScript and XML) is a group of interrelat
+S-WIKI,Dojo,Dojo is a JavaScript framework targeting the many needs of large-scale client-side web development.
+S-WIKI,YUI,The Yahoo! User Interface Library (YUI) is an open-source JavaScript library for building richly inte
+S-WIKI,AngularJS,"AngularJS is an open-source JavaScript framework, maintained by Google, that assists with running sin"
+S-WIKI,Backbone,Backbone.js is a JavaScript library with a RESTful JSON interface and is based on the model\u2013view\u2013pres
+S-WIKI,Ember,Ember.js is an open-source client-side JavaScript web application framework based on the model-view-c
+S-WIKI,Dart,Dart is an open-source Web programming language developed by Google. It was unveiled at the GOTO conf
+S-WIKI,TypeScript,TypeScript is a free and open source programming language developed by Microsoft.
+S-WIKI,Sublime Text,"Sublime Text is a cross-platform text and source code editor, with a Python application programming i"
+S-WIKI,Icon,A computer icon is a pictogram displayed on a computer screen in order to help user navigate a comput
+S-WIKI,ResponsiveLayout,Responsive Web design (RWD) is a Web design approach aimed at crafting sites to provide an optimal vi
+S-WIKI,CSS,CSS\u5373\u5c42\u53e0\u6837\u5f0f\u8868\uff0c\u5b83\u662f\u4e00\u79cd\u7528\u6765\u8868\u73b0HTML\uff08\u6807\u51c6\u901a\u7528\u6807\u8bb0\u8bed\u8a00\u7684\u4e00\u4e2a\u5e94\u7528\uff09\u6216XML\uff08\u6807\u51c6\u901a\u7528\u6807\u8bb0\u8bed\u8a00\u7684\u4e00\u4e2a\u5b50\u96c6\uff09\u7b49\u6587\u4ef6\u6837\u5f0f\u7684\u8ba1\u7b97\u673a\u8bed\u8a00\u3002
+S-WIKI,Gesture,Gesture\u8fd9\u91cc\u6307\u667a\u80fd\u8bbe\u5907\u7684\u624b\u52bf\u64cd\u4f5c\uff0c\u662f\u82f9\u679c\u5e26\u7ed9\u4e16\u754c\u7684\u60ca\u559c\uff0c\u4e5f\u662fiPhone\u3001iPad\u53ef\u4ee5\u6210\u4e3a\u70ed\u95e8\u4ea7\u54c1\u7684\u51b3\u5b9a\u56e0\u7d20\u3002\u968f\u540eAndroid\u548cWindows Phone7\u4e5f\u628a\u624b\u52bf\u64cd\u4f5c\u5e26\u5165\u4ea7\u54c1\u3002
+S-WIKI,HTML5,HTML5\u662f\u7528\u4e8e\u53d6\u4ee31999\u5e74\u6240\u5236\u5b9a\u7684 HTML 4.01 \u548c XHTML 1.0 \u6807\u51c6\u7684 HTML\uff08\u6807\u51c6\u901a\u7528\u6807\u8bb0\u8bed\u8a00\u4e0b\u7684\u4e00\u4e2a\u5e94\u7528\uff09\u6807\u51c6\u7248\u672c\uff1b\u73b0\u5728\u4ecd\u5904\u4e8e\u53d1\u5c55\u9636\u6bb5\uff0c\u4f46\u5927\u90e8\u5206\u6d4f\u89c8\u5668\u5df2\u7ecf\u652f\u6301\u67d0\u4e9b HTML5
+S-WIKI,Scrum  Process,Scrum Process
+S-WIKI,Code Coverage,Code coverage is a measure used to describe the degree to which the source code of a program is teste
+S-WIKI,Quality Audit,Quality audit
+S-WIKI,OSCM,OSCM biz introduction
+S-WIKI,Auto-Test,auto test
+S-WIKI,Ticket book hours,"If developer works on ticket task, then allow he or she can book work hours on ticket. The rule is th"
+S-WIKI,DDL IT Object,Onetool DDL IT Object
+S-WIKI,Cron IT Object,<h4>cron ito<\/h4>
+S-WIKI,Deployment Plan,<p>DP: Deploy Plan<\/p>
+S-WIKI,Table Deployment Object,Table DO
+S-WIKI,Adhoc Deployment Object,Adhoc DO
+S-WIKI,Stored Procedure Deployment Object,Stored Procedured DO
+S-WIKI,Trigger Deployment Object,Trigger DO
+S-WIKI,View Deployment Object,View DO
+S-WIKI,Cron Deployment Object,<p>Standard Cron DO<\/p>
+S-WIKI,Package Deployment Object,<p>Build Standard Cron package<\/p>
+S-WIKI,Cron Daily Refresh,<p>New Onetool cron&nbsp;runtime<\/p>
+S-WIKI,Rollback,Rollback
+S-WIKI,Rollback Deployed,<p>Templete DO Rollback Flow deployed<\/p>
+S-WIKI,Resync,Onetool resync
+S-WIKI,OneTool Mobile,OneTool Mobile
+S-WIKI,ECL,<p>&nbsp;ECL is the abbreviation of Emergency Contact List.&nbsp;<\/p>
+S-WIKI,LCD,LCD
+S-WIKI,LED,LED
+S-WIKI,CRT,CRT
+S-WIKI,VM,"VM,VMware"
+S-WIKI,VMware vCenter,VMware vCenter
+S-WIKI,Hard Disk,Hard disk drive
+S-WIKI,Display Card,Display card
+S-WIKI,Keyboard,Keyboard
+S-WIKI,Mainboard,Mainboard
+S-WIKI,mouse,mouse
+S-WIKI,sound card,sound card audio card
+S-WIKI,Power,power
+S-WIKI,DNS,DNS IP
+S-WIKI,TCP,TCP HTTP
+S-WIKI,UDP,UDP
+S-WIKI,Network Adapter,network cable
+S-WIKI,Network interface controller,NIC network inerface controller
+S-WIKI,Computer Software,software
+S-WIKI,Network Cable,network cable wireless
+S-WIKI,Network packet,packet addresses p2p
+S-WIKI,FTP,FTP
+S-WIKI,ICMP,ICMP TCP UDP
+S-WIKI,Content,Content Glossary
+S-WIKI,Technotes,Content Glossary
+S-WIKI,Category,<p>Content Glossary<\/p>
+S-WIKI,Attriutes,<p>Content Glossary<\/p>
+S-WIKI,FG,finish good
+S-WIKI,Mfg,<p>manufacture<\/p>
+S-WIKI,EPO,""
+S-WIKI,EVO,<p>It is automate\/streamline the new vendor request for Non trade vendors.&nbsp;&nbsp;<\/p>\n<p>It is attention.For inputing contact person info <br><br><\/p>\n<div class=\
+S-WIKI,WO,work order
+S-WIKI,RWO,Rework Work Order
+S-WIKI,PML,Project Material List
+S-WIKI,FCST,Forecast
+S-WIKI,CUST850,"cust850 is EDI inbound process , we will upload the customer po# to our CIS sytem by this process."
+S-WIKI,CUST855,"cust855 is EDI outbound process , we will sent po# status to the customer when we recieve the po# fro"
+S-WIKI,CUST856,"cust856 is EDI outbound process , we will sent the customer ship notice when the order ship out ."
+S-WIKI,CUST810,"cust810 is EDI outbound process , we will sent the customer the order invoice to the customer ."
+S-WIKI,CUST870,"cust870 is EDI outbound process , we will sent the order status to customer until the order ship out"
+S-WIKI,CUST820,Cust820 is Payment Order\/Remittance Advice which is inbound process\r\nWe upload data into ar820_header
+S-WIKI,CUST860,CUST860: Purchase Order Change Request - Buyer Initiated
+S-WIKI,CUST861,CUST861\uff1a Receiving Advice\/Acceptance Certificate
+S-WIKI,CUST180,Cust180 is Return Merchandise Authorization and Notification which has both inbound and outbound proc
+S-WIKI,CUST852,"Cust852 is Product Activity Data Plus Module which is inbound process,\r\nWe upload data into edi_cust_"
+S-WIKI,CUST845,"Cust845 is Price Authorization Acknowledgment\/Status which has both inbound and outbound process,"
+S-WIKI,CUST846/832,"cust846\/832 is EDI outbound process , we will sent the our customer our product catalog ."
+S-WIKI,VEND810,"vend810 is EDI inbound process , we will upload the invoice information to our CIS sytem from vendor"
+S-WIKI,VEND856,"VEND856 is EDI inbound process , we will upload the ship notice information from vendor to CIS"
+S-WIKI,VEND846,"VEND846 is EDI inbound process , the vendor sent to us Inventory report and product catalog , we will"
+S-WIKI,VEND832,"VEND832 is EDI inbound process,we upload Price info into DB when we receive the data from vendor"
+S-WIKI,VEND867,"VEND867 is EDI outbound process,we generate product resale report and send report to vendor"
+S-WIKI,VEND850,"vend850 is EDI outbound process , we will sent our order to vendor to buy something from them ."
+S-WIKI,VEND870,"vend870 is EDI inbound process , the vendor will sent to us the order stauts ."
+S-WIKI,BOA823,Boa832 is Lockbox which is inbound process\r\n\r\nWe upload data into ar820_header\/ar820_detail
+S-WIKI,CAR215,"car215 is EDI outbound process, we will sent track info to the carrier when we shipped the order."
+S-WIKI,CAR214,"car214 is EDI inbound process, we will upload track status info to DB when we received the data from"
+S-WIKI,CAR210,"car210 is EDI inbound process, we will upload 110 invoice info to DB when we received the data from c"
+S-WIKI,FEDEX820,"Fedex820 is outbound process, we generate data and send to Fedex\r\n\r\n(this process has been disabled)"
+S-WIKI,FEDEX110,"fedex110 is EDI inbound process, we will upload 110 invoice info to DB when we received the data from"
+S-WIKI,Shipment Consolidation,Shipment Consolidation
+S-WIKI,VCRED,VCRED reaosn code
+S-WIKI,VCRED-S,VCRED-S reason code
+S-WIKI,AP Voucher,"Comparing with the po receiving  and invoice infomation.\r\nCheck the summary,detail info.the unit pric"
+S-WIKI,Ap Realtime Auto Debit,Auto comparing with the po receiving and the invoice info by daily cron.No input manually.\r\n\r\nSystem
+S-WIKI,EPO Voucher,It contains 4 types to vouch.Marketing EPO\/Marketing PR\/Corporate EPO\/None EPO\r\n\r\n Use this function
+S-WIKI,Auto Debit,For EDI vendor invoices or manual invoices that AP ananlyst input these hard copy invoices into autop
+S-WIKI,Vendor Discount & Terms ,<h6>show special term<\/h6>\n<h6><img title=\
+S-WIKI,Layer2 EFT Payment Release,"<p>Before the payment to check,Base on all kinds of check ,like Inventory \/Expense\/Freight Regular checks for Today, Exception checks for Today,Pending checks for Today,Pending\/Held\/Reject Refund and so on. Do action for Approve\/Reject.&nbsp;<\/p>\n<p><img title=\"
+S-WIKI,Auto Check,<p>The&nbsp;<strong>Auto Check<\/strong>&nbsp;feature is designed for managing and processing vendor payments within the TD SYNNEX Corporation's financial system.<\/p>\n<p><img title=\
+S-WIKI,Pay Voucher,<p>The Pay Voucher is designed for managing and querying payment vouchers (Pay Vouchers) for TD SYNNEX Corporation.<\/p>\n<p><img title=\
+S-WIKI,Layer1 EFT Payment Release,Users create a group of vendor# to save and adjust over 90 days pending amount that need to do some r
+S-WIKI,Vendor Invoice & AP EDI Report,"Vendor invoice are invoices when the Synnex purchases parts or the other production from the vendors,"
+S-WIKI,Marketing SCM,"<p>Marketing SCM is similar as regular WebSCM, which is SYNNEX claims money from vendors to do some marketing activities and events. Both VCM user and Marketing user can access this system.<br data-immersive-translate-walked=\"
+S-WIKI,Setup Flow,Marketing SCM
+S-WIKI,Marketing Claim Post Flow,<p><img title=\
+S-WIKI,Marketing SCM Close Flow,<p><img title=\
+S-WIKI,Change Form Flow,Please refer to attachment
+S-WIKI,Project Balance ,Marketing SCM Project Balance
+S-WIKI,GL Balance,Marketing  SCM GL Balance
+S-WIKI,Activity SCM,Only in Marketing SCM
+S-WIKI,Event SCM,Only in Marketing SCM
+S-WIKI,Prepay SCM,Only in Marketing SCM
+S-WIKI,SCM Expense,Only in Marketing SCM
+S-WIKI,Claim Budget,"Claim budget means the budget of a claim, we can get it from pm_claim table budget_amount column."
+S-WIKI,Vendor Source,Only in Marketing SCM
+S-WIKI,Post Info,only in Marketing SCM
+S-WIKI,Customer Rebate,<p>CVR(Customer Rebate) system is a web-based system for different types users for program set<\/p>
+S-WIKI,Reminder Sweep,"User uses reminder sweep to manually adjust customer\u2019s CVR account for various purposes, such as ove"
+S-WIKI,CVR Program(CVR Batch),"<p>CVR Program(In old CVR System, it named CVR batch)\uff1acustomer rebate program, we set them to calculate the customer\u2019s rebate when customer bought<\/p>"
+S-WIKI,Accrual Balance,Accrual Balance Report is one of CVR report. It list all of CVR balance in one page.\r\n\r\nAccrual  Bala
+S-WIKI,Rebate Amt,The rebate that synnex can give customers.
+S-WIKI,Vendor Ref#,Vendor Reference Number
+S-WIKI,Manager Code,manager code: SCM use different manager code to manage the different types of scm.
+S-WIKI,Passthru rebate factor,"passthru rebate amount, we always use this amount compare to rebate amount with various rebate type"
+S-WIKI,Rebate Factor,"<p>The Rebate Factor is a value used to calculate the actual rebate amount for different types of rebates . <br>1) If rebate type is C, R, W, the rebate factor can\u2019t be more than 100, set it to 100 if user input a number which more than 100. <br>2) If rebate type is C, R, W,F, the pass thru rebate factor can\u2019t be more than(&gt;=) claimable rebate factor, set pass thru rebate factor to blank if it more than claimable rebate factor;<br>3) If rebate type is B, A, the pass thru rebate factor can\u2019t be less than (&lt;=)claimable rebate factor, set pass thru rebate factor to blank if it less than claimable rebate factor;<br>4) If rebate type is F, and rebate factor is more than min price and base cost of sku, set rebate factor to larger one of min price and base cost.<br>5) Calculate rebate amt when user change this value.<br>Calculation: The Rebate Factor can be used in formulas such as: <br>For type C (% of PO Cost): rebate amount = base cost * rebate factor% <br>For type R (% of Retail Price): rebate amount = retail price * rebate factor%<br>For type F (Flat $ Amount): The rebate factor equals the flat rebate amount.<\/p>"
+S-WIKI,Claim Expire date,The date when claim will be expired
+S-WIKI,New Price Effective,The new price effective date.
+S-WIKI,SCM SO Usage,SCM Sales Order Usage
+S-WIKI,SCM PO Usage,SCM Purchase Order Usage
+S-WIKI,SCM CC Usage,"SCM cost change usage, order type include 34,15,7"
+S-WIKI,SCM WO usage,"SCM work order usage, order type is 17"
+S-WIKI,Net Sales,"Net Sales       =(isnull(u_price,0)+isnull(u_sum_expense,0))*isnull(ship_qty,0)"
+S-WIKI,sales goal,"In our operation system, user will predefine sales goal in different level every month, such as for e"
+S-WIKI,Inventory,"In B Report, we basically calculate Regular Inventory and RMA Inventory"
+S-WIKI,Balance Statement Report,Finance Balance Report
+S-WIKI,Balance Statement Trend Report,Finance Balance Trend Report for finance team and consolidate team
+S-WIKI,Income Statement Report,"Finance Income Report is base report for finance team, consolidate team."
+S-WIKI,Income Statement Trend Report,Finance Income Trend report for finance team and consolidate team
+S-WIKI,MJE,Book Journal Entry manually
+S-WIKI,GL Account,Finance minimum and base item
+S-WIKI,GL Trial Balance,Finance Trial Balance
+S-WIKI,General Ledger Query,query from journal_entry
+S-WIKI,AP SubLedger Query,query from ap_journal_entry
+S-WIKI,AR SubLedger Query,query from ar_journal_entry
+S-WIKI,INV SubLedger Query,query from inv_journal_entry
+S-WIKI,OE SubLedger Query,query from oe_journal_entry
+S-WIKI,The Service Revenue Report,The Service  Revenue report includes all SKUs that have been coded as &quot;Service&quot; for  B report purpo
+S-WIKI,The Software Revenue Report,The Software Revenue report includes all SKUs that have been coded as &quot;S&quot; as well as their cost net
+S-WIKI,GL ACCT Requisition,"finance user would like add new gl account, she\/he need to submit GL ACCT Requisition to US Finance t"
+S-WIKI,AutoEntry and Reversal,"finance team create auto entry and reversal entry rule at some time, when system match the time, syst"
+S-WIKI,Finance Calendar,"finance team set calendar for months, when close the month, user not book any journal entry into it."
+S-WIKI,IC Difference Summary,Inter Company IC Relation Difference Summary for consolidate team
+S-WIKI,Subsidiary Company,Define Subsidiary Company for consolidate team
+S-WIKI,Subsidiary Tri-Balance Upload,"finance consolidate team focus on global finance report, system will auto upload all local server for"
+S-WIKI,Cash Posting ,<p>cash posting means customer pay the invoice in CIS system<\/p>
+S-WIKI,Batch UC,it is an  accessory  function for cash posting by item
+S-WIKI,Customer Payment querey,<p>this is a function for cash posting<\/p>
+S-WIKI,Fob Query,"This is a report, user can get the report for FOB"
+S-WIKI,Cash Application reconcile,This function will do the compare between cash receipt and our payment data
+S-WIKI,Ar823 Accepted Auto Cash Posting Report,It is for RPO and BOFA auto cash posting report.
+S-WIKI,Ar823 Rejected Auto Cash Posting Report,It is for RPO and BOFA auto cash posting rejected report
+S-WIKI,SPA,Special Pricing Agreement. An agreement between SYNNEX and vendor that provides a discounted purchase
+S-WIKI,SCM Balance,SCM Balance = Claim Total + SCMExpense ActualTotal + ManualEntries Total
+S-WIKI,Consign BO Process,<p>Consign BO Process<\/p>

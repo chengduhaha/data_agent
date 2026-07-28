@@ -1,0 +1,115 @@
+# Vertica AP special logic reference
+#
+# Scope
+# - Derived from 38 existing Vertica AP rds_xxx_rtv.sp scripts.
+# - Vertica scripts are identified by matching rds_xxx_gen.sp files that contain rdsetl.rds_tmp.
+# - AP scripts are identified by SELECT/FROM usage of dw_xx.dws_disty_ap_vend_aging_df,
+#   dw_xx.dwd_disty_ap_vdah_lines_di, dw_xx.dwd_disty_ap_vend_doc_df,
+#   dw_xx.dwd_disty_ap_hold_df, dm_xx.dm_ap_aging_header_df, or
+#   dm_xx.dm_ap_aging_detail_df.
+# - Use xx as the region placeholder, matching table list.txt and table relationship.txt.
+# - The rules below focus on uncommon, non-default, but reusable AP patterns. Do not apply hardcoded report filters unless the request or source report requires them.
+
+
+1. Vertica AP reports use `rdsetl.rds_tmp` and usually `rdsetl.rds_tmp_body` as final output objects. Use `CREATE LOCAL TEMPORARY TABLE ... ON COMMIT PRESERVE ROWS AS` for intermediate staging tables, then recreate `rdsetl.rds_tmp` and the matching body/count table.
+
+2. AP report detection in historical Vertica logic should be based on `SELECT ... FROM` or `SELECT ... JOIN` usage of the AP core tables listed in the Scope section. Ignore update-only references when deciding whether a report belongs to AP.
+
+3. Do not treat every AP source as interchangeable. Existing reports use:
+   - `dw_xx.dws_disty_ap_vend_aging_df` for vendor-level AP aging / exposure snapshot.
+   - `dm_xx.dm_ap_aging_header_df` for vendor-level AP aging header, bucket, analyst, PAS code, and terms summaries.
+   - `dm_xx.dm_ap_aging_detail_df` for document/order/claim-level AP detail.
+   - `dw_xx.dwd_disty_ap_hold_df` for hold, receiving, packing list, SKU, and PO-line detail.
+   - `dw_xx.dwd_disty_ap_vend_doc_df` for vendor document/open invoice detail.
+   - `dw_xx.dwd_disty_ap_vdah_lines_di` for line-level vouched/unvouched AP detail.
+
+4. Current AP snapshot logic is commonly `date_flag = CURRENT_DATE() - 1`, but some month-end reports intentionally use the latest snapshot before the current month:
+   - `max(date_flag)` from the AP aging source
+   - `date_flag < DATE_TRUNC('month', CURRENT_DATE())`
+   Keep the month-end snapshot pattern when the report asks for prior-month AP position or month-end aging.
+
+5. `sum_level` defines the AP aging semantic grain. Existing reports use values such as:
+   - `V` for vendor-level AP total.
+   - `VP` for vendor/product level AP inventory comparison.
+   - `VCD` and `OT` for debit memo / VCM debit memo separation.
+   - `UOT`, `UOTC`, and `VVU` for unvouched, accrual, and TB-style AP buckets.
+   Do not remove or broaden `sum_level` filters as cosmetic conditions.
+
+6. AP position is not always equal to total AP amount. Existing vendor AP position logic can calculate:
+   - `total + cinv_cost`
+   - `usd_total + usd_cinv_cost`
+   - then subtract `inv_cost` / `usd_inv_cost`
+   - then zero out negative or currency-incompatible positions.
+   Use this only when the report asks for AP position, not for ordinary AP balance.
+
+7. Some AP position reports recalculate inventory at master-vendor level. Existing logic sums inventory for `master_vend_no`, updates the vendor AP position row, subtracts inventory, and then zeroes CAD/USD fields based on vendor currency. Preserve the master-vendor inventory rollup when the request mentions master vendor or sum-to-master behavior.
+
+8. Vouched and unvouched AP can be separate sheets, not just a status column. Existing BR logic splits:
+   - unvouched: `dw_xx.dwd_disty_ap_vdah_lines_di.vd_type = 'U'`, joined to ODS AP hold by `rec_no` and `rec_line_no`.
+   - vouched: `vd_type != 'U'`, joined to ODS vendor document by `doc_no`.
+   It writes `rdsetl.rds_tmp` and `rdsetl.rds_tmp_2` with sheet names `unvouched` and `vouched`.
+
+9. USD-only VDAH reports can require vendor currency validation. Existing logic joins `ods_xx.ods_cis_corp_v_vend_currency` by `vend_no` and filters `vend_currency = 'USD'`, while also requiring positive `usd_amt`. Use this only for USD-specific AP output.
+
+10. Open vendor document amount is not simply `doc_amt`. Existing AP open payment/open document logic calculates:
+   - `doc_amt - inv_disc_amt - doc_applied - disc_taken`
+   or USD variants such as:
+   - `usd_doc_amt - usd_doc_applied`
+   Standard open AP document reports also filter `doc_close_date IS NULL` and current `date_flag`.
+
+11. Forecast payment reports use different populations for actual payments, open payments, receipts, open PO, sales goals, MTD sales, and AP total. Keep each metric in a separate staging table and aggregate by `vend_no` before final joining.
+
+12. Actual payment date windows can shift on the first day of month. Existing logic uses `DATE_PART('day', CURRENT_DATE()) = 1` to start from the previous month on day 1, otherwise from the current month start. Preserve this first-day rule for MTD actual payment reporting.
+
+13. Forecast receipt and QTD receipt logic can use `dw_xx.dwd_disty_ap_ap_hold.rec_datetime`, not only AP aging snapshots. Existing logic builds a start/end date table and a quarter start date as `ADD_MONTHS(st_date, -2)`, then sums receipt `ext_cost` by vendor.
+
+14. Open PO/AP hold aging logic uses receiving and discount-day rules. Existing reports filter AP hold rows with `order_type = 2`, `rec_close_date IS NULL`, `doc_no IS NULL`, and then require `tol_date + disc_days < CURRENT_DATE()`. Do not replace this with a generic open PO condition.
+
+15. Debit memo / VCM separation is special. Existing DM reports use `dm_xx.dm_ap_aging_header_df` with:
+   - `sum_level = 'VCD'` and terms such as `DR` for total debit memo.
+   - `sum_level = 'OT'` and terms such as `27` for VCM debit memo.
+   It then calculates AP DM as total DM minus VCM DM.
+
+16. DND and DM vendor flags come from `dim_xx.dim_disty_ap_dnd_profile`, not from AP aging amounts. Existing logic filters `profile_type` in `('DM', 'DND')` and `status = 'A'`, then left joins those vendor sets to the AP output to derive Y/N flags.
+
+17. OLD_COMP and other AP vendor attributes are profile-driven. Existing reports use `dim_xx.dim_pub_vendor_profile` with `profile_cat = 'AP'`, `active = 'Y'`, and `profile_type` such as `OLD_COMP`, `PAS CODE`, `M-F`, `PMT TYPE`, `DISCOUNT`, or `CSGN_VEND`. Aggregate or de-duplicate profiles before joining to vendor-level output.
+
+18. AP detail invoice/order display fields depend on `uv_type` and `order_type`. Existing detail logic uses:
+   - `uv_type = 'V'` -> vendor invoice number.
+   - `uv_type = 'U'` and `order_type = 27` -> `order_no || '-' || order_line_no`.
+   - `uv_type = 'U'` and `order_type in (3, 12)` -> `order_no || '/' || doc_ref`.
+   Preserve this formatting when producing AP document detail exports.
+
+19. AP detail aging date depends on `uv_type`. Existing logic uses `rec_datetime` for unvouched rows and `doc_date` for vouched rows, then calculates age relative to `CURRENT_DATE() - 1`. Do not use one date column for all AP detail rows.
+
+20. Some AP detail reports intentionally keep only negative aged detail, for example `ifnull(entry_id, 0) = 0`, `ifnull(amt, 0) < 0`, and `age >= 61`. Treat these as debit/credit detail filters, not as general AP detail defaults.
+
+21. PM/VCM claim detail is usually gated by `order_type = 27`. Existing logic only exposes fields such as `reason_code`, `packing_list_no`, `var_no`, `pm_vcm_code`, `pm_claim_type_desc`, and claim comments when `order_type = 27`. Do not populate those fields for generic AP documents.
+
+22. HY multi-region AP reports union multiple regional schemas and add a literal Region column, such as `HYUS`, `HYUK`, `HYCN`, and `HYWW`. Preserve the Region discriminator through header, detail, xref, vendor, application, and final output joins.
+
+23. HY vendor relationship logic can normalize related vendors with `dim_xx.dim_pub_ap_aging_vendor_xref`. Existing logic maps `xref_type = 'VEND_PURCH'` to `PURCHASE`, `xref_type = 'SRef'` to `MARKETING`, filters `active = 'Y'`, excludes self-links, and then adds both original and xref vendor rows. Use this only for multi-region AP aging relationship reports.
+
+24. Payment/application adjustment in AP detail can subtract applied amounts at document grain. Existing HY logic aggregates `ods_xx.ods_cis_corp_ap_vend_applications` by `Region, doc_no`, summing payment and discount amounts, then subtracts paid amounts from document amounts. Use this when the request asks for unpaid/open detail after applications.
+
+25. Some AP detail reports de-duplicate document rows with `ROW_NUMBER() OVER (PARTITION BY doc_no ORDER BY date_flag)` and keep the first row for positive doc numbers, while preserving doc_no <= 0 rows. This is a report-specific duplicate-removal pattern for detail extracts, not a universal AP rule.
+
+26. Local versus FX amount output can be parameterized. Existing HY logic switches between local and FX columns for document amount, discount amount, withholding amount, and paid amount. Keep the currency mode consistent across all amount fields in the same report.
+
+27. AP/vendor monthly average reports divide daily snapshot sums by days in month. Existing logic builds a month table with prior month start/end and `days_in_month`, then calculates average AP balance as `SUM(total) / days_in_month`. Use this for average balance, not current AP balance.
+
+28. AP reports can intentionally create cross-domain multi-sheet outputs. One existing report writes separate sheets for AP Balance, AR Balance, and Inventory, using AP vendor aging, AR customer aging summary, and inventory aging respectively. Keep AP, AR, and inventory grains separate and only combine them at workbook/sheet level unless the request explicitly asks for a joined dataset.
+
+29. Inventory aging in AP-adjacent reports is its own source, commonly filtered by `view_level = 'IT_PART'` and `inv_type != 6`, then grouped by `vend_no`, vendor name, and `sku_no`. Do not treat inventory aging as an AP amount source.
+
+30. AP vendor/product comparison reports can compare VDAH AP amount to AP aging inventory amount. Existing logic uses VDAH rows with `order_type = 2`, AP aging rows with `sum_level = 'VP'`, unions the vendor lists from AP amount, inventory amount, and vendor rate sources, then calculates `inv_amt - ap_amt`.
+
+31. CSGN vendor and discount-rate logic is profile and terms driven. Existing logic can use vendor profile `CSGN_VEND`, vendor PDT rate, vendor terms discount rate, and AP/inventory differences to derive discount amounts. Preserve those profile and terms joins when the request mentions consignment, PDT, pay discount, or AP/inventory variance.
+
+32. GL journal AP reports are a separate pattern from AP aging. Existing CA journal reports read `dw_xx.dwd_disty_ap_journal_entry` by `gl_trans_date`, `gl_acct_no`, and `gl_company`. Use this only for GL/AP journal requests; do not mix it into aging reports.
+
+33. Date formatting is separate from filter logic. Existing AP outputs format dates with `TO_CHAR(...)`, explicit labels, or workbook date patterns in `rdsetl.rds_tmp_sheet_config`. Filter on date/timestamp columns before formatting the output date.
+
+34. Vendor, analyst, terms, profile, currency, company, and hardcoded vendor filters are highly report-specific. Keep these filters in the earliest staging table when reproducing a known report, but do not copy them into new AP SQL unless the user request names the same population.
+
+35. Use temporary tables to isolate AP populations. For non-trivial AP logic, stage run context/date windows, vendor population, AP aging/header/detail amounts, open documents, AP holds, payments/applications, vendor profile flags, and final output separately. This prevents mixing vendor-level, document-level, order-line-level, and payment-application-level grains.

@@ -1,0 +1,89 @@
+# Vertica AR table relationships
+#
+# Country schemas are normalized with xx in this file.
+#
+# Scope
+#   Generated from Vertica AR rds_xxx_rtv.sp scripts identified by matching
+#   Vertica *_gen.sp files that contain rdsetl.rds_tmp.
+#   AR scripts are identified by SELECT/FROM usage of dwd_disty_ar_cust_doc_df
+#   or dws_disty_ar_cust_sum_age_df.
+#   Use dw_xx.dwd_disty_ar_cust_doc_df as the main AR customer document source.
+#
+# Common grain
+#   AR document grain: cust_no, order_no, order_type, date_flag
+#   AR aging summary grain: cust_no, date_flag, view_level, data_period
+#   Customer grain: cust_no
+#   Sales territory grain: sales_terr
+#   Payment grain: pay_no
+
+
+# Core AR Document Relationships
+
+dw_xx.dwd_disty_ar_cust_doc_df (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no
+dw_xx.dwd_disty_ar_cust_doc_df (many to one) dim_xx.dim_pub_customer_info_rt by using join columns cust_no
+dw_xx.dwd_disty_ar_cust_doc_df (many to one) dim_xx.dim_pub_terms_file_view by using join columns terms to doc_terms
+dw_xx.dwd_disty_ar_cust_doc_df (many to one) dim_xx.dim_pub_location_info by using join columns from_loc_no to loc_no
+dw_xx.dwd_disty_ar_cust_doc_df (many to one) dim_xx.dim_pub_sales_hierarchy_primary_role_by_terr_view by using join columns sales_terr
+dw_xx.dwd_disty_ar_cust_doc_df should usually filter date_flag to the current AR snapshot, commonly date_flag = current_date() - 1 or date_flag = max(date_flag) from the same table.
+dw_xx.dwd_disty_ar_cust_doc_df open AR amount is calculated as amount - ifnull(applied, 0).
+dw_xx.dwd_disty_ar_cust_doc_df open AR reports commonly filter amount - ifnull(applied, 0) <> 0 and close_date is null.
+dw_xx.dwd_disty_ar_cust_doc_df aging buckets are driven by due_date_agedays.
+
+
+# AR Aging Summary and Customer Balance Relationships
+
+dw_xx.dws_disty_ar_cust_sum_age_df (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no
+dw_xx.dws_disty_ar_cust_sum_age_df can be filtered by view_level and data_period when calculating customer-level AR balance.
+dw_xx.dws_disty_ar_cust_sum_age_df daily customer balance reports use date_flag ranges and aggregate total by cust_no before joining back to customer context.
+dw_xx.dws_disty_ar_cust_sum_age_df can be averaged over a date window by dividing summed total by the number of days in the reporting period.
+
+
+# Customer, Terms, Contacts, and Hierarchy Relationships
+
+dim_xx.dim_pub_customer_info (many to one) dim_xx.dim_pub_terms_file_view by using join columns default_terms to doc_terms
+dim_xx.dim_pub_customer_info (many to one) dim_xx.dim_pub_sales_hierarchy_primary_role_by_terr_view by using join columns sales_terr
+dim_xx.dim_pub_customer_info (one to many) dim_xx.dim_pub_customer_address_contacts_info by using join columns cust_no to xref_no when AR reports need customer address/contact fields.
+dim_xx.dim_pub_customer_info_rt (many to one) dim_xx.dim_pub_terms_file_view by using join columns default_terms to doc_terms
+dim_xx.dim_pub_customer_info_rt (one to many) dim_xx.dim_pub_cust_xref_all by using join columns cust_no; filter xref_type such as 'FINAN_SUB' and active = 'Y' when mapping finance sub/customer relationships.
+dim_xx.dim_pub_cust_profile_all can be joined by cust_no when customer profile values such as credit-limit related profile attributes are needed.
+dim_xx.dim_pub_terms_file_view (many to one) ods_xx.ods_cis_corp_no_ctrl by using join columns terms_group to doc_char when excluding or including configured terms groups.
+ods_xx.ods_cis_corp_no_ctrl should filter kind for the requested control set, such as AUTOCRED credit-limit aggregate exclusions.
+
+
+# Sales, POS, and Historical Order Context
+
+dw_xx.dwd_disty_common_pos_di (many to one) dw_xx.dwd_disty_ar_cust_doc_df by using join columns order_no, order_type when shipped POS rows need AR document credit/reference context.
+dw_xx.dwd_disty_common_pos_di (many to one) ods_xx.ods_cis_corp_rma_details by using join columns int_ref_no to rma_no when int_ref_type = 9 and the report traces POS/RMA context.
+dw_xx.dwd_disty_common_pos_di (many to one) ods_xx.ods_cis_corp_history_header by using join columns original_so_no to order_no when recovering original sales order customer PO context.
+dw_xx.dwd_disty_common_pos_di can be grouped by bill_to_cust_no and date_flag for recent sales/customer activity windows.
+dw_xx.dws_disty_brpt_cust_mtd (many to one) dim_xx.dim_pub_date by using join columns date_flag to month-end dates when AR reports calculate monthly customer sales activity.
+dw_xx.dws_disty_brpt_cust_mtd should be aggregated by cust_no before joining to AR document or customer dimension rows.
+
+
+# Payment and Discount Relationships
+
+dw_xx.dwd_disty_ar_payment_cust_payment (one to many) dw_xx.dwd_disty_ar_payment_cust_application by using join columns pay_no
+dw_xx.dwd_disty_ar_payment_cust_application (many to one) dw_xx.dwd_disty_ar_cust_doc_df by using join columns order_no, order_type and a selected AR document snapshot date_flag.
+dw_xx.dwd_disty_ar_payment_cust_payment should be filtered by batch_date for payment-period analysis.
+Payment discount reports compare payment month to AR document month using batch_date and doc_date. Preserve the report-specific month truncation and exclusion logic.
+
+
+# ODS Customer and Document Context
+
+ods_xx.ods_cis_corp_cust_doc (many to one) ods_xx.ods_cis_corp_customer_header by using join columns cust_no
+ods_xx.ods_cis_corp_cust_doc can be aggregated by cust_no for ODS-based customer AR document summaries.
+ods_xx.ods_cis_corp_customer_header supplies customer name or customer header context when an ODS customer document source is used.
+
+
+# AP / Inventory Context Used by AR Reports
+
+dw_xx.dws_disty_ap_vend_aging_df (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no
+dw_xx.dwd_disty_inv_aging_df is used as supplemental inventory aging context in AR-adjacent reports; keep its grain separate from AR customer document grain unless the source report explicitly joins it.
+
+
+# Output and Grain Notes
+
+Use AR document rows as the driving source when the report asks for open AR, AR aging buckets, customer documents, due-date aging, collector views, or document-level AR.
+Use AR aging summary rows as the driving source when the report asks for customer AR balance over a date window or daily AR aging summary.
+Use LEFT JOIN from AR documents to optional customer, terms, location, territory, POS/history, and payment context unless the request requires filtering to matched records.
+Pre-aggregate one-to-many sources such as contacts, POS sales, payment applications, monthly customer sales, and ODS customer documents before joining back when the final output must stay at customer or AR document grain.

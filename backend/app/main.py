@@ -16,7 +16,7 @@ from app.agent.factory import close_checkpointers
 from app.agent.mcp_manager import mcp_manager
 from app.api import auth, chat, config_routes, files, mcp, rules, skills, subagents, tools
 from app.auth.settings import get_oauth_settings
-from app.deps import require_web_auth
+from app.deps import require_web_auth, require_admin
 from app.store.paths import DEFAULT_USER_ID, ensure_user_layout
 
 _REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -78,14 +78,16 @@ app.add_middleware(
 app.include_router(auth.router)
 
 protected = [Depends(require_web_auth)]
+admin_only = [Depends(require_web_auth), Depends(require_admin)]
+
 app.include_router(chat.router, dependencies=protected)
-app.include_router(config_routes.router, dependencies=protected)
-app.include_router(mcp.router, dependencies=protected)
 app.include_router(skills.router, dependencies=protected)
-app.include_router(rules.router, dependencies=protected)
-app.include_router(subagents.router, dependencies=protected)
-app.include_router(tools.router, dependencies=protected)
-app.include_router(files.router, dependencies=protected)
+app.include_router(config_routes.router, dependencies=admin_only)
+app.include_router(mcp.router, dependencies=admin_only)
+app.include_router(rules.router, dependencies=admin_only)
+app.include_router(subagents.router, dependencies=admin_only)
+app.include_router(tools.router, dependencies=admin_only)
+app.include_router(files.router, dependencies=admin_only)
 
 
 @app.get("/health")

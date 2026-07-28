@@ -1,0 +1,91 @@
+{
+  "entity_id": "dw_us.dwd_disty_sales_order_soldto_di",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dw_us.dwd_disty_sales_order_soldto_di",
+  "schema_name": "dw_us",
+  "table_name": "dwd_disty_sales_order_soldto_di",
+  "columns": [
+    {
+      "name": "order_type",
+      "type": "int"
+    },
+    {
+      "name": "order_no",
+      "type": "int"
+    },
+    {
+      "name": "to_acct_no",
+      "type": "int"
+    },
+    {
+      "name": "to_loc_no",
+      "type": "int"
+    },
+    {
+      "name": "frt_cust_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "special_handle",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "end_user_po",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_from_loc_no",
+      "type": "int"
+    },
+    {
+      "name": "ship_to_phone",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "entry_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "entry_id",
+      "type": "int"
+    },
+    {
+      "name": "from_ref_type",
+      "type": "int"
+    },
+    {
+      "name": "big_deal_no",
+      "type": "timestamp"
+    },
+    {
+      "name": "warranty_convert_code",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "sales_model",
+      "type": "int"
+    },
+    {
+      "name": "reseller_cust_no",
+      "type": "int"
+    },
+    {
+      "name": "date_flag",
+      "type": "date"
+    }
+  ],
+  "column_count": 17,
+  "partition_keys": [
+    "date_flag"
+  ],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dwd_disty_sales_order_soldto_di.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:51.993516+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dwd_disty_sales_order_soldto_di.md"
+}

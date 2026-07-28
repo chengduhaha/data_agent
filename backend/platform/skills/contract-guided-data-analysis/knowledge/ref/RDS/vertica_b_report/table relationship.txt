@@ -1,0 +1,151 @@
+# Vertica B REPORT table relationships
+#
+# Country schemas are normalized with xx in this file.
+#
+# Scope
+#   Generated from Vertica B REPORT rds_xxx_rtv.sp scripts identified by matching
+#   Vertica *_gen.sp files that contain rdsetl.rds_tmp.
+#   B REPORT scripts are identified by SELECT/FROM usage of
+#   dwd_disty_common_dw_orders_pl_extend_di, dws_disty_brpt_pl_extend_mtd,
+#   or dwd_disty_pub_dw_orders_extend_di.
+#   Ignore UPDATE-only usage of those tables when choosing B REPORT examples.
+#
+# Common grain
+#   PL order-line grain: order_no, order_type, order_line_no, date_flag.
+#   PL daily/monthly sales grain: date_flag with optional customer, SKU, vendor, VPL, PM, territory, or division dimensions.
+#   Monthly B REPORT PL summary grain: date_flag/month plus selected sales/product/customer/PM dimensions.
+#   Customer grain: cust_no or mcust_no, depending on bill-to/customer versus master customer reporting.
+#   Product grain: sku_no.
+#   Vendor grain: vend_no.
+#   VPL grain: vpl_no or dim_vpl_no.
+#   Sales hierarchy grain: sales_terr.
+
+
+# Core B REPORT PL and Order Relationships
+
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di is the primary B REPORT fact for PL order-line sales, margin, profit, vendor, customer, product, VPL, PM, and territory analysis.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di should usually filter date_flag for the requested sales window before joining enrichment tables.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di often filters shippable order types by joining dim_xx.dim_pub_order_type on order_type and requiring ship_tran_no is not null.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dw_xx.dwd_pub_common_history_header_extend by using join columns order_no, order_type.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) ods_xx.ods_cis_corp_history_header by using join columns order_no, order_type when ODS order header fields are required; filter delete_date is null when present in the source report.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) ods_xx.ods_cis_corp_order_header by using join columns order_no, order_type for current/open order header context.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dw_xx.dwd_disty_common_pos_di by using join columns order_no, order_type, order_line_no when shipped POS context is required.
+dw_xx.dwd_disty_common_pos_di (many to one) dw_xx.dwd_disty_common_dw_orders_pl_extend_di by using join columns date_flag, order_no, order_type, order_line_no when POS rows need PL/margin amounts.
+dw_xx.dwd_disty_pub_dw_orders_extend_di can be used as lightweight order extension context by order_no, order_type, order_line_no, date_flag, and cust_no when the report does not need the full PL extension columns.
+dw_xx.dws_disty_brpt_pl_extend_mtd is the monthly B REPORT PL summary source. Join to date/month staging tables by date_flag and aggregate by the requested customer, product, vendor, VPL, PM, sales hierarchy, or division dimensions.
+
+
+# Measures and Aggregation Grain
+
+B REPORT sales measures commonly come from dw_xx.dwd_disty_common_dw_orders_pl_extend_di columns such as ship_qty, u_price, u_sum_expense, net_sales, gm_amt, tgm_amt, ngm_amt, oplgm_amt, infrastructure, hc_sales, hc_pm, hc_bd, order_overhead, marketing, scm_profit_adj, others, and corporate.
+Net sales may be calculated as ship_qty * (u_price + COALESCE(u_sum_expense, 0)) when the report derives it manually instead of using net_sales.
+GM, TGM, NGM, OPL, and percent metrics should be aggregated first, then divided with NULLIF on the denominator, for example sum(gm_amt) / nullif(sum(net_sales), 0).
+NGM0-style metrics can subtract infrastructure, headcount, order overhead, marketing, SCM profit adjustment, others, and corporate from NGM before calculating percentages. Preserve the exact component list from the source report.
+Use count(distinct order_no) for order-count metrics only after the final driving grain is clear; order-line-level joins can otherwise inflate counts.
+Pre-aggregate PL facts to the requested grain before joining one-to-many profile, contact, serial number, EU custom, SCM/SPA, or recommendation tables.
+
+
+# Customer and Master Customer Relationships
+
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no for bill-to/customer reporting.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_customer_info by using join columns mcust_no to cust_no for master-customer reporting.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_customer_credit_info by using join columns cust_no when customer credit attributes are required.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (one to many) dim_xx.dim_pub_customer_address_contacts_info by using join columns cust_no and filtering the intended contact row, such as addr_xref_seq = 1.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (one to many) dim_xx.dim_pub_cust_profile_all by using join columns cust_no or mcust_no and filtering profile_cat, profile_type, and active = 'Y'.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (one to many) dim_xx.dim_pub_cust_xref_all by using join columns cust_no when customer cross-reference or finance/master relationships are required.
+dim_xx.dim_disty_pm_authority_program_cust (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no when B REPORT needs PM authority/customer program membership.
+ods_xx.ods_cis_corp_customer_header can enrich customer rows by cust_no when ODS customer attributes are required.
+
+
+# Product, Vendor, VPL, VPC, and PM Hierarchy Relationships
+
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_part_info by using join columns sku_no.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_part_info_rt by using join columns sku_no when real-time or alternate part attributes are required.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_sku_profile_rt by using join columns sku_no and report-specific profile filters when SKU profile attributes are required.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_vendor_info_rt by using join columns vend_no when real-time vendor attributes are required.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_vpl_info by using dim_vpl_no or pm_code to vpl_no.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_vpl_hierarchy_info by using vend_no and vpl_no, or pm_code to vpl_no, depending on the report.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_vpl_pm_hierarchy_info by using vend_no and dim_vpl_no, or dim_vpl_no to vpl_no, when PM, PM manager, director, or VP hierarchy is required.
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vpl_info by using join columns vpl_no.
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vpl_hierarchy_info by using join columns vend_no, vpl_no.
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no.
+dim_xx.dim_pub_vpc_group_xref_view (many to one) dim_xx.dim_pub_vpc_group_view by using join columns vpc_group_id and filtering active = 'Y' and group_code such as 'BRPT' when the report groups products by VPC group.
+dim_xx.dim_disty_pur_vendor_dna_matrix can enrich vendor/product/vendor DNA reporting by vendor, VPL, or product keys according to the source report.
+dw_xx.dws_disty_pur_ips_runrate_1w can enrich product or vendor demand/runrate context by sku_no, vend_no, or VPL-level keys after aligning to the requested reporting grain.
+
+
+# Sales Territory, Division, and User Relationships
+
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_sales_hierarchy_primary_role_by_terr_view by using cust_terr or customer sales_terr to sales_terr.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (one to many) dim_xx.dim_pub_sales_hierarchy_by_terr_user_role by using cust_terr, order_sales_terr, or sales_terr; filter the intended user role before joining to avoid duplicating rows.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_sales_territory by using cust_terr or sales_terr.
+dim_xx.dim_pub_sales_cust_type (many to one) dim_xx.dim_pub_sales_division by using join columns division when customer type needs division context.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_sales_cust_type by using customer type when sales customer type reporting is required.
+Any B REPORT sales, PM, PM manager, PM VP, buyer, territory manager, sales representative, or other user id can join to dim_xx.dim_pub_manager by userid. Common source columns include sales_rep, pm_id, pm_mgr_id, pm_vp_id, sales_dir_id, primary_id, and member_id.
+When using dim_xx.dim_pub_manager through role tables, filter role flags such as member_role = 'primary' and primary_flag = 'Y' before joining to final output.
+
+
+# Date, Currency, Location, Order Type, and Supporting Dimensions
+
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_date by using join columns date_flag when reports need fiscal month, month-end, week, or calendar attributes.
+dw_xx.dws_disty_brpt_pl_extend_mtd (many to one) dim_xx.dim_pub_date by using date_flag or month-end date when monthly PL reporting is required.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_order_type by using order_type; B REPORT shippable-sales reports often require ship_tran_no is not null.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_location_info by using from_loc_no, loc_no, or warehouse/location columns when location reporting is required.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_exchange_rate by using currency and date/month keys when reports convert local currency to USD or another reporting currency.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_inv_type_view by using inv_type when inventory type description is required.
+dim_xx.dim_pub_list_box_detail can be used for configured list-box filters or label mappings. Join and filter by the report-specific list category and code before final output.
+
+
+# Order Detail, Header, Serial, Carton, and Profile Context
+
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (one to many) dw_xx.dwd_disty_common_order_serial_no_di by using join columns order_no, order_type, order_line_no when serial numbers are required.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (one to many) ods_xx.ods_cis_corp_history_serial_nbr by using join columns order_no, order_type, order_line_no when ODS historical serial numbers are required.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) ods_xx.ods_cis_corp_history_detail by using order_no, order_type, order_line_no or vend_po/order_type/sku_no when recovering ODS historical line details.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) ods_xx.ods_cis_corp_order_detail by using order_no, order_type, order_line_no or vend_po/order_type/sku_no when current order line detail is required.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) ods_xx.ods_cis_corp_carton_header by using join columns order_no, order_type when carton/shipment carton context is required.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (one to many) ods_xx.ods_cis_corp_history_profile by using order_no, order_type, and optional order_line_no; filter profile_type, profile_cat, and active = 'Y' before joining.
+ods_xx.ods_cis_corp_history_profile provides report-specific profile values such as SAPID, LINEPRICE#, ACQCLOUD, and ACQINVNO in scanned B REPORT scripts.
+ods_xx.ods_cis_corp_cpo_profile and ods_xx.ods_cis_corp_history_cpo_profile join by cpo_id or int_ref_no and can filter profile_type such as EXPSHIPDAY or EXPDELDAY with profile_cat = 'SHIP' and active = 'Y'.
+ods_xx.ods_cis_corp_history_soldto can enrich historical order sold-to context by order_no, order_type.
+ods_xx.ods_cis_corp_mc_order_ref can enrich multi-customer or order reference context by order keys according to the source report.
+
+
+# SCM, SPA, PM Claim, EU Custom, and Project Relationships
+
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (one to many) dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di by using join columns order_no, order_type, order_line_no when SCM/SPA detail is required.
+dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di (many to one) dw_xx.dwd_disty_scm_pm_claim by using SCM or claim keys when PM claim attributes are required.
+dw_xx.dwd_disty_scm_pm_claim (many to one) dim_xx.dim_pub_pm_claim_type by using join columns claim_type.
+dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di (many to one) dim_xx.dim_pub_project_info by using scm_no or project number to proj_no.
+dw_xx.dwd_disty_sales_eu_custom_di (many to one) dim_xx.dim_pub_eu_custom_map_view by using eu_map_id and eu_map_line_no.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) ods_xx.ods_cis_corp_history_eu_common by using order_no, order_type, and order_line_no = 0 when EU common/header-level fields are required; filter delete_date is null when present.
+dm_xx.dm_disty_sales_close_cpo_di (many to one) B REPORT order context by using cpo_id/int_ref_no and cpo_sku_no/sku_no when closed CPO context is needed.
+dw_xx.dwd_disty_sales_open_cpo_detail_extend can provide open CPO detail by CPO/order/product keys when B REPORT output needs open CPO context.
+dw_xx.dwd_disty_sales_open_order_detail can provide open sales order context by order_no, order_type, order_line_no when B REPORT compares shipped PL to open order data.
+
+
+# Inventory, RIO, and Recommendation Context
+
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dw_xx.dwd_disty_inv_qty_df by using sku_no and report-specific date/location filters when current inventory quantity context is required.
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dw_xx.dwd_disty_inv_aging_df by using sku_no and report-specific date/location filters when inventory aging context is required.
+dw_xx.dwd_disty_inv_aging_df and dw_xx.dwd_disty_inv_qty_df must be pre-aggregated to SKU, location, vendor, or VPL grain before joining to PL order-line output.
+dw_xx.dwd_disty_inv_rio_req_header (one to many) dw_xx.dwd_disty_inv_rio_req_detail by using join columns rio_req_no.
+dw_xx.dwd_disty_inv_rio_req_header (one to many) dw_xx.dwd_disty_inv_rio_req_consumed by using join columns rio_req_no.
+dw_xx.dwd_disty_inv_rio_req_detail can join to inventory or PL SKU context by sku_no or td_mat when RIO request demand is compared with inventory or B REPORT sales.
+ods_xx.ods_daas_mygbldaas_smb_auto_recommend can enrich product recommendation reports by recommend_sku_no to sku_no; de-duplicate recommendation rows before joining to order-line output.
+
+
+# HY, WW, and Region-Specific Source Notes
+
+dw_xx.dwd_hyve_common_pos_di is a HY-specific POS source used as supplemental order context. Keep Region or concrete HY schema semantics when reproducing a specific HY report.
+Regional schemas such as dw_hyus, dw_hyuk, dw_hycn, dw_wcla, dw_us, dw_ca, and dw_ww are normalized to dw_xx for reference only. Generated SQL for a concrete report should use the target region schema required by the user.
+
+
+# Output and Grain Notes
+
+Use dw_xx.dwd_disty_common_dw_orders_pl_extend_di as the driving source when the report asks for sales, PL, margin, NGM/OPLGM/TGM/GM, customer/product/vendor/VPL profitability, territory performance, or order-line B REPORT detail.
+Use dw_xx.dws_disty_brpt_pl_extend_mtd as the driving source when the report asks for month-to-date or monthly summarized B REPORT PL metrics.
+Use dw_xx.dwd_disty_pub_dw_orders_extend_di when the report needs lightweight DW order extension fields and not the full PL/margin extension set.
+Preserve report-specific date windows, order_type filters, sales territory filters, customer/vendor/SKU/VPL hardcoded lists, profile_type filters, and active/delete flags before adding new joins.
+Prefer LEFT JOIN from PL fact rows to optional enrichment tables when the report must preserve shipped order-line rows.
+Pre-aggregate or rank one-to-many enrichment tables before final output to avoid inflating order-line sales and margin amounts.

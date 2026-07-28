@@ -1,0 +1,95 @@
+# Vertica VPO special logic reference
+#
+# Scope
+# - Derived from 9 existing Vertica VPO rds_xxx_rtv.sp scripts.
+# - Vertica scripts are identified by matching rds_xxx_gen.sp files that contain rdsetl.rds_tmp.
+# - VPO scripts are identified by SELECT/FROM usage of dw_xx.dwd_disty_common_po_basic.
+# - Use xx as the region placeholder, matching table list.txt and table relationship.txt.
+# - The rules below focus on uncommon, non-default, but reusable VPO patterns. Do not apply hardcoded report filters unless the request or source report requires them.
+
+
+1. Vertica VPO reports use `rdsetl.rds_tmp` and `rdsetl.rds_tmp_body` as final output tables. Use `CREATE LOCAL TEMPORARY TABLE ... ON COMMIT PRESERVE ROWS AS` for intermediate tables, then recreate `rdsetl.rds_tmp` and `rdsetl.rds_tmp_body`.
+
+2. Use `dw_xx.dwd_disty_common_po_basic` as the main VPO/open PO source. VPO reports commonly filter `order_type = 2` for purchase order rows, but some reports use PO basic only to backfill document or open quantity from shipped POS or AP context.
+
+3. Active/open PO logic is stricter than simply reading PO basic. For open PO value or open PO quantity, scanned reports use combinations of:
+   - `delete_date is null`
+   - `line_delete_date is null`
+   - `closed_date is null`
+   - `open_qty <> 0`
+   - `ifnull(order_qty,0) <> ifnull(rec_qty,0)`
+   - optional `order_type = 2`
+   Preserve these filters when the request asks for open PO, open dropship PO, or AP open PO exposure.
+
+4. Recently closed PO reports use `closed_date`, not entry date. Existing reports use a month-start exception:
+   - if current day is 1, start from the first day of the previous month
+   - otherwise start from `current_date() - 7`
+   Then filter `closed_date < current_date()`.
+   Use this rolling closed-date window only when matching recently closed PO report behavior.
+
+5. Some reports filter PO basic by `prod_code = 6900` and output amount/payment fields such as `a_amount`, `currency_type`, `pay_method`, and `po_confirmation`. Treat `prod_code` as report criteria, not a universal VPO filter.
+
+6. AP/vendor balance reports combine AP aging and open PO exposure. A common pattern is:
+   - vendor-level AP base from `dm_xx.dm_ap_aging_header_df` with `date_flag = current_date() - 1` and `sum_level = 'V'`
+   - debit/unvouched amount from `sum_level = 'OT'` with specific debit `terms_no`
+   - credit/accrual amount from `sum_level = 'VCD' and terms_no = 'CR'` or `sum_level = 'OT' and terms_no = '2'`
+   - open PO from `dw_xx.dwd_disty_common_po_basic` grouped by `vend_no`
+   - final balance as total AP plus accruals minus inventory.
+   Preserve the AP metric formulas from the source report; do not treat all `sum_level` values as interchangeable.
+
+7. Open dropship PO quantity can be calculated from PO basic by `sku_no` with `order_type = 2`, `to_loc_no = 98`, `delete_date is null`, and `line_delete_date is null`. This is used to compare dropship PO demand against inventory on-hand/on-order and shipped POS quantities.
+
+8. Inventory comparison reports may combine three different measures by SKU:
+   - current inventory from `dw_xx.dwd_disty_inv_qty_df` with `date_flag = current_date() - 1`
+   - open dropship quantity from PO basic
+   - prior/month-to-date/year-to-date shipped quantity from POS.
+   Keep each measure at SKU grain before final joining.
+
+9. Vendor invoice number can require multi-step document fallback. Existing reports first resolve `doc_no` from PO basic and AP hold, then join `ods_xx.ods_cis_corp_vend_doc` to get `vend_inv_no`.
+   Common fallback order:
+   - PO basic by resolved document order number and SKU
+   - AP hold by resolved document order number and SKU
+   - PO basic by original order number and SKU
+   - AP hold by original order number and SKU
+   - PO basic by `int_ref_no` and SKU
+   - AP hold by `int_ref_no` and SKU
+   Stop when `vend_inv_no` is no longer null.
+
+10. Shipped POS to VPO document linkage can use `synnex_po_no = po_basic.order_no`, `order_type = 2`, and matching `order_line_no`. If PO basic has no document number, AP hold can be used as fallback with the same keys.
+
+11. SCM/SPA rows are one-to-many per order line and are often pivoted into a fixed number of columns. Use `row_number() over(partition by order_no, order_type, order_line_no order by scm_no)` first, then pivot `rn = 1`, `rn = 2`, `rn = 3` into columns such as `scm_no_1`, `spa_no1`, `spa_ref_no1`, approved cost, rebate amount, and vendor approval reference.
+
+12. When SCM names are required, join pivoted SCM numbers to `dim_xx.dim_pub_project_info` by `scm_no` to `proj_no`. Do this after pivoting if the final output has fixed SCM columns.
+
+13. EU custom DEAL ID is resolved through the CEDM mapping path:
+    - join sales EU custom to EU custom map by `eu_map_id` and `eu_map_line_no`
+    - join map `map_data_desc` to list box `code_value`
+    - filter `list_box_code = 'CEDM'` and `code_desc = 'DEAL ID'`
+    - use `order_line_no = 0` for header-level deal id in scanned reports.
+    Prefer this semantic mapping over hardcoded map ids when the requested field is DEAL ID.
+
+14. Customer address/contact enrichment from `dim_xx.dim_pub_customer_address_contacts_info` is one-to-many. Existing reports choose one row with `row_number() over(partition by cust_no order by entry_datetime_contact desc)` and filter `rn = 1`. Use this to avoid duplicating shipped/VPO lines.
+
+15. Customer part number enrichment uses `ods_xx.ods_cis_corp_cust_part_no` by joining report SKU to `synnex_sku_no`. Use it only when the request asks for customer part number or customer-specific item identifiers.
+
+16. Order status for VPO/open order style reports may come from `ods_xx.ods_cis_corp_order_header` dates. Preserve the source report's precedence when deriving status, commonly:
+    - `delete_date` -> Cancelled
+    - `schedule_date` -> Expired
+    - `invoice_date` -> Invoiced
+    - `ship_date` -> Shipped
+    - `qc_date` -> QCDate
+    - `pick_date` -> Picked
+    - `credit_rel_date` -> CreditRel
+    - `sales_rel_date` -> SalesRel
+    - `issue_date` -> Queued
+    - otherwise Open.
+
+17. PO/VPO reports often use vendor, product, customer, part, prod_code, and territory filters that are highly report-specific. Keep these filters in the earliest staging table and do not copy them into new SQL unless the user request or source report explicitly requires them.
+
+18. Component lines should be excluded from shipped POS driven VPO reports with `order_line_type not in ('Comp')` or equivalent. Preserve this filter when POS metrics are used to support VPO output.
+
+19. Serial and asset-tag output can require branching by serial count. Some reports join serial rows when serials exist, output blank serial/asset fields for multi-serial summary rows, and include non-serial rows separately. Keep this branch structure if the report needs one row per serialized asset or a special placeholder for missing serials.
+
+20. Vertica VPO scripts may include region schemas such as `dw_wcla` or `dim_wcla`. Normalize metadata to `dw_xx` and `dim_xx`, but keep concrete region schemas in generated SQL when reproducing a specific regional report.
+
+21. Use report-specific date formatting. Existing VPO outputs use formats such as `to_char(date_col, 'MM/DD/YYYY HH24:MI:SS')`, `TO_CHAR(date_col, 'mm/dd/YYYY')`, and raw date columns. Keep display formatting separate from filter logic.

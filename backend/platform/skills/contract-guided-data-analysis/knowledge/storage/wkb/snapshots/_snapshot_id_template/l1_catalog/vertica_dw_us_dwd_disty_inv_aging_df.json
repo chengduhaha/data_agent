@@ -1,0 +1,247 @@
+{
+  "entity_id": "dw_us.dwd_disty_inv_aging_df",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dw_us.dwd_disty_inv_aging_df",
+  "schema_name": "dw_us",
+  "table_name": "dwd_disty_inv_aging_df",
+  "columns": [
+    {
+      "name": "view_level",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "view_key1",
+      "type": "int"
+    },
+    {
+      "name": "view_key2",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "view_key3",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "inv_type",
+      "type": "int"
+    },
+    {
+      "name": "sku_no",
+      "type": "int"
+    },
+    {
+      "name": "u_version",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "prod_code",
+      "type": "int"
+    },
+    {
+      "name": "vend_code",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_no",
+      "type": "int"
+    },
+    {
+      "name": "part_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ave_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "oh_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "it_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "ext_oh_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "ext_it_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "on_hand_qty",
+      "type": "int"
+    },
+    {
+      "name": "ohand_qty",
+      "type": "int"
+    },
+    {
+      "name": "intran_in",
+      "type": "int"
+    },
+    {
+      "name": "itran_qty",
+      "type": "int"
+    },
+    {
+      "name": "qty1_30",
+      "type": "int"
+    },
+    {
+      "name": "qty31_60",
+      "type": "int"
+    },
+    {
+      "name": "qty61_90",
+      "type": "int"
+    },
+    {
+      "name": "qty90_up",
+      "type": "int"
+    },
+    {
+      "name": "age1_30",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "age31_60",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "age61_90",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "age90_up",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "qty91_120",
+      "type": "int"
+    },
+    {
+      "name": "qty121_150",
+      "type": "int"
+    },
+    {
+      "name": "qty151_180",
+      "type": "int"
+    },
+    {
+      "name": "qty180_up",
+      "type": "int"
+    },
+    {
+      "name": "qty240_up",
+      "type": "int"
+    },
+    {
+      "name": "qty360_up",
+      "type": "int"
+    },
+    {
+      "name": "age91_120",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "age121_150",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "age151_180",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "age180_up",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "age240_up",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "age360_up",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "qty181_210",
+      "type": "int"
+    },
+    {
+      "name": "qty211_240",
+      "type": "int"
+    },
+    {
+      "name": "qty241_270",
+      "type": "int"
+    },
+    {
+      "name": "qty271_300",
+      "type": "int"
+    },
+    {
+      "name": "qty301_330",
+      "type": "int"
+    },
+    {
+      "name": "qty331_360",
+      "type": "int"
+    },
+    {
+      "name": "age181_210",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "age211_240",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "age241_270",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "age271_300",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "age301_330",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "age331_360",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "date_flag",
+      "type": "date"
+    },
+    {
+      "name": "company_no",
+      "type": "int"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp"
+    }
+  ],
+  "column_count": 56,
+  "partition_keys": [
+    "date_flag"
+  ],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dwd_disty_inv_aging_df.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:49.356636+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dwd_disty_inv_aging_df.md"
+}

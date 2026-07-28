@@ -48,6 +48,22 @@ describe("stripResearchPreamble", () => {
       "Based on the database query for PM 706187, NGM% fell."
     );
   });
+
+  it("does not discard a streamed Chinese answer when wrap-up appends ## Summary", () => {
+    const chinese = `C. 供应商维度分析
+
+| Vendor | Feb | Mar |
+| :--- | :--- | :--- |
+| NVIDIA | 1 | 2 |
+
+D. 订单与交叉维度分析
+该单一业务链的 NGM% 从 2 月的 3.783% 降至 3 月的 1.767%。由于其绝对体量巨大，该客户组合是主要驱动因素。`;
+    const raw = `Let me dig into vendors.\n\n${chinese}\n\n## Summary\n\nNGM% fell due to mix.`;
+    const fixed = stripResearchPreamble(raw);
+    expect(fixed).toContain("供应商维度分析");
+    expect(fixed).toContain("主要驱动因素");
+    expect(fixed).not.toMatch(/^## Summary/);
+  });
 });
 
 describe("reassembleFragmentedTable", () => {

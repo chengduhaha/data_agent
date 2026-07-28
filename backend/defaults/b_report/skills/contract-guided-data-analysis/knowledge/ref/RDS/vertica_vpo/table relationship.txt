@@ -1,0 +1,87 @@
+# Vertica VPO table relationships
+#
+# Country schemas are normalized with xx in this file.
+#
+# Scope
+#   Generated from Vertica VPO rds_xxx_rtv.sp scripts identified by matching
+#   Vertica *_gen.sp files that contain rdsetl.rds_tmp.
+#   VPO scripts are identified by SELECT/FROM usage of dwd_disty_common_po_basic.
+#   Use dw_xx.dwd_disty_common_po_basic as the main VPO/open PO source.
+#
+# Common grain
+#   PO header/line grain: order_no, order_type, order_line_no
+#   PO/SKU grain: order_no, order_type, sku_no, and sometimes order_line_no
+#   Product grain: sku_no
+#   Vendor grain: vend_no
+#   SCM/SPA grain: order_no, order_type, order_line_no, scm_no/spa_no
+
+
+# Core VPO / PO Basic Relationships
+
+dw_xx.dwd_disty_common_po_basic (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_common_po_basic (many to one) dim_xx.dim_pub_part_info_rt by using join columns sku_no
+dw_xx.dwd_disty_common_po_basic should filter order_type = 2 when the report is specifically about VPO/PO rows.
+dw_xx.dwd_disty_common_po_basic should filter delete_date is null and line_delete_date is null for active/open PO rows unless deleted/cancelled PO lines are requested.
+dw_xx.dwd_disty_common_po_basic should filter closed_date is null, open_qty <> 0, and ifnull(order_qty,0) <> ifnull(rec_qty,0) when calculating open PO value or open PO quantity.
+dw_xx.dwd_disty_common_po_basic can be filtered by closed_date for recently closed PO reports; preserve the report-specific date window.
+dw_xx.dwd_disty_common_po_basic can be filtered by entry_datetime, vend_no, prod_code, to_loc_no, order_qty <> rec_qty, or vendor/product criteria; treat these as report criteria, not universal VPO filters.
+
+
+# Product, Inventory, POS, and Open Dropship Relationships
+
+dw_xx.dwd_disty_inv_qty_df (many to one) dim_xx.dim_pub_part_info_rt by using join columns sku_no
+dw_xx.dwd_disty_inv_qty_df (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_inv_qty_df (one to one/many) dw_xx.dwd_disty_common_po_basic by using join columns sku_no when comparing stock on hand/on order to open dropship PO quantity.
+dw_xx.dwd_disty_inv_qty_df should usually filter date_flag = current_date() - 1 for daily inventory snapshots.
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_common_pos_di (one to one/many) dw_xx.dwd_disty_common_po_basic by using join columns synnex_po_no to order_no and order_line_no when shipped POS is tied back to a VPO.
+dw_xx.dwd_disty_common_pos_di should filter order_line_type not in ('Comp') when component lines should be excluded from shipped sales metrics.
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dw_xx.dwd_disty_common_po_basic by using join columns order_no to int_ref_no or int_ref_no to order_no depending on whether the report starts from sales order or VPO context.
+dw_xx.dwd_pub_common_history_header_extend (many to one) dw_xx.dwd_disty_common_po_basic by using join columns int_ref_no to order_no when historical order context is used to backfill VPO document references.
+
+
+# AP Hold, Vendor Document, and AP Aging Relationships
+
+dm_xx.dm_ap_aging_header_df (many to one) dim_xx.dim_pub_manager by using join columns analyst_id to userid
+dm_xx.dm_ap_aging_header_df (one to one/many) dw_xx.dwd_disty_common_po_basic by using join columns vend_no when calculating open PO value for AP/vendor balance reports.
+dm_xx.dm_ap_aging_header_df should filter date_flag = current_date() - 1 and sum_level according to the metric: sum_level = 'V' for vendor-level balances, sum_level = 'OT' for open transaction/debit calculations, and report-specific credit/accrual criteria.
+dw_xx.dwd_disty_ap_hold_df (one to one/many) dw_xx.dwd_disty_common_po_basic by using join columns order_no, order_type, order_line_no, sku_no when PO document numbers can come from AP hold instead of PO basic.
+dw_xx.dwd_disty_ap_hold_df (many to one) ods_xx.ods_cis_corp_vend_doc by using join columns doc_no
+dw_xx.dwd_disty_common_po_basic (many to one) ods_xx.ods_cis_corp_vend_doc by using join columns doc_no
+ods_xx.ods_cis_corp_vend_doc is used to enrich vend_inv_no from doc_no after the report has resolved the document number from PO basic or AP hold.
+
+
+# Order Header, Carton, Serial, and Customer Part Relationships
+
+dw_xx.dwd_disty_common_po_basic (many to one) ods_xx.ods_cis_corp_order_header by using join columns order_no, order_type when order status, ship-to, or operational dates are needed.
+ods_xx.ods_cis_corp_order_header should be joined by order_no and order_type, not order_no alone, unless the source report proves order_type is fixed.
+dw_xx.dwd_disty_common_po_basic (one to many) ods_xx.ods_cis_corp_carton_header by using join columns order_no, order_type when tracking or carton context is required.
+dw_xx.dwd_disty_common_po_basic (many to one) ods_xx.ods_cis_corp_cust_part_no by using join columns sku_no to synnex_sku_no when customer part number is required.
+dw_xx.dwd_disty_common_order_serial_no_di (many to one) dw_xx.dwd_disty_common_po_basic by using join columns order_no, order_type, order_line_no or order_no, order_type, sku_no when serial number context is required.
+dw_xx.dwd_disty_common_order_serial_no_di should be aggregated before joining back if final output grain is PO line.
+
+
+# SCM, SPA, Project, and EU Custom Relationships
+
+dw_xx.dwd_disty_common_po_basic (one to many) dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di by using join columns order_no, order_type, order_line_no when SCM/SPA details are required.
+dw_xx.dwd_disty_common_pos_di (one to many) dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di by using join columns order_no, order_type, order_line_no when shipped POS rows need SCM/SPA details.
+dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di (many to one) dim_xx.dim_pub_project_info by using join columns scm_no to proj_no
+dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di is one-to-many per order line; use row_number() over order_no, order_type, order_line_no ordered by scm_no when reports need to pivot the first several SCM/SPA rows into columns.
+dw_xx.dwd_disty_sales_eu_custom_di (many to one) dim_xx.dim_pub_eu_custom_map_view by using join columns eu_map_id, eu_map_line_no
+dim_xx.dim_pub_eu_custom_map_view (many to one) dim_xx.dim_pub_list_box_detail by using join columns map_data_desc to code_value when resolving CEDM values such as DEAL ID.
+dw_xx.dwd_disty_sales_eu_custom_di should join order context by order_no, order_type and sometimes order_line_no = 0 for header-level EU custom fields.
+
+
+# Customer, Contact, and Manager Relationships
+
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_customer_address_contacts_info by using join columns sold_to_cust_no or bill_to_cust_no to cust_no when address/contact enrichment is required.
+dim_xx.dim_pub_customer_address_contacts_info is one-to-many per customer; use row_number() over cust_no ordered by entry_datetime_contact desc and filter rn = 1 when one contact row is needed.
+dm_xx.dm_ap_aging_header_df (many to one) dim_xx.dim_pub_manager by using join columns analyst_id to userid
+dim_xx.dim_pub_manager is used for analyst/user enrichment; join by userid-based fields such as analyst_id, entry_id, or other user id columns when present in the driving table.
+
+
+# Output and Grain Notes
+
+Use LEFT JOIN from VPO/PO base rows to optional enrichment tables such as order header, carton, customer part, SCM/SPA, EU custom, AP hold, and vend_doc to preserve PO rows.
+Pre-aggregate or de-duplicate one-to-many tables before the final join when output grain must remain one row per PO line or SKU.
+Keep report-specific vendor, product, prod_code, customer, and date filters in the earliest staging table so downstream joins stay small.

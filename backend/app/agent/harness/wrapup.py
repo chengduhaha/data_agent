@@ -32,7 +32,7 @@ _RESEARCH_TOOLS = frozenset({
 })
 
 WRAPUP_SYSTEM = """You are finishing an incomplete agent run.
-The agent ran tools but did not deliver a complete user-facing answer (step budget exhausted or stopped early).
+The agent ran tools but did not deliver a complete user-facing answer (step budget exhausted, stopped early, or the draft was truncated mid-sentence).
 
 Write a clear, complete final response for the user based ONLY on:
 - the user's latest question
@@ -42,10 +42,12 @@ Write a clear, complete final response for the user based ONLY on:
 Rules:
 - Do NOT call tools or ask to run more tools.
 - Do NOT include intermediate research narration ("Let me…", schema checks, failed query attempts).
+- If a partial answer already exists but was cut off mid-sentence, CONTINUE and complete it — do not discard or restart that analysis.
 - Start with `## Summary`, then `## Evidence` (use a proper GFM markdown table when 2+ rows), then `## Analysis approach & confidence`.
 - GFM tables: header row, `| :--- |` separator row, data rows — each on its own line with a blank line before the table.
 - State any limitations if evidence is incomplete.
 - Use markdown headings and tables when helpful.
+- Match the user's language when the transcript is clearly non-English.
 - If queries were run against a data source, cite key numbers and note validation gaps.
 - Prefer a short conclusion, supporting evidence, and caveats.
 """
@@ -53,8 +55,14 @@ Rules:
 
 def _has_synthesis_headings(text: str) -> bool:
     """True when the assistant already wrote a user-facing synthesis section."""
-    if "结论" in text:
+    if re.search(r"(?:^|\n)\s*#{0,3}\s*结论\b", text) or re.search(
+        r"(?:^|\n)\s*结论\s*[:：]", text
+    ):
         return True
+    if "结论" in text and len(text.strip()) > 200:
+        # Avoid treating a single mid-sentence mention as a finished answer when truncated.
+        if not looks_truncated(text):
+            return True
     if re.search(
         r"^##\s+(?:summary|conclusion|synthesis|answer|findings|分析)\b",
         text,
@@ -65,6 +73,75 @@ def _has_synthesis_headings(text: str) -> bool:
     if re.search(r"^##\s+[^\n#]", text, re.M):
         return True
     return False
+
+
+def looks_truncated(text: str) -> bool:
+    """Heuristic: answer stops mid-clause (common when max_tokens cuts a long report)."""
+    t = (text or "").strip()
+    if not t or len(t) < 80:
+        return False
+    last = t[-1]
+    if last in ".!?。！？…:：;；」』》)）]】|":
+        return False
+    # Ends on a markdown heading / bullet — usually intentional mid-structure, not truncation.
+    last_line = t.rsplit("\n", 1)[-1].strip()
+    if re.match(r"^(?:#{1,6}\s+\S|[-*]\s+\S|\d+\.\s+\S)", last_line):
+        return False
+    # CJK / Latin word char at end after a long body → likely cut off.
+    if re.search(r"[\w\u4e00-\u9fff]$", t):
+        # Require some structure so short replies without punctuation are not flagged.
+        if len(t) >= 120 or t.count("|") >= 4 or re.search(
+            r"(?:^|\n)\s*[A-D][\.、]\s+\S", t
+        ):
+            return True
+    return False
+
+
+def looks_like_substantial_answer(text: str) -> bool:
+    """True when streamed/checkpoint text is already a user-facing analysis body."""
+    t = (text or "").strip()
+    if not t:
+        return False
+    if _has_synthesis_headings(t) and not looks_truncated(t):
+        return True
+    if looks_truncated(t):
+        return False
+    table_pipes = t.count("|")
+    sectioned = bool(re.search(r"(?:^|\n)\s*[A-D][\.、]\s+\S{2,}", t))
+    headed = bool(re.search(r"(?:^|\n)#{2,3}\s+\S+", t))
+    cjk = len(re.findall(r"[\u4e00-\u9fff]", t))
+    based = bool(
+        re.search(r"\bBased\s*on\s+the\s+(?:database|query|evidence|contract)", t, re.I)
+    )
+    # Structured analysis can be shorter than a prose essay.
+    if sectioned and (table_pipes >= 6 or cjk >= 40) and len(t) >= 100:
+        return True
+    if len(t) < 200:
+        return False
+    if table_pipes >= 8:
+        return True
+    if sectioned and len(t) > 280:
+        return True
+    if headed and len(t) > 280:
+        return True
+    if cjk >= 120 and len(t) > 400:
+        return True
+    if based and len(t) > 280:
+        return True
+    return False
+
+
+def messages_for_current_turn(messages: list[Any]) -> list[Any]:
+    """Slice checkpoint messages to the latest user turn only."""
+    human_idxs = [
+        i
+        for i, m in enumerate(messages)
+        if str(getattr(m, "type", None) or getattr(m, "role", "")).lower()
+        in ("human", "user")
+    ]
+    if not human_idxs:
+        return list(messages)
+    return list(messages[human_idxs[-1] :])
 
 
 def needs_synthesis_wrapup(prior: str, *, query_count: int = 0, min_chars: int = 400) -> bool:
@@ -112,11 +189,21 @@ def needs_final_answer_wrapup(
     require_synthesis: bool = False,
     research_tool_count: int = 0,
     min_research_without_sql: int = 8,
+    streamed_text: str = "",
 ) -> bool:
     """True when the run should get a user-facing final answer via wrap-up."""
-    text = (prior or "").strip()
-    if _has_synthesis_headings(text):
+    combined = (streamed_text or prior or "").strip()
+    # Already have a complete substantial answer in the stream or checkpoint.
+    if looks_like_substantial_answer(combined) and not looks_truncated(combined):
         return False
+    text = (prior or "").strip()
+    if _has_synthesis_headings(text) and not looks_truncated(text):
+        return False
+    # Truncated synthesis still needs a completion pass.
+    if looks_truncated(combined) and (
+        query_count > 0 or research_tool_count > 0 or len(combined) > 400
+    ):
+        return True
     if needs_synthesis_wrapup(text, query_count=query_count):
         return True
     if require_synthesis and (text or research_tool_count > 0 or query_count > 0):
@@ -144,6 +231,10 @@ def missing_answer_in_stream(streamed: str, checkpoint: str) -> str:
         if ckpt.startswith(streamed_text):
             return ckpt[len(streamed_text) :]
         return ckpt
+    # Prefer the more complete of streamed vs checkpoint when both look like answers.
+    if looks_like_substantial_answer(streamed_text) and not looks_truncated(streamed_text):
+        if looks_truncated(ckpt) or len(streamed_text) >= len(ckpt):
+            return ""
     if _has_synthesis_headings(ckpt) and not _has_synthesis_headings(streamed_text):
         return ckpt
     if not streamed_text:
@@ -213,7 +304,9 @@ async def stream_wrapup_tokens(
         logger.debug("wrap-up could not load agent state", exc_info=True)
         raw_messages = []
 
-    context = _build_wrapup_context(list(raw_messages))
+    # Only the latest user turn — avoid leaking prior-question answers into wrap-up.
+    turn_messages = messages_for_current_turn(list(raw_messages))
+    context = _build_wrapup_context(turn_messages)
     thread_id = str(config.get("configurable", {}).get("thread_id") or "default")
     run_segment = int(config.get("configurable", {}).get("run_segment") or 1)
     evidence_text = get_evidence_snapshot(thread_id, run_segment).as_text()
@@ -262,9 +355,10 @@ async def invoke_wrapup(
     return "".join(parts).strip()
 
 
-def last_ai_text(messages: list[Any]) -> str:
+def last_ai_text(messages: list[Any], *, current_turn_only: bool = True) -> str:
     """Last non-empty assistant text (skips trailing empty AI turns after tool calls)."""
-    for msg in reversed(messages):
+    scoped = messages_for_current_turn(messages) if current_turn_only else messages
+    for msg in reversed(scoped):
         role = getattr(msg, "type", None) or getattr(msg, "role", "")
         if str(role).lower() not in ("ai", "assistant"):
             continue
@@ -274,8 +368,9 @@ def last_ai_text(messages: list[Any]) -> str:
     return ""
 
 
-def count_research_tool_calls(messages: list[Any]) -> int:
+def count_research_tool_calls(messages: list[Any], *, current_turn_only: bool = True) -> int:
     """Count filesystem / KB research tool invocations in checkpoint messages."""
+    scoped = messages_for_current_turn(messages) if current_turn_only else messages
     count = 0
 
     def _maybe_add(tool: str) -> None:
@@ -284,7 +379,7 @@ def count_research_tool_calls(messages: list[Any]) -> int:
         if name in _RESEARCH_TOOLS:
             count += 1
 
-    for msg in messages:
+    for msg in scoped:
         for tc in getattr(msg, "tool_calls", None) or []:
             if isinstance(tc, dict):
                 _maybe_add(str(tc.get("name") or ""))
@@ -293,8 +388,9 @@ def count_research_tool_calls(messages: list[Any]) -> int:
     return count
 
 
-def count_sql_evidence_in_messages(messages: list[Any]) -> int:
+def count_sql_evidence_in_messages(messages: list[Any], *, current_turn_only: bool = True) -> int:
     """Count distinct SQL queries invoked in checkpoint messages (cross-turn evidence)."""
+    scoped = messages_for_current_turn(messages) if current_turn_only else messages
     seen: set[str] = set()
 
     def _maybe_add(tool: str, raw_args: Any) -> None:
@@ -320,7 +416,7 @@ def count_sql_evidence_in_messages(messages: list[Any]) -> int:
             if isinstance(sql, str) and sql.strip():
                 seen.add(sql.strip())
 
-    for msg in messages:
+    for msg in scoped:
         for tc in getattr(msg, "tool_calls", None) or []:
             if isinstance(tc, dict):
                 _maybe_add(str(tc.get("name") or ""), tc.get("args"))

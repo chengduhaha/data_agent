@@ -1,0 +1,157 @@
+# -*- coding: utf-8 -*-
+
+from synnex.bigdata import conf
+from synnex.bigdata.pyspark import run_sql
+
+"""
+dm of BD, do not has project_no and task_no dimensions. So lead to all metrics-amount multiplied!
+"""
+# dw_${country}.dws_disty_brpt_bd_proj_task_1d
+
+
+def main():
+    exec_sql()
+
+
+def exec_sql():
+    run_sql("""
+    insert overwrite table dm_${country}.dm_disty_brpt_bd_rep_1d partition(date_flag)
+    select
+        bd_rep_id,
+        bd_rep_name,
+        bd_mgr_id,
+        bd_mgr_name,
+        bd_dir_id,
+        bd_dir_name,
+        bd_vp_id,
+        bd_vp_name,
+        company_no,
+    
+        sum(gross_sales),
+        sum(net_sales),
+        sum(gross_cost),
+        sum(net_cost),
+        sum(scm_usage),
+        sum(ds_sales),
+        sum(stock_sales),
+        sum(ds_cost),
+        sum(stock_cost),
+        sum(ds_scm_usage),
+        sum(stock_scm_usage),
+        sum(total_unit),
+        sum(total_weight),
+    
+        sum(cgp),
+        sum(total_btl),
+        sum(tgm_amt),
+        sum(gm_amt),
+        sum(ngm_amt),
+        sum(oplgm_amt),
+    
+        sum(bo_gross_sales),
+        sum(bo_gross_cost),
+        sum(bo_total_unit),
+        sum(bo_gm_amt),
+        sum(so_gross_sales),
+        sum(so_gross_cost),
+        sum(so_total_unit),
+        sum(so_gm_amt),
+        sum(bo_age0_7),
+        sum(bo_age8_14),
+        sum(bo_age15_21),
+        sum(bo_age21_up),
+        sum(so_age0_7),
+        sum(so_age8_14),
+        sum(so_age15_21),
+        sum(so_age21_up),
+    
+        sum(ap_finance),
+        sum(inv_cost),
+        sum(inv_reserve),
+        sum(cr_risk_cterm),
+        sum(flr_synnex),
+        sum(direct_credit),
+        sum(csgn_edi_fee),
+        sum(corporate),
+        sum(sfs),
+        sum(scm_risk),
+        sum(flr_vendor),
+        sum(cust_finance_sales),
+        sum(cust_pmt_disc),
+        sum(cvr_rm),
+        sum(ar_fin_recovery),
+        sum(mfg_oh),
+        sum(cust_finance),
+        sum(rma),
+        sum(hc_sales),
+        sum(order_overhead),
+        sum(margin_share),
+        sum(ap_adj),
+        sum(pdt),
+        sum(scm_cost),
+        sum(infrastructure),
+        sum(marketing),
+        sum(coop),
+        sum(one_time_btl),
+        sum(hbtl),
+        sum(scm_profit_adj),
+        sum(hc_pm),
+        sum(hc_bd),
+        sum(btl),
+        sum(btl_sales),
+        sum(btl_backout),
+        sum(cust_rebate),
+        sum(mof),
+        sum(frt_out_load),
+        sum(frt_out_exp),
+        sum(whoh_pack),
+        sum(frt_ob_recovery),
+        sum(frt_ib_recovery),
+        sum(others),
+        sum(others_sales),
+        sum(scm_disc),
+        sum(scm_ndisc),
+        sum(frt_in),
+        sum(trans_btl),
+        sum(trans_btl_sales),
+        '${etl_timestamp}',
+        b33_flag,
+        sum(fx_cost),
+        bd_svp_id,
+        bd_svp_name,
+        sum(btl_sales_for_opl) as  btl_sales_for_opl ,       
+		sum(trans_btl_sales_for_opl) as trans_btl_sales_for_opl,   
+		sum(pdt_for_opl) as pdt_for_opl,               
+		sum(cust_rebate_for_opl) as cust_rebate_for_opl,       
+		sum(cvr_rm_for_opl) as cvr_rm_for_opl,            
+		sum(btl_backout_for_opl) as btl_backout_for_opl,       
+		sum(cust_pmt_disc_for_opl) as cust_pmt_disc_for_opl,     
+		sum(cust_finance_sales_for_opl) as cust_finance_sales_for_opl,
+		sum(rma_for_opl) as rma_for_opl,               
+		sum(ar_fin_recovery_for_opl) as ar_fin_recovery_for_opl,   
+		sum(order_overhead_for_opl) as order_overhead_for_opl,    
+		sum(frt_out_exp_for_opl) as frt_out_exp_for_opl,       
+		sum(frt_ob_recovery_for_opl) as frt_ob_recovery_for_opl,   
+		
+		sum(oplgm_plus_amt) as oplgm_plus_amt,
+        date_flag
+    from dw_${country}.dws_disty_brpt_bd_proj_task_1d
+    where date_flag between '${firstday_of_month}' and '${date_flag}'
+    group by
+        date_flag,
+        b33_flag,
+        bd_rep_id,
+        bd_rep_name,
+        bd_mgr_id,
+        bd_mgr_name,
+        bd_dir_id,
+        bd_dir_name,
+        bd_vp_id,
+        bd_vp_name,
+        bd_svp_id,
+        bd_svp_name,
+        company_no;
+    """)
+
+
+main()

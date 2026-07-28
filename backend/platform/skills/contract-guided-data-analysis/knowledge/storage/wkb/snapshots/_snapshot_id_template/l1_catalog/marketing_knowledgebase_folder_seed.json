@@ -1,0 +1,20 @@
+{
+  "seed_id": "knowledgebase.marketing.folder",
+  "layer": "l1_catalog",
+  "domain": "marketing",
+  "source_folder": "target/knowledgebase/marketing",
+  "documents": [
+    "target/knowledgebase/marketing/idc_delivery_month_data.md",
+    "target/knowledgebase/marketing/idc_delivery_month_data_init.md",
+    "target/knowledgebase/marketing/idc_delivery_week_data.md",
+    "target/knowledgebase/marketing/idc_delivery_week_data_init.md",
+    "target/knowledgebase/marketing/literal_parameters.md",
+    "target/knowledgebase/marketing/ods_etl_marketing_idc_raw_data_month.md",
+    "target/knowledgebase/marketing/ods_etl_marketing_idc_raw_data_week.md",
+    "target/knowledgebase/marketing/read_hdfs.md",
+    "target/knowledgebase/marketing/read_hdfs_monthly.md",
+    "target/knowledgebase/marketing/readme.md",
+    "target/knowledgebase/marketing/status_output.md"
+  ],
+  "notes": "Folder-level L1 catalog seed for all marketing knowledgebase docs."
+}

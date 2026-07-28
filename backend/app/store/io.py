@@ -24,6 +24,7 @@ from app.store.paths import (
     subagents_path,
     threads_meta_path,
 )
+from app.store import paths as store_paths
 from app.store.schemas import (
     McpConfig,
     SkillInfo,
@@ -197,38 +198,47 @@ def _list_skills_in_dir(
 async def list_skills(user_id: str, cfg: UserConfig | None = None) -> list[SkillInfo]:
     ensure_user_layout(user_id)
     disabled = set(cfg.disabled_skills) if cfg else None
-    builtin = _list_skills_in_dir(BUILTIN_SKILLS_DIR, "builtin", disabled_skills=disabled)
-    org = _list_skills_in_dir(ORG_SKILLS_DIR, "org", disabled_skills=disabled)
+    builtin = _list_skills_in_dir(store_paths.BUILTIN_SKILLS_DIR, "builtin", disabled_skills=disabled)
+    # Org bundle is the live shared mount; platform catalog fills gaps / registry archive.
+    org = _list_skills_in_dir(store_paths.ORG_SKILLS_DIR, "org", disabled_skills=disabled)
+    org_names = {s.name for s in org}
+    platform = [
+        s
+        for s in _list_skills_in_dir(store_paths.PLATFORM_SKILLS_DIR, "org", disabled_skills=disabled)
+        if s.name not in org_names
+    ]
     user = _list_skills_in_dir(skills_dir(user_id), "user", disabled_skills=disabled)
-    return builtin + org + user
+    return builtin + org + platform + user
 
 
 async def get_skill(user_id: str, name: str, source: str = "user") -> SkillInfo | None:
     ensure_user_layout(user_id)
     if source == "builtin":
-        root = BUILTIN_SKILLS_DIR
+        roots = [store_paths.BUILTIN_SKILLS_DIR]
     elif source == "org":
-        root = ORG_SKILLS_DIR
+        roots = [store_paths.ORG_SKILLS_DIR, store_paths.PLATFORM_SKILLS_DIR]
     else:
-        root = skills_dir(user_id)
-    skill_md = root / name / "SKILL.md"
-    if not skill_md.exists():
-        for info in _list_skills_in_dir(root, source):
-            if info.name == name:
-                skill_md = Path(info.path)
-                break
-        else:
-            return None
-    content = skill_md.read_text(encoding="utf-8")
-    cfg = await load_user_config(user_id)
-    return _skill_info_from_content(
-        content,
-        fallback_name=name,
-        source=source,
-        path=skill_md,
-        with_content=True,
-        disabled_skills=set(cfg.disabled_skills),
-    )
+        roots = [skills_dir(user_id)]
+    for root in roots:
+        skill_md = root / name / "SKILL.md"
+        if not skill_md.exists():
+            for info in _list_skills_in_dir(root, source):
+                if info.name == name:
+                    skill_md = Path(info.path)
+                    break
+            else:
+                continue
+        content = skill_md.read_text(encoding="utf-8")
+        cfg = await load_user_config(user_id)
+        return _skill_info_from_content(
+            content,
+            fallback_name=name,
+            source=source,
+            path=skill_md,
+            with_content=True,
+            disabled_skills=set(cfg.disabled_skills),
+        )
+    return None
 
 
 async def save_user_skill(user_id: str, name: str, content: str) -> SkillInfo:
@@ -247,6 +257,88 @@ async def save_user_skill(user_id: str, name: str, content: str) -> SkillInfo:
         content=content,
         editable=True,
     )
+
+
+async def install_user_skill_from_zip(user_id: str, data: bytes) -> SkillInfo:
+    """Extract a skill.zip into the user's personal skills directory (overwrite same name)."""
+    from app.platform.skills_zip import extract_skill_zip
+
+    ensure_user_layout(user_id)
+    skill_dir, skill_name = extract_skill_zip(data, skills_dir(user_id))
+    skill_md = skill_dir / "SKILL.md"
+    if not skill_md.exists():
+        raise FileNotFoundError(f"SKILL.md missing after unzip for {skill_name}")
+    content = skill_md.read_text(encoding="utf-8")
+    return _skill_info_from_content(
+        content,
+        fallback_name=skill_name,
+        source="user",
+        path=skill_md,
+        with_content=True,
+    )
+
+
+def _skill_pack_version(skill_dir: Path) -> str:
+    pack_path = skill_dir / "pack.yaml"
+    if not pack_path.exists():
+        return ""
+    try:
+        import yaml
+
+        data = yaml.safe_load(pack_path.read_text(encoding="utf-8")) or {}
+    except Exception:
+        return ""
+    if isinstance(data, dict):
+        return str(data.get("version") or "").strip()
+    return ""
+
+
+async def publish_user_skill_to_platform(user_id: str, name: str) -> dict[str, Any]:
+    """Copy a personal skill into the platform shared catalog (overwrite same name).
+
+    Writes ``backend/platform/skills/{name}`` and mirrors into the org skills dir so
+    agents already mounting ``/skills/org/`` pick up the new version. Built-in
+    platform skills under ``skills_builtin`` cannot be overwritten.
+    """
+    from app.platform.editors import is_platform_editor
+    from app.platform.registry_store import record_skill_publish
+    from app.platform.skills_zip import publish_skill_dir
+
+    ensure_user_layout(user_id)
+    if not is_platform_editor(user_id):
+        raise PermissionError("Not allowed to publish platform skills")
+
+    safe = "".join(c for c in name if c.isalnum() or c in "-_").strip("-_") or name
+    src = skills_dir(user_id) / safe
+    if not (src / "SKILL.md").exists():
+        raise FileNotFoundError(f"Personal skill not found: {safe}")
+
+    if (store_paths.BUILTIN_SKILLS_DIR / safe / "SKILL.md").exists():
+        raise ValueError(f"Cannot overwrite built-in platform skill: {safe}")
+
+    replaced_platform = (store_paths.PLATFORM_SKILLS_DIR / safe / "SKILL.md").exists()
+    replaced_org = (store_paths.ORG_SKILLS_DIR / safe / "SKILL.md").exists()
+
+    store_paths.PLATFORM_SKILLS_DIR.mkdir(parents=True, exist_ok=True)
+    publish_skill_dir(src, store_paths.PLATFORM_SKILLS_DIR / safe)
+
+    if store_paths.ORG_BUNDLE_DIR is not None:
+        store_paths.ORG_SKILLS_DIR.mkdir(parents=True, exist_ok=True)
+        publish_skill_dir(src, store_paths.ORG_SKILLS_DIR / safe)
+
+    version = _skill_pack_version(src)
+    record_skill_publish(safe, published_by=user_id, version=version)
+
+    return {
+        "ok": True,
+        "name": safe,
+        "version": version,
+        "replaced": replaced_platform or replaced_org,
+        "platform_path": str(store_paths.PLATFORM_SKILLS_DIR / safe),
+        "org_path": str(store_paths.ORG_SKILLS_DIR / safe)
+        if store_paths.ORG_BUNDLE_DIR is not None
+        else None,
+    }
 
 
 async def delete_user_skill(user_id: str, name: str) -> bool:

@@ -1,0 +1,167 @@
+# POS special logic reference
+
+# Scope
+# - Derived from existing Vertica POS rds_xxx_rtv.sp scripts.
+# - POS scripts were identified by dw_*/dwd_disty_common_pos_di usage.
+# - Vertica scripts were identified by rdsetl.rds_tmp output usage.
+# - Scan result used for this file: 499 scripts; regions: BR=1, CA=124, MX=7, US=367.
+# - Use xx as the region placeholder, matching table list.txt and table relationship.txt.
+
+# 1. Order line type is not always a simple Comp exclusion
+# Default POS reports normally exclude component lines:
+#   order_line_type <> 'Comp'
+#
+# Historical exception patterns:
+# - Some vendor/customer sales reports include order_line_type IN ('Comp', 'Single').
+# - Some kit-level reports include order_line_type IN ('Comp', 'Kit', 'Single').
+# - Component inclusion is usually intentional when the report needs kit components, bundle economics, or vendor/manufacturer line detail.
+#
+# Rule:
+# - Default to excluding Comp unless the request mentions kit components, component detail, bundle detail, or the historical report pattern explicitly includes Comp.
+# - Never include Kit, Single, and Comp together unless the report grain and business request require all sold and component lines.
+
+# 2. Order type 114 is usually credit/protection logic
+# Existing POS scripts often exclude order_type 114 from normal sales:
+#   order_type <> 114
+#   order_type NOT IN (114)
+#
+# Historical exception:
+# - Some price-protection or trailing-credit reports keep order_type = 114 but zero out net sales for specific CPO values, such as SONY trailing credit / price protection.
+#
+# Rule:
+# - Treat order_type 114 as credit/protection behavior, not normal shipment sales.
+# - Exclude it for standard POS revenue unless the user asks for credit, price protection, RMA, or adjustment logic.
+# - If included, confirm whether amounts should be reported as actual credit values, zeroed out, or separated into adjustment columns.
+
+# 3. RMA/original order tracing uses int_ref fields
+# Some POS return/RMA scripts derive original SO and RMA values from int_ref fields:
+# - int_ref_type = 1 can indicate original SO reference.
+# - int_ref_type = 9 can indicate RMA reference.
+# - ods_xx.ods_cis_corp_rma_details may be used to recover the original SO when an RMA exists.
+#
+# Rule:
+# - For return, RMA, credit memo, or original invoice requests, inspect int_ref_type and int_ref_no before relying only on POS order_no.
+# - Use CASE logic to expose original_so_no and rma_no separately when both may exist.
+
+# 4. SPA/SCM expense detail can multiply POS rows
+# SPA/SCM tables commonly have multiple records per POS order line:
+# - dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di
+# - dw_xx.dwd_disty_scm_shipped_order_spa_di
+#
+# Common historical patterns:
+# - Use ROW_NUMBER() OVER (PARTITION BY order_type, order_no, order_line_no ORDER BY scm_no, spa_no, exp_code) to pick or pivot detail rows.
+# - Horizontally expand first/second/third SPA or SCM values into repeated column groups when the report must stay at POS order-line grain.
+# - Aggregate SPA reference numbers with LISTAGG(DISTINCT spa_ref_no ... on_overflow='TRUNCATE') when multiple references should be shown in one output row.
+#
+# Rule:
+# - Do not directly join SPA/SCM one-to-many tables into final POS output unless row multiplication is the requested grain.
+# - For order-line grain, pre-aggregate, rank, or pivot SPA/SCM in a temp table first.
+# - Include unit_exp, extend_exp, claim_type, scm_no, spa_no, spa_ref_no, approved_cost, rebate_amt, and vendor_appr_ref_no only when requested or required by the report.
+
+# 5. Net sales and cost often include unit_sum_exp
+# Several reports calculate POS amounts using price/cost plus SCM expense:
+# - extended net price: (unit_price + COALESCE(unit_sum_exp, 0)) * ship_qty
+# - extended cost: (unit_cost + COALESCE(unit_sum_exp, 0)) * ship_qty
+# - SCM usage: COALESCE(unit_sum_exp, 0) * ship_qty
+#
+# Rule:
+# - Use extend_net_price from POS when the report asks for standard POS sales amount.
+# - Recalculate from unit_price + unit_sum_exp only when the historical report or user explicitly asks for net price including expense, end-user price, SPA/SCM usage, or vendor PO cost.
+# - Be consistent: if unit_sum_exp is added to price, confirm whether it should also be added to cost.
+
+# 6. Serial, asset, carton, and tracking logic is one-to-many
+# Historical scripts use several patterns:
+# - serial_no may already exist in POS and sometimes uses '*' as a delimiter; reports often replace '*' with ','.
+# - dw_xx.dwd_disty_common_order_serial_no_di and ods_xx.ods_cis_corp_history_serial_nbr provide line-level serial records.
+# - ods_xx.ods_cis_corp_carton_header provides tracking/carrier fields.
+# - LISTAGG(DISTINCT serial_or_tracking USING PARAMETERS max_length=2048 or 22048, separator=',', on_overflow='TRUNCATE') is used when one output row should contain multiple values.
+#
+# Rule:
+# - If report grain is order-line, aggregate serial/tracking values before the final join.
+# - If report grain is serial-level, join serial tables directly and expect multiple rows per POS line.
+# - For tracking numbers, use carton/history carton sources when POS base does not carry the required value.
+
+# 7. End-user and EU custom logic may come from multiple places
+# End-user fields appear in POS base and EU custom tables:
+# - POS fields such as end_user_po, eu_company_name, eu address/contact fields.
+# - dw_xx.dwd_disty_sales_eu_custom_di
+# - dim_xx.dim_pub_eu_custom_map_view
+# - ods_xx.ods_cis_corp_order_eu_custom and ods_xx.ods_cis_corp_history_eu_custom
+#
+# Rule:
+# - Prefer POS base fields when they satisfy the request.
+# - Join EU custom tables only when the report asks for mapped end-user attributes, custom EU fields, or history/order EU details not present in POS.
+# - EU custom tables may be one-to-many by order line; dedupe or aggregate when preserving POS line grain.
+
+# 8. Drop ship logic is often inferred, not just selected
+# Historical patterns:
+# - from_loc_no = 98 can indicate drop ship.
+# - Some reports derive drop_ship as 'DROP'/'STCK' or 'Y'/'N'.
+# - Some reports update POS temp rows from history header extend to populate drop_ship, freight, FDS, or added freight values.
+#
+# Rule:
+# - For drop ship requests, check whether POS base has drop_ship. If not, derive from from_loc_no = 98 or enrich from history header tables.
+# - Keep derived flag labels aligned with the requested output format.
+
+# 9. Freight, FDS, and order expense may require history/header enrichment
+# Historical scripts use fields such as frt, fds, fadd, order_expense_line_no, unit_exp, extend_exp, and unit_sum_exp.
+#
+# Rule:
+# - POS base amounts may not include every freight or expense component requested.
+# - Use history header/detail expense or SCM/SPA detail tables when the report asks for freight, FDS, added freight, rebate, claim, approved cost, or expense code.
+# - Be explicit whether the output is unit amount or extended amount.
+
+# 10. Currency and regional AR currency are not uniform
+# Historical scripts output hardcoded or source currency values such as CAD, BRL, vend_currency, and AR currency.
+#
+# Rule:
+# - For standard POS amounts, keep source currency from POS when available.
+# - For AR or credit context reports, AR currency can differ from vendor currency and may be region-specific.
+# - Do not convert currency unless exchange_rate or conversion rules are present in the report request or reference script.
+
+# 11. VPC/VPG, category, and ASC606 logic can require latest-row selection
+# Some reports enrich products with VPC/VPG groups, category type, and ASC606 profile fields:
+# - VPC/VPG values may be aggregated with LISTAGG by vpl_no and vend_no.
+# - Category/ASC606 logic may use ods_xx.ods_dw_prod_dws_dw_param_xref and ROW_NUMBER() by sku_no ordered by entry_datetime DESC to pick the latest mapping.
+#
+# Rule:
+# - When product grouping, VPC/VPG, category type, or ASC606 is requested, do not assume a single static row.
+# - Use latest-row filtering or aggregation before joining to POS.
+
+# 12. Sales territory and hierarchy fields can be point-in-time sensitive
+# POS base has sales_terr and territory/user names in some scripts, while hierarchy tables provide richer roles.
+#
+# Rule:
+# - Use POS base fields for the shipped transaction's captured territory when available.
+# - Use dim_xx.dim_pub_sales_hierarchy_primary_role_by_terr_view for current primary hierarchy fields.
+# - Use dim_xx.dim_pub_sales_hierarchy_by_terr_user_role only when role-level detail is required; filter role and primary status to avoid multiplying rows.
+
+# 13. Customer and credit context reports use AR/doc tables, not only POS
+# Some POS reports combine POS sales with AR, credit limit, collector, due date, aged days, pending amount, and customer document information.
+#
+# Rule:
+# - For credit exposure, AR aging, collector, or payment status reports, join AR/customer document tables by cust_no, invoice_no, doc_no, or related document keys.
+# - Keep sales metrics from POS separate from AR balance/credit metrics; do not sum them together unless explicitly requested.
+
+# 14. Inventory/RIO/run-rate context is supplemental
+# A small set of POS scripts joins inventory, aging, RIO, or IPS run-rate tables.
+#
+# Rule:
+# - Only join inventory context when the report asks for on-hand, available, aging, RIO, replenishment, run-rate, or inventory location metrics.
+# - Join by sku_no and whse_no/location when possible, and avoid changing POS shipment grain.
+
+# 15. ODS direct tables are used for gaps in curated DWD/DIM tables
+# Historical scripts sometimes join ODS tables directly for comments, profiles, cartons, history serials, RMA details, vendor documents, technical attributes, and custom fields.
+#
+# Rule:
+# - Prefer DWD/DIM tables first.
+# - Use ODS only when the required field is not available in POS/DWD/DIM or when the historical report specifically depends on ODS behavior.
+# - ODS tables often have order header, line, profile, comments, and custom-field grains; validate grain before final output.
+
+# 16. UNION logic often indicates mixed grain or mixed source
+# Some reports use UNION for combining serial-level and non-serial rows, current and historical order sources, or different order/credit categories.
+#
+# Rule:
+# - Before using UNION, confirm that each branch returns the same business grain and compatible columns.
+# - Prefer UNION ALL unless de-duplication is explicitly required.
+# - If branches mix POS line rows and child detail rows, document the expected grain in assumptions.

@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { apiGet, apiSend } from "@/lib/api";
+import { useEffect, useRef, useState } from "react";
+import { apiGet, apiSend, apiUpload } from "@/lib/api";
 
 type Skill = {
   name: string;
@@ -32,10 +32,17 @@ export default function SkillsSettingsPage() {
   const [newName, setNewName] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const zipInputRef = useRef<HTMLInputElement>(null);
 
   const [disabledSkills, setDisabledSkills] = useState<string[]>([]);
   const shared = skills.filter((s) => s.source === "builtin" || s.source === "org");
   const personal = skills.filter((s) => s.source === "user");
+  const sharedHasSameName =
+    !!selected &&
+    selected.source === "user" &&
+    skills.some((s) => s.source !== "user" && s.name === selected.name);
 
   async function refresh() {
     const data = await apiGet<{ skills: Skill[] }>("/api/skills?include_disabled=true");
@@ -65,6 +72,7 @@ export default function SkillsSettingsPage() {
 
   async function openSkill(s: Skill) {
     setError(null);
+    setStatus(null);
     const full = await apiGet<Skill>(
       `/api/skills/${encodeURIComponent(s.name)}?source=${s.source}`
     );
@@ -102,6 +110,56 @@ export default function SkillsSettingsPage() {
       setContent(body);
     } catch (e) {
       setError((e as Error).message);
+    }
+  }
+
+  async function uploadZip(file: File) {
+    setError(null);
+    setStatus(null);
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await apiUpload<{ ok: boolean; skill: Skill }>("/api/skills/upload", fd);
+      setStatus(`Uploaded personal skill: ${res.skill.name}`);
+      await refresh();
+      setSelected({ ...res.skill, editable: true, source: "user" });
+      setContent(res.skill.content || "");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setUploading(false);
+      if (zipInputRef.current) zipInputRef.current.value = "";
+    }
+  }
+
+  async function publishToPlatform() {
+    if (!selected || selected.source !== "user") return;
+    const msg = sharedHasSameName
+      ? `Publish "${selected.name}" to platform shared? This will overwrite the existing shared skill (new version).`
+      : `Publish "${selected.name}" to platform shared for all users?`;
+    if (!window.confirm(msg)) return;
+    setError(null);
+    setStatus(null);
+    setPublishing(true);
+    try {
+      const res = await apiSend<{
+        ok: boolean;
+        name: string;
+        replaced?: boolean;
+        version?: string;
+      }>(`/api/skills/${encodeURIComponent(selected.name)}/publish`, "POST");
+      const ver = res.version ? ` v${res.version}` : "";
+      setStatus(
+        res.replaced
+          ? `Published${ver} — replaced existing platform skill.`
+          : `Published${ver} to platform shared.`
+      );
+      await refresh();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setPublishing(false);
     }
   }
 
@@ -164,22 +222,39 @@ export default function SkillsSettingsPage() {
         <h1 className="font-display text-2xl text-ink-900">Skills</h1>
         <p className="mt-1 text-sm text-ink-500">
           Shared organization skills are read-only. Personal skills override by name.
+          Upload a skill.zip to install a full package, then publish to platform shared when ready.
         </p>
       </div>
       <div className="grid gap-4 lg:grid-cols-[260px_1fr]">
         <div className="space-y-4">
           <SkillList items={shared} title="Shared" />
           <SkillList items={personal} title="Personal" />
-          <div className="flex gap-1 border-t border-ink-100 pt-3">
-            <input
-              className="input text-xs"
-              placeholder="new-skill"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-            />
-            <button type="button" className="btn-ghost !px-2" onClick={() => void createSkill()}>
-              Add
-            </button>
+          <div className="space-y-2 border-t border-ink-100 pt-3">
+            <div className="flex gap-1">
+              <input
+                className="input text-xs"
+                placeholder="new-skill"
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+              />
+              <button type="button" className="btn-ghost !px-2" onClick={() => void createSkill()}>
+                Add
+              </button>
+            </div>
+            <label className={`btn-ghost inline-flex cursor-pointer text-xs ${uploading ? "opacity-50" : ""}`}>
+              {uploading ? "Uploading…" : "Upload .zip"}
+              <input
+                ref={zipInputRef}
+                type="file"
+                accept=".zip,application/zip"
+                className="hidden"
+                disabled={uploading}
+                onChange={(ev) => {
+                  const f = ev.target.files?.[0];
+                  if (f) void uploadZip(f);
+                }}
+              />
+            </label>
           </div>
         </div>
         <div>
@@ -192,11 +267,23 @@ export default function SkillsSettingsPage() {
                 onChange={(e) => setContent(e.target.value)}
                 spellCheck={false}
               />
-              <div className="mt-3 flex gap-2">
+              <div className="mt-3 flex flex-wrap gap-2">
                 {selected.editable ? (
                   <>
                     <button type="button" className="btn-primary" onClick={() => void save()}>
                       Save
+                    </button>
+                    <button
+                      type="button"
+                      className="btn-ghost"
+                      disabled={publishing}
+                      onClick={() => void publishToPlatform()}
+                    >
+                      {publishing
+                        ? "Publishing…"
+                        : sharedHasSameName
+                          ? "Publish (overwrite shared)"
+                          : "Publish to platform"}
                     </button>
                     <button type="button" className="btn-ghost" onClick={() => void remove()}>
                       Delete

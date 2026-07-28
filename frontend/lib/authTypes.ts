@@ -10,6 +10,7 @@ export type AuthUser = {
   email?: string | null;
   name?: string | null;
   workspace_slug: string;
+  role?: "admin" | "user";
 };
 
 export type AuthBootstrap = {

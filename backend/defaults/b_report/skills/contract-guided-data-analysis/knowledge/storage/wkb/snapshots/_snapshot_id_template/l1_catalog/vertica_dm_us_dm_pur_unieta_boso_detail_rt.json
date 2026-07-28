@@ -1,0 +1,141 @@
+{
+  "entity_id": "dm_us.dm_pur_unieta_boso_detail_rt",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dm_us.dm_pur_unieta_boso_detail_rt",
+  "schema_name": "dm_us",
+  "table_name": "dm_pur_unieta_boso_detail_rt",
+  "columns": [
+    {
+      "name": "order_no",
+      "type": "int"
+    },
+    {
+      "name": "order_type",
+      "type": "int"
+    },
+    {
+      "name": "order_line_no",
+      "type": "int"
+    },
+    {
+      "name": "loc_no",
+      "type": "int"
+    },
+    {
+      "name": "inv_type",
+      "type": "int"
+    },
+    {
+      "name": "sub_kit_line_no",
+      "type": "int"
+    },
+    {
+      "name": "sku_no",
+      "type": "int"
+    },
+    {
+      "name": "order_qty",
+      "type": "int"
+    },
+    {
+      "name": "eta_qty",
+      "type": "int"
+    },
+    {
+      "name": "eta_code",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "track_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_eta",
+      "type": "timestamp"
+    },
+    {
+      "name": "deliver_eta",
+      "type": "timestamp"
+    },
+    {
+      "name": "eta",
+      "type": "timestamp"
+    },
+    {
+      "name": "deliver_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "po_no",
+      "type": "int"
+    },
+    {
+      "name": "po_type",
+      "type": "int"
+    },
+    {
+      "name": "po_line_no",
+      "type": "int"
+    },
+    {
+      "name": "eta_source",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "rec_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "sched_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "sus_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "rf_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "alf_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "inv_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "status",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp"
+    },
+    {
+      "name": "ai_log",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "work_type",
+      "type": "int"
+    }
+  ],
+  "column_count": 30,
+  "partition_keys": [],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dm_pur_unieta_boso_detail_rt.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:47.391878+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dm_pur_unieta_boso_detail_rt.md"
+}

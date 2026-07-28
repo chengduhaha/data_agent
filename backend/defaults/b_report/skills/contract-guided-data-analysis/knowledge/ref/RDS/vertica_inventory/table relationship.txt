@@ -1,0 +1,196 @@
+# Inventory table relationships
+#
+# Country schemas are normalized with xx, for example:
+#   dw_us.dwd_disty_inv_qty_df -> dw_xx.dwd_disty_inv_qty_df
+#   dim_ca.dim_pub_part_info   -> dim_xx.dim_pub_part_info
+#
+# Base table rules:
+#   Use date_flag to limit reporting date whenever the table has date_flag.
+#   Prefer base inventory fact table left join dimension or supplemental fact tables.
+#
+# Main inventory grains:
+#   dw_xx.dwd_disty_inv_qty_df is at date_flag + loc_no + inv_type + sku_no level.
+#   dw_xx.dwd_disty_inv_aging_df is usually at date_flag + inv_type + sku_no + view_level level.
+#   For part-level aging reports, filter dw_xx.dwd_disty_inv_aging_df.view_level = 'IT_PART'.
+
+
+# Core Inventory Fact Relationships
+
+dw_xx.dwd_disty_inv_qty_df (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_inv_qty_df (many to one) dim_xx.dim_pub_part_info_rt by using join columns sku_no
+dw_xx.dwd_disty_inv_qty_df (many to one) dim_xx.dim_pub_inv_type_view by using join columns inv_type
+dw_xx.dwd_disty_inv_qty_df (many to one) dim_xx.dim_pub_inv_type_extend by using join columns inv_type
+dw_xx.dwd_disty_inv_qty_df (many to one) dim_xx.dim_pub_location_info by using join columns loc_no
+dw_xx.dwd_disty_inv_qty_df (many to one) dim_xx.dim_pub_date by using join columns date_flag
+
+dw_xx.dwd_disty_inv_aging_df (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_inv_aging_df (many to one) dim_xx.dim_pub_part_info_rt by using join columns sku_no
+dw_xx.dwd_disty_inv_aging_df (many to one) dim_xx.dim_pub_inv_type_view by using join columns inv_type
+dw_xx.dwd_disty_inv_aging_df (many to one) dim_xx.dim_pub_inv_type_extend by using join columns inv_type
+dw_xx.dwd_disty_inv_aging_df (many to one) dim_xx.dim_pub_date by using join columns date_flag
+
+dw_xx.dwd_disty_inv_qty_df (one to one/many) dw_xx.dwd_disty_inv_aging_df by using join columns date_flag, sku_no, inv_type and filter view_level = 'IT_PART'
+dw_xx.dwd_disty_inv_qty_df (one to one/many) dw_xx.dwd_disty_inv_true_aging_df by using join columns date_flag, sku_no, inv_type
+dw_xx.dwd_disty_inv_true_aging_df (one to one/many) dw_xx.dwd_disty_inv_aging_rollover_rtv2_df by using join columns date_flag, sku_no, inv_type
+dw_xx.dwd_disty_inv_qty_df (one to one/many) dw_xx.dwd_disty_inv_status_rtv2_df by using join columns date_flag, sku_no, inv_type, loc_no when available
+dw_xx.dwd_disty_inv_qty_df (one to many) dw_xx.dwd_disty_inv_tran_df by using join columns sku_no, inv_type and loc_no when available
+dw_xx.dwd_disty_inv_qty_df (one to many) dw_xx.dwd_disty_wh_cws_inv_df by using join columns sku_no, inv_type and loc_no when available
+dw_xx.dwd_disty_inv_qty_df (one to many) dw_xx.dwd_disty_wms_cws_inv2_age_di by using join columns sku_no, inv_type and loc_no when available
+
+
+# Product, Vendor, VPL, Location, and Manager Dimensions
+
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vendor_info_rt by using join columns vend_no
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vendor_info by using join columns pur_vend_no to vend_no when purchasing vendor is required
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vendor_segment by using join columns vend_no
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vendor_profile by using join columns vend_no
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vpl_info by using join columns vpl_no
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vpl_hierarchy_info by using join columns vpl_no
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vpl_pm_hierarchy_info by using join columns vend_no, vpl_no
+dim_xx.dim_pub_part_info (one to many) dim_xx.dim_pub_sku_profile_all by using join columns sku_no
+dim_xx.dim_pub_part_info (one to many) dim_xx.dim_pub_sku_profile_rt by using join columns sku_no
+dim_xx.dim_pub_part_info (one to many) dim_xx.dim_pub_sku_xref_all by using join columns sku_no
+dim_xx.dim_pub_part_info (one to many) dim_xx.dim_pub_part_technotes_attributes by using join columns sku_no
+dim_xx.dim_pub_part_info (one to many) dim_xx.dim_pub_bom by using join columns sku_no or comp_no
+dim_xx.dim_pub_part_info (one to one/many) dim_xx.dim_disty_cws_part by using join columns sku_no
+dim_xx.dim_pub_part_info (one to one/many) dim_xx.dim_part_bom_cost_var by using join columns sku_no
+
+dim_xx.dim_pub_vpl_info (many to one) dim_xx.dim_pub_vpl_hierarchy_info by using join columns vpl_no
+dim_xx.dim_pub_vpl_hierarchy_info (many to one) dim_xx.dim_pub_vpl_pm_hierarchy_info by using join columns vend_no, vpl_no
+dim_xx.dim_pub_vendor_info (one to many) dim_xx.dim_pub_vend_location_view by using join columns vend_no and primary_loc to loc_no
+dim_xx.dim_pub_vend_location_view (many to one) dim_xx.dim_pub_terms_file_view by using join columns terms to doc_terms
+dim_xx.dim_pub_vendor_info (one to many) dim_xx.dim_pub_vendor_xref by using join columns vend_no
+dim_xx.dim_pub_vendor_info (one to many) dim_xx.dim_pub_vend_user_matrix by using join columns vend_no
+
+dim_xx.dim_pub_vend_user_matrix (many to one) dim_xx.dim_pub_manager by using join columns primary_id to userid
+dim_xx.dim_pub_vend_user_matrix (many to one) dim_xx.dim_pub_manager by using join columns manager_id to userid
+dim_xx.dim_pub_vend_user_matrix (many to one) dim_xx.dim_pub_manager by using join columns other_id to userid
+dim_xx.dim_disty_v_pm_vpc_matrix_view (many to one) dim_xx.dim_pub_manager by using join columns pm_id to userid
+dim_xx.dim_disty_pur_vendor_dna_matrix (many to one) dim_xx.dim_pub_manager by using join columns member_id to userid
+dim_xx.dim_pub_vpc_group_xref_view (many to one) dim_xx.dim_pub_vpc_group_view by using join columns vpc_group_id
+
+dim_xx.dim_pub_location_info (one to one/many) dim_xx.dim_gfs_location_info by using join columns loc_no
+dim_xx.dim_pub_location_info (one to many) dim_xx.dim_pub_sku_xref_all by using join columns loc_no to xref_no when xref_type = 'LMT_STK'
+dim_xx.dim_pub_customer_info (one to one/many) dim_xx.dim_pub_customer_info_rt by using join columns cust_no
+dim_xx.dim_pub_customer_info (one to many) dim_xx.dim_pub_customer_address_contacts_info by using join columns cust_no
+dim_xx.dim_pub_customer_info (one to many) dim_xx.dim_pub_cust_xref_all by using join columns cust_no
+dim_xx.dim_pub_customer_info (one to one/many) dim_xx.dim_pub_location_info by using join columns cust_no to ext_no when the location represents a customer account
+dim_xx.dim_pub_customer_info_rt (one to many) dim_xx.dim_pub_sku_profile_rt by using join columns cust_no to profile_i when profile_cat is customer-related
+dim_xx.dim_pub_list_box_detail is a code lookup table; join by code_value and filter list_box_code for the specific business code set such as SSR, SEG, FOB, SRC, CEDM, or GRAC
+
+
+# Runrate, AP, AR, RIO, and Other Supplemental Facts
+
+dw_xx.dws_disty_pur_ips_runrate_1w (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dws_disty_pur_ips_runrate_1w (many to one) dim_xx.dim_pub_inv_type_view by using join columns inv_type
+dw_xx.dws_disty_pur_ips_runrate_1w should usually be filtered by week, sum_type, and inv_type.
+
+dw_xx.dwd_disty_ap_hold_df (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_ap_hold_df (many to one) ods_xx.ods_cis_corp_part_master by using join columns sku_no
+dw_xx.dws_disty_ap_vend_aging_df (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no
+dw_xx.dws_disty_ar_cust_sum_age_df (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no
+
+dw_xx.dwd_disty_inv_rio_req_header (one to many) dw_xx.dwd_disty_inv_rio_req_detail by using join columns rio_req_no
+dw_xx.dwd_disty_inv_rio_req_header (one to many) dw_xx.dwd_disty_inv_rio_req_consumed by using join columns rio_req_no
+dw_xx.dwd_disty_inv_rio_req_header (many to one) dw_xx.dwd_disty_inv_qty_df by using join columns sku_no and inv_type when available
+
+
+# Sales Order, Backorder, CPO, PO, and Shipment Facts
+
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dim_xx.dim_pub_part_info_rt by using join columns sku_no
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dw_xx.dwd_pub_common_order_header_extend by using join columns order_no, order_type
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no when available
+
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) dw_xx.dwd_disty_sales_open_order_detail by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) dim_xx.dim_pub_manager by using join columns pm_id to userid
+
+dw_xx.dwd_disty_sales_open_cpo_detail_extend (many to one) dw_xx.dwd_disty_sales_open_cpo_header_extend by using join columns cpo_id
+dw_xx.dwd_disty_sales_open_cpo_detail_extend (many to one) dim_xx.dim_pub_part_info by using join columns cpo_sku_no to sku_no
+dw_xx.dwd_disty_sales_open_cpo_header_extend (many to one) dim_xx.dim_pub_country_code by using join columns ship_to_country to country_code
+dw_xx.dwd_disty_sales_open_cpo_header_extend (one to many) ods_xx.ods_cis_corp_cpo_profile by using join columns cpo_id and cpo_line_seq when line-level profile is required
+
+dw_xx.dwd_disty_common_pos_di (many to one) dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_common_pos_di (many to one) ods_xx.ods_cis_corp_history_exp by using join columns order_no, order_type
+dw_xx.dwd_disty_common_po_basic (many to one) dim_xx.dim_pub_part_info by using join columns sku_no when available
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_part_info by using join columns sku_no when available
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_part_info by using join columns sku_no when available
+dw_xx.dwd_disty_pub_dw_orders_extend_di (many to one) dim_xx.dim_pub_part_info by using join columns sku_no when available
+dw_xx.dwd_pub_common_history_header_extend (one to many) dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di by using join columns order_no, order_type
+
+
+# ODS CIS Order and History Relationships
+
+ods_xx.ods_cis_corp_order_header (one to many) ods_xx.ods_cis_corp_order_detail by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_detail (one to one/many) ods_xx.ods_cis_corp_order_detail_date by using join columns order_no, order_type, order_line_no
+ods_xx.ods_cis_corp_order_header (one to many) ods_xx.ods_cis_corp_order_comments by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header (one to many) ods_xx.ods_cis_corp_order_profile by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header (one to many) ods_xx.ods_cis_corp_order_eta_detail by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header (many to one) dim_xx.dim_pub_customer_info by using join columns to_acct_no to cust_no
+ods_xx.ods_cis_corp_order_header (many to one) ods_xx.ods_cis_corp_customer_header by using join columns to_acct_no to cust_no
+ods_xx.ods_cis_corp_order_header (many to one) dim_xx.dim_pub_location_info by using join columns from_loc_no to loc_no
+ods_xx.ods_cis_corp_order_header (many to one) dim_xx.dim_pub_location_info by using join columns to_loc_no to loc_no
+ods_xx.ods_cis_corp_order_header (many to one) dim_xx.dim_pub_manager by using join columns entry_id to userid
+ods_xx.ods_cis_corp_order_detail (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_cpo_profile (many to one) ods_xx.ods_cis_corp_order_header by using join columns cpo_id to order_no when CPO id is sourced from order header context; also join to CPO temporary/header data by cpo_id and cpo_line_seq
+ods_xx.ods_cis_corp_cws_cop_ship_progress (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_cws_cop_ship_progress (many to one) dw_xx.dwd_disty_inv_qty_df by using join columns sku_no, inv_type and loc_no when available; usually filter order_type = 18 for RIO/CWS committed quantity
+
+ods_xx.ods_cis_corp_history_header (one to many) ods_xx.ods_cis_corp_history_detail by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header (one to many) ods_xx.ods_cis_corp_history_comments by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header (one to many) ods_xx.ods_cis_corp_history_cpo_profile by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header (one to many) ods_xx.ods_cis_corp_history_exp by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header (one to many) ods_xx.ods_cis_corp_history_soldto by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header (many to one) dim_xx.dim_pub_customer_info by using join columns to_acct_no to cust_no
+ods_xx.ods_cis_corp_history_header (many to one) dim_xx.dim_pub_location_info by using join columns from_loc_no to loc_no
+ods_xx.ods_cis_corp_history_detail (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_history_inv_tran (many to one) ods_xx.ods_cis_corp_history_header by using join columns order_no, order_type when available
+
+
+# ODS CIS Product, Inventory, Vendor, and Technotes Relationships
+
+ods_xx.ods_cis_corp_inv_qty (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_inv_qty (one to one/many) dw_xx.dwd_disty_inv_qty_df by using join columns sku_no, inv_type
+ods_xx.ods_cis_corp_inv_qty (one to one/many) dw_xx.dwd_disty_inv_aging_df by using join columns sku_no, inv_type
+ods_xx.ods_cis_corp_inv_tran (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_inv_tran (many to one) ods_xx.ods_cis_corp_mc_order_ref by using join columns order_type to int_ref_type, doc_no to int_ref_no, doc_line_no to int_ref_line_no
+
+ods_xx.ods_cis_corp_part_master (many to one) ods_xx.ods_cis_corp_vend_master by using join columns vend_no
+ods_xx.ods_cis_corp_part_master (many to one) ods_xx.ods_cis_corp_dw_vend_pl by using join columns vpl_no
+ods_xx.ods_cis_corp_part_master (one to one/many) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_cws_part (one to one/many) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_cws_part (one to one/many) dim_xx.dim_disty_cws_part by using join columns sku_no
+ods_xx.ods_cis_corp_sku_cost (one to one/many) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_sku_extension (one to one/many) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_cust_part_no (many to one) dim_xx.dim_pub_part_info by using join columns synnex_sku_no to sku_no
+ods_xx.ods_cis_corp_cust_part_no (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no
+
+ods_xx.ods_cis_corp_part_prod_detail (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_part_prod_detail (many to one) ods_xx.ods_cis_corp_prod_code_detail by using join columns data_no, prod_code, col_no
+ods_xx.ods_cis_corp_prod_code_detail (many to one) dim_xx.dim_pub_prod_code by using join columns prod_code when available
+ods_xx.ods_cis_corp_pdss_prod_profile (many to one) dim_xx.dim_pub_part_info by using join columns sku_no when available
+
+ods_xx.ods_cis_corp_tc_part_technotes_en (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_tc_part_technotes_en (many to one) ods_xx.ods_cis_corp_tc_pco_cat_id by using join columns cat_id
+ods_xx.ods_cis_corp_tc_part_technotes_en (many to one) ods_xx.ods_cis_corp_tc_value_en by using join columns value_id to id
+
+ods_xx.ods_cis_corp_vend_master (one to one/many) dim_xx.dim_pub_vendor_info by using join columns vend_no
+ods_xx.ods_cis_corp_vend_master_etc (many to one) ods_xx.ods_cis_corp_vend_master by using join columns vend_no
+ods_xx.ods_cis_corp_v_vend_currency (many to one) ods_xx.ods_cis_corp_vend_master by using join columns vend_no
+ods_xx.ods_cis_corp_vend_user_matrix (many to one) dim_xx.dim_pub_manager by using join columns primary_id, manager_id, other_id to userid when available
+
+
+# Other ODS Relationships Used By Inventory Reports
+
+ods_xx.ods_daas_mygbldaas_smb_vend_image_config (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no when available
+ods_xx.ods_logdb_mylog_ecx_log_ad_activity_detail (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_logdb_mylog_ecx_log_ad_activity_detail (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no
+ods_xx.ods_cis_corp_parameters is a parameter lookup table; filter by parameter_name, for example parameter_name = 'COMPANY_NO'
+
+
+# General User/Owner Lookup Rule
+
+Any userid, entry_id, pm_id, primary_id, manager_id, other_id, member_id, or similar user column can usually join with dim_xx.dim_pub_manager.userid to get manager/user attributes.

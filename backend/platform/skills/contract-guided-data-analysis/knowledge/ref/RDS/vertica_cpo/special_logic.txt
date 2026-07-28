@@ -1,0 +1,69 @@
+1. Vertica CPO reports use `rdsetl.rds_tmp` and `rdsetl.rds_tmp_body` as final output tables. Use `CREATE LOCAL TEMPORARY TABLE ... ON COMMIT PRESERVE ROWS AS` for intermediate tables, then recreate `rdsetl.rds_tmp` and `rdsetl.rds_tmp_body`.
+
+2. `Open Quote Report` and `Open CPO Report` are the same report scope. Do not split by `cpo_status = 'QUOTESHEET'` vs other open statuses unless a historical report explicitly does so. Use one open-CPO population with the standard active open CPO status list.
+
+3. Use `dm_xx.dm_disty_sales_open_cpo` as the base table for open CPO/quote reports. Typical active open CPO filters are:
+   - `cpo_delete_datetime is null`
+   - `cpo_line_delete_datetime is null`
+   - `convert_datetime is null` when excluding CPOs already converted to orders
+   - date window on `cpo_entry_datetime` when the report asks for recent/new quotes.
+
+4. Use `dm_xx.dm_disty_sales_close_cpo_di` for closed/deleted/converted CPO logic. Closed CPO reports often union open and closed CPO rows to cover both still-open and already-closed lines. Preserve the union shape when a historical report uses both tables.
+
+5. CPO SKU joins use `cpo_sku_no` to product `sku_no`. Customer joins usually use `cpo_cust_no` to `cust_no`; reseller joins may use `reseller_cust_no` to `cust_no`. Do not substitute reseller for CPO customer unless the requested output asks for reseller attributes.
+
+6. CPO order linkage usually uses order header `int_ref_no = cpo_id` and `int_ref_type in (1, 8)`. When line-level linkage is required, also use `int_ref_line_no = cpo_line_seq` and sometimes `ext_ref = cpo_no`.
+
+7. For CPO-backed sales orders, order types `1` and `8` are common. Some reports self-join `ods_xx.ods_cis_corp_order_header` to find VPO/invoice/source order context through `int_ref_no` and `int_ref_type`. Preserve order type filters from the historical report.
+
+8. Order/header/detail rows must normally exclude deleted records with `delete_date is null`. CPO facts must normally exclude deleted CPO lines with `cpo_delete_datetime is null` and `cpo_line_delete_datetime is null`, unless the report is specifically about deleted/cancelled CPOs.
+
+9. CPO profile tables are one-to-many and must be filtered. Common profile logic:
+   - `profile_type = 'EMAILQUOTE' and active = 'Y'` for email quote / web quote reports.
+   - `profile_type = 'EXPSHIPDAY'` or `profile_type = 'EXPDELDAY'` for expected ship/delivery day.
+   - `profile_type = 'SPEC_HANDL' and active = 'Y'` for special handling / BTO-style flags.
+   Always filter by `profile_type` and `active` when joining profile tables.
+
+10. CPO comment logic for cancellation or line remarks uses `ods_xx.ods_cis_corp_cpo_comments` for open CPO and `ods_xx.ods_cis_corp_history_cpo_comments` for closed/history CPO. Historical reports use `cpo_comment_type = 'OX'` for line cancellation information.
+
+11. Vendor quote ID and similar custom fields can come from EU custom tables. Common order EU custom mapping:
+    - `eu_map_id = 300 and eu_map_line_no = 4` for DPAS / vendor quote style values in some reports.
+    - `eu_map_id = 300 and eu_map_line_no = 5` for quote expiration date in some reports.
+    Some reports resolve the meaning through `ods_xx.ods_cis_corp_eu_custom_map` joined to `ods_xx.ods_cis_corp_list_box_detail` with `list_box_code = 'CEDM'` and `code_desc = 'Vendor Quote ID'`.
+
+12. CPO EU custom fields exist at CPO level and order/history level. Use:
+    - `ods_xx.ods_cis_corp_cpo_eu_custom` for open/current CPO custom fields.
+    - `ods_xx.ods_cis_corp_history_cpo_eu_custom` for historical CPO custom fields.
+    - `ods_xx.ods_cis_corp_order_eu_custom` or `ods_xx.ods_cis_corp_history_eu_custom` for order/history custom fields.
+    Join by `cpo_id`, `cpo_line_seq`, `order_no`, `order_type`, `eu_map_id`, and `eu_map_line_no` as appropriate.
+
+13. BTO/special handling reports often start from open order header/detail, not from CPO facts. They use order types `(1, 8)`, open order filters (`ship_date is null`, `delete_date is null`), non-zero open quantity, and special handling profile `SPEC_HANDL = 1`.
+
+14. BTO lab details use `ods_xx.ods_wms_mywms_cws_bto_lab` and `ods_xx.ods_wms_mywms_cws_bto_lab_ext`, joined by `order_no` and `order_type`. Use these only when BTO lab, RF pick, lab hold, or lab extension attributes are requested.
+
+15. E-commerce/cart CPO logic uses `ods_xx.ods_etl_ec_cart_current` and `ods_xx.ods_etl_ec_cart_history`. Current cart joins compare `cpo_cust_no` to `cust_no` and `cpo_sku_no` to `sku_no`; history cart often links converted orders via `cpo_id = int_ref_no`. Filter deleted cart rows when `delete_date` is available.
+
+16. SMB/GCC vendor image or e-catalog filtering uses `ods_xx.ods_daas_mygbldaas_smb_vend_image_config`. Common filters include `active = 'Y'`, `country_code`, and `e_catalog_source` such as `'GCC'` or `'SMB'`.
+
+17. Customer contact enrichment for CPO email/quote reports can use `dim_xx.dim_pub_customer_address_contacts_info` via `contact_no`. Historical reports often use `row_number()` over CPO/contact to select one contact row; preserve that de-duplication logic.
+
+18. CPO sales hierarchy logic uses `dim_xx.dim_pub_sales_hierarchy_by_terr_user_role`. Common filters are `user_role = 'Rep'`, `is_primary = 'Y'`, and `user_end_date is null`. Join by `sales_terr` from CPO customer, order header, or customer dimension depending on the source.
+
+19. CPO delete/cancellation reports use both open and close CPO tables and filter `cpo_delete_datetime` over a recent window, often `current_date() - 30` to `current_date()`. The deleting user is joined from `cpo_delete_id` to `dim_xx.dim_pub_manager.userid`.
+
+20. POS/ship reports tied to CPO use `dw_xx.dwd_disty_common_pos_di`. Join shipped SCM/SPA details through `order_no`, `order_type`, `order_line_no`, and `date_flag`. Use `order_line_type != 'Comp'` or similar filters when component lines should be excluded.
+
+21. Some CPO reports combine shipped POS tab(s) and open/closed CPO tab(s). Preserve multi-tab shape by creating separate temp tables or multiple final output tables when the historical report has tab-specific sections.
+
+22. Kit/component CPO reports use `ods_xx.ods_cis_corp_bom` joined from kit SKU to component SKU. Join the kit SKU to product as `sku_no`, then BOM `comp_no` back to product `sku_no` for component part/mfg part.
+
+23. Asset tag reports use `ods_xx.ods_cis_corp_asset_tag` joined to order detail/order line context. Only include it when asset tag, device tag, or serialized asset detail is requested.
+
+24. Inventory context for CPO reports is not a default join. Use `ods_xx.ods_cis_corp_inv_qty` only when the report asks for on-hand/on-order or availability alongside CPO/cart data. Standard inventory context usually filters `inv_type = 1`.
+
+25. Order/profile expected date fields may come from order header/profile rather than CPO expected close date. Use the source in the closest historical report: CPO `expected_close_date` for quote expiration style CPO outputs, order profile `EXPSHIPDAY`/`EXPDELDAY` for order expected ship/delivery style outputs.
+
+26. When reports need current and historical order coverage, union current `ods_xx.ods_cis_corp_order_*` rows with history `ods_xx.ods_cis_corp_history_*` rows and align column names/types with explicit casts or null placeholders.
+
+27. `rdsetl.rds_tmp_body` is not always just `flag = 1`. Multi-tab or multi-output CPO reports may create `rdsetl.rds_tmp_2` or `rdsetl.rds_tmp_sheet_config`; preserve sheet/body configuration when present in the historical report.
+

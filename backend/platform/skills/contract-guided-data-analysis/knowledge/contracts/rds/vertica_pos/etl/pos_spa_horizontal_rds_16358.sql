@@ -1,0 +1,251 @@
+-- Typical POS example: horizontal SPA groups on POS order lines.
+-- Source: US/run/rds_16358_rtv.sp
+
+drop table if exists rds_us16358_rtv;
+create LOCAL TEMPORARY TABLE rds_us16358_rtv ON COMMIT PRESERVE ROWS AS
+select order_no ,
+	order_type ,
+	order_line_no ,
+	to_char(date_flag,'mm/dd/yyyy') as ship_date,
+	sku_no ,
+	part_no ,
+	prod_type ,
+	ship_qty ,
+	base_cost ,
+	extend_base_cost ,
+	vend_currency ,
+	unit_net_price ,
+	extend_net_price ,
+	synnex_po_no ,
+	vend_no ,
+	vend_name ,
+	eu_contact_email ,
+	sales_terr ,
+	bill_to_cust_no ,
+	bill_to_cust_name ,
+	bill_to_cust_addr ,
+	bill_to_cust_zip ,
+	from_loc_no ,
+	inv_type ,
+	mfg_partno ,
+	part_desc ,
+	master_cust_no ,
+	eu_company_name ,
+	eu_state ,
+	eu_zip ,
+	eu_address1 ,
+	sold_to_cust_no ,
+	sold_to_cust_name ,
+	terr_name ,
+	sales_rep_name ,
+	ship_to_contactname ,
+	ship_to_contact_email ,
+	ship_to_contact_phone ,
+	cpo_no ,
+	mso_no ,
+	bill_to_cust_city ,
+	bill_to_cust_state ,
+	cust_type ,
+	cust_type_desc ,
+	end_user_po ,
+	prod_code ,
+	ship_to_name ,
+	ship_to_addr ,
+	ship_to_city ,
+	ship_to_zip ,
+	ship_to_state ,
+	retail_price ,
+	cast(null as varchar(60)) as asset_tag,
+	cast(null as varchar(60)) as mac_address,
+	cast(null as varchar(60)) as IMEI,
+	cast(null as varchar(60)) as ICCID
+from dw_us.dwd_disty_common_pos_di
+where date_flag >= DATE_TRUNC('MONTH',ADD_MONTHS(current_date(),-1))
+and date_flag < current_date()
+and order_line_type <> 'Comp'
+and vend_no=69971
+order by date_flag
+;
+
+
+DROP TABLE IF EXISTS table_us16358_spa;
+CREATE LOCAL TEMPORARY TABLE table_us16358_spa ON COMMIT PRESERVE ROWS AS
+select a.order_no
+	,a.order_type
+	,a.order_line_no
+	,b.exp_code
+	,b.scm_no
+	,b.unit_exp
+	,b.extend_exp as extended_exp
+	,b.spa_no
+	,b.spa_ref_no
+	,b.vendor_appr_ref_no
+	,b.claim_type
+	,b.approved_cost
+	,b.rebate_amt
+	,row_number() over(partition by a.order_no,a.order_type,a.order_line_no order by b.scm_no) as rn
+from rds_us16358_rtv a
+inner join dw_us.dwd_pub_common_shipped_order_scm_spa_detail_di b
+on a.order_no=b.order_no
+and a.order_type=b.order_type
+and a.order_line_no=b.order_line_no
+;
+
+DROP TABLE IF EXISTS table_us16358_final;
+CREATE LOCAL TEMPORARY TABLE table_us16358_final ON COMMIT PRESERVE ROWS AS
+select a.order_no ,
+	a.order_type ,
+	a.order_line_no ,
+	a.ship_date,
+	a.sku_no ,
+	a.part_no ,
+	a.prod_type ,
+	a.ship_qty ,
+	b.unit_exp,
+	b.extended_exp as extend_exp,
+	a.base_cost ,
+	a.vend_currency ,
+	a.prod_code,
+	a.synnex_po_no ,
+	a.vend_no ,
+	a.vend_name ,
+	a.bill_to_cust_no ,
+	a.bill_to_cust_name ,
+	a.bill_to_cust_zip ,
+	a.from_loc_no ,
+	a.inv_type ,
+	a.mfg_partno ,
+	a.part_desc ,
+	a.eu_company_name ,
+	ship_to_name ,
+	ship_to_addr ,
+	ship_to_city ,
+	ship_to_zip ,
+	ship_to_state ,
+	a.cpo_no ,
+	retail_price ,
+	a.bill_to_cust_city ,
+	a.bill_to_cust_state ,
+	a.asset_tag,
+	a.mac_address,
+	a.IMEI,
+	a.ICCID,
+	max(case when b.rn=1 then b.exp_code end          ) as exp_code,
+	max(case when b.rn=1 then b.claim_type end        ) as claim_type,
+	max(case when b.rn=1 then b.scm_no end            ) as project_no,
+	max(case when b.rn=1 then b.unit_exp end          ) as scm_unit_exp,
+	max(case when b.rn=1 then b.extended_exp end      ) as extended_exp,
+	max(case when b.rn=1 then b.spa_no end            ) as spa_no,
+	max(case when b.rn=1 then b.spa_ref_no end        ) as spa_ref_no
+from rds_us16358_rtv a
+left join table_us16358_spa b
+on a.order_no=b.order_no
+and a.order_type=b.order_type
+and a.order_line_no=b.order_line_no
+and b.rn<=3
+group by a.order_no ,
+	a.order_type ,
+	a.order_line_no ,
+	a.ship_date,
+	a.sku_no ,
+	a.part_no ,
+	a.prod_type ,
+	a.ship_qty ,
+	b.unit_exp,
+	b.extended_exp,
+	a.base_cost ,
+	a.vend_currency ,
+	a.prod_code,
+	a.synnex_po_no ,
+	a.vend_no ,
+	a.vend_name ,
+	a.bill_to_cust_no ,
+	a.bill_to_cust_name ,
+	a.bill_to_cust_zip ,
+	a.from_loc_no ,
+	a.inv_type ,
+	a.mfg_partno ,
+	a.part_desc ,
+	a.eu_company_name ,
+	ship_to_name ,
+	ship_to_addr ,
+	ship_to_city ,
+	ship_to_zip ,
+	ship_to_state ,
+	a.cpo_no ,
+	retail_price ,
+	a.bill_to_cust_city ,
+	a.bill_to_cust_state ,
+	a.asset_tag,
+	a.mac_address,
+	a.IMEI,
+	a.ICCID
+;
+
+DROP TABLE IF EXISTS table_us16358_final_1;
+CREATE LOCAL TEMPORARY TABLE table_us16358_final_1 ON COMMIT PRESERVE ROWS AS
+select a.order_no ,
+	a.order_type ,
+	a.order_line_no ,
+	a.ship_date,
+	a.sku_no ,
+	a.part_no ,
+	a.prod_type ,
+	a.ship_qty ,
+	a.unit_exp,
+	a.extend_exp,
+	a.base_cost ,
+	a.vend_currency ,
+	a.prod_code,
+	a.synnex_po_no ,
+	a.vend_no ,
+	a.vend_name ,
+	a.bill_to_cust_no ,
+	a.bill_to_cust_name ,
+	a.bill_to_cust_zip ,
+	a.from_loc_no ,
+	a.inv_type ,
+	a.mfg_partno ,
+	a.part_desc ,
+	a.eu_company_name ,
+	ship_to_name ,
+	ship_to_addr ,
+	ship_to_city ,
+	ship_to_zip ,
+	ship_to_state ,
+	a.cpo_no ,
+	retail_price ,
+	a.bill_to_cust_city ,
+	a.bill_to_cust_state ,
+	b.ser_no ,
+	a.asset_tag,
+	a.mac_address,
+	a.IMEI,
+	a.ICCID,
+	a.exp_code,
+	a.claim_type,
+	a.project_no,
+	a.scm_unit_exp,
+	a.extended_exp,
+	a.spa_no,
+	a.spa_ref_no
+from table_us16358_final a
+left join dw_us.dwd_disty_common_order_serial_no_di b
+on a.order_no=b.order_no
+and a.order_type=b.order_type
+and a.order_line_no=b.order_line_no
+;
+
+drop table if exists rdsetl.rds_tmp;
+CREATE TABLE rdsetl.rds_tmp AS
+select * from table_us16358_final_1;
+
+drop table if exists rdsetl.rds_tmp_body;
+CREATE TABLE rdsetl.rds_tmp_body AS
+select
+		 1 as flag
+		,'Standard' as body_type
+		,count(*) as cnt
+from rdsetl.rds_tmp
+;
+

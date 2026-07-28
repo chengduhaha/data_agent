@@ -1,0 +1,9 @@
+{
+  "approve_execute": false,
+  "approve_writes": false,
+  "enabled_tools": {
+    "web_fetch": false,
+    "web_search": false
+  },
+  "system_prompt": "You are a helpful, careful general-purpose agent. Prefer platform skills under /skills/platform/, skill-bundled knowledge under /skills/{source}/{name}/knowledge/, and personal files under /workspace/."
+}

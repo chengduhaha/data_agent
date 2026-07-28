@@ -1,0 +1,51 @@
+{
+  "entity_id": "dm_us.dm_disty_pur_purch_forecast461_rtv2",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dm_us.dm_disty_pur_purch_forecast461_rtv2",
+  "schema_name": "dm_us",
+  "table_name": "dm_disty_pur_purch_forecast461_rtv2",
+  "columns": [
+    {
+      "name": "date_flag",
+      "type": "date"
+    },
+    {
+      "name": "vend_no",
+      "type": "int"
+    },
+    {
+      "name": "vpl_no",
+      "type": "int"
+    },
+    {
+      "name": "prod_code",
+      "type": "int"
+    },
+    {
+      "name": "load_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "rec_mtd",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "ap_ttl",
+      "type": "numeric(20,8)"
+    }
+  ],
+  "column_count": 7,
+  "partition_keys": [
+    "date_flag"
+  ],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dm_disty_pur_purch_forecast461_rtv2.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:46.792979+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dm_disty_pur_purch_forecast461_rtv2.md"
+}

@@ -1,0 +1,679 @@
+{
+  "entity_id": "dw_us.dwd_disty_common_pos_di",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dw_us.dwd_disty_common_pos_di",
+  "schema_name": "dw_us",
+  "table_name": "dwd_disty_common_pos_di",
+  "columns": [
+    {
+      "name": "order_no",
+      "type": "int"
+    },
+    {
+      "name": "order_type",
+      "type": "int"
+    },
+    {
+      "name": "order_line_no",
+      "type": "int"
+    },
+    {
+      "name": "kit_line_no",
+      "type": "int"
+    },
+    {
+      "name": "order_line_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "synnex_po_no",
+      "type": "int"
+    },
+    {
+      "name": "mso_no",
+      "type": "int"
+    },
+    {
+      "name": "cpo_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "from_loc_no",
+      "type": "int"
+    },
+    {
+      "name": "from_loc_char",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "inv_type",
+      "type": "int"
+    },
+    {
+      "name": "ship_method",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "sku_no",
+      "type": "int"
+    },
+    {
+      "name": "ship_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "ship_qty",
+      "type": "int"
+    },
+    {
+      "name": "unit_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "extend_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "base_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "extend_base_cost",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "unit_price",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "extend_price",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "unit_sum_exp",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "extend_sum_exp",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "unit_net_price",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "extend_net_price",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "base_cost_shipment",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "extend_base_cost_shipment",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "base_cost_vpo",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "extend_base_cost_vpo",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "retail_price",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "std_whls_price",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "gm_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "ngm_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "oplgm_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "mfg_partno",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "part_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "part_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "prod_code",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "prod_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vpl_no",
+      "type": "int"
+    },
+    {
+      "name": "vpl_code",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vpl_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_no",
+      "type": "int"
+    },
+    {
+      "name": "vend_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_currency",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "vend_segment",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "universal_vend_no",
+      "type": "int"
+    },
+    {
+      "name": "universal_vend_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "upc_code",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "base_cost_pocv",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "extend_cost_pocv",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "master_vpl_code",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_cust_no",
+      "type": "int"
+    },
+    {
+      "name": "bill_to_cust_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "sales_terr",
+      "type": "int"
+    },
+    {
+      "name": "terr_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cust_type",
+      "type": "int"
+    },
+    {
+      "name": "cust_type_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "division",
+      "type": "int"
+    },
+    {
+      "name": "division_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "sales_rep_id",
+      "type": "int"
+    },
+    {
+      "name": "sales_rep_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "sales_rep_location",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "master_cust_no",
+      "type": "int"
+    },
+    {
+      "name": "master_cust_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "sold_to_cust_no",
+      "type": "int"
+    },
+    {
+      "name": "sold_to_cust_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "sold_to_street_address",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "outside_sales_rep",
+      "type": "int"
+    },
+    {
+      "name": "outside_sales_rep_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_cust_addr",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_cust_zip",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_cust_city",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_cust_state",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_cust_country",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_contact_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_contact_email",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_contact_phone",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "terms",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "int_ref_no",
+      "type": "int"
+    },
+    {
+      "name": "int_ref_type",
+      "type": "int"
+    },
+    {
+      "name": "int_ref_line_no",
+      "type": "int"
+    },
+    {
+      "name": "cpo_id",
+      "type": "int"
+    },
+    {
+      "name": "order_qty",
+      "type": "int"
+    },
+    {
+      "name": "inv_related",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "order_type_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_addr",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_city",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_zip",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_state",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_country",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_po_box",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "order_entry_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "order_entry_id",
+      "type": "int"
+    },
+    {
+      "name": "order_entry_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "issue_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "sales_rel_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "credit_rel_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "qc_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "pick_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "invoice_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "expected_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "closed_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "sales_model",
+      "type": "int"
+    },
+    {
+      "name": "lol_reseller_no",
+      "type": "int"
+    },
+    {
+      "name": "special_handle",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "end_user_po",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cust_loc_no",
+      "type": "int"
+    },
+    {
+      "name": "big_deal_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_company_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_country",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_city",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_state",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_zip",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_address1",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_address2",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_contact_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_contact_email",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_contact_phone",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_deal_id",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "gv_user_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "gv_user_type_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "gv_user_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "gv_user_addr",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "gv_user_po_box",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "gv_user_city",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "gv_user_state",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "gv_user_zip",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "gv_user_country",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "gv_contract_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "gv_contact_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "gv_contact_phone",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "serial_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "resales_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "store_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "work_load",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "intel_ipd",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "general_comment",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "auth_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "from_ref_type",
+      "type": "int"
+    },
+    {
+      "name": "from_ref_type_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "tgm_amt",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "csgn_inv_po_no",
+      "type": "int"
+    },
+    {
+      "name": "ship_to_contact_phone",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "gv_po_bid_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "rs_contact",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_contactname",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ship_to_contact_email",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_line_no",
+      "type": "int"
+    },
+    {
+      "name": "spec_cost",
+      "type": "int"
+    },
+    {
+      "name": "syn_po_price",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "company_no",
+      "type": "int"
+    },
+    {
+      "name": "mso_line_no",
+      "type": "int"
+    },
+    {
+      "name": "synnex_po_line_no",
+      "type": "int"
+    },
+    {
+      "name": "date_flag",
+      "type": "date"
+    },
+    {
+      "name": "ec_version",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cpo_status",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "wf_request_id",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_res_contact",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_res_contact_phone",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "eu_res_contact_email",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "contract_no",
+      "type": "int"
+    },
+    {
+      "name": "oplgm_plus_amt",
+      "type": "numeric(20,8)"
+    }
+  ],
+  "column_count": 164,
+  "partition_keys": [
+    "date_flag"
+  ],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dwd_disty_common_pos_di.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:49.111922+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dwd_disty_common_pos_di.md"
+}

@@ -1,0 +1,29 @@
+# Fact table
+dw_xx.dwd_disty_ar_cust_doc_df
+dw_xx.dwd_disty_ar_payment_cust_application
+dw_xx.dwd_disty_ar_payment_cust_payment
+dw_xx.dwd_disty_common_pos_di
+dw_xx.dwd_disty_inv_aging_df
+dw_xx.dws_disty_ap_vend_aging_df
+dw_xx.dws_disty_ar_cust_sum_age_df
+dw_xx.dws_disty_brpt_cust_mtd
+
+# Dimension table
+dim_xx.dim_pub_cust_profile_all
+dim_xx.dim_pub_cust_xref_all
+dim_xx.dim_pub_customer_address_contacts_info
+dim_xx.dim_pub_customer_info
+dim_xx.dim_pub_customer_info_rt
+dim_xx.dim_pub_date
+dim_xx.dim_pub_list_box_detail
+dim_xx.dim_pub_location_info
+dim_xx.dim_pub_sales_hierarchy_primary_role_by_terr_view
+dim_xx.dim_pub_terms_file_view
+dim_xx.dim_pub_vendor_info
+
+# ODS table
+ods_xx.ods_cis_corp_cust_doc
+ods_xx.ods_cis_corp_customer_header
+ods_xx.ods_cis_corp_history_header
+ods_xx.ods_cis_corp_no_ctrl
+ods_xx.ods_cis_corp_rma_details

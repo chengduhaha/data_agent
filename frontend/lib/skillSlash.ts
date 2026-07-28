@@ -9,7 +9,12 @@ export type SlashSkill = {
   description: string;
   source: "builtin" | "org" | "user";
   extensions?: SlashSkillExtensions;
+  /** Always-on builtins — not shown in `/` menu */
+  default_skill?: boolean;
 };
+
+/** Built-in skills loaded by default (no slash invoke). */
+export const DEFAULT_SKILL_NAMES = new Set(["file-ops", "web-research"]);
 
 export function skillVirtualPath(skill: SlashSkill): string {
   const dir =
@@ -38,8 +43,10 @@ export function filterSlashSkills(skills: SlashSkill[], query: string): SlashSki
   const q = query.toLowerCase();
   return skills.filter(
     (s) =>
-      s.name.toLowerCase().includes(q) ||
-      s.description.toLowerCase().includes(q)
+      !s.default_skill &&
+      !DEFAULT_SKILL_NAMES.has(s.name) &&
+      (s.name.toLowerCase().includes(q) ||
+        s.description.toLowerCase().includes(q))
   );
 }
 

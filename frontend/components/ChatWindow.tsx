@@ -16,6 +16,7 @@ import {
 import { toolStepLabel } from "@/lib/toolLabels";
 import { parseQueryAppendixEvent } from "@/lib/queryAppendix";
 import { HitlPanel } from "./HitlPanel";
+import { ClarificationPanel } from "./ClarificationPanel";
 import { ContinuePanel } from "./ContinuePanel";
 import { ContextBudgetBar } from "./ContextBudgetBar";
 import { MessageBubble } from "./MessageBubble";
@@ -24,7 +25,12 @@ import { ThreadSidebar } from "./ThreadSidebar";
 import { ChatInput } from "./ChatInput";
 import { expandSkillMessage, type SlashSkill } from "@/lib/skillSlash";
 import { buildHitlDecisions } from "@/lib/hitl";
+import {
+  extractClarificationFromInterrupt,
+  isClarificationInterrupt,
+} from "@/lib/clarification";
 import { useAuth } from "@/context/AuthContext";
+import { isAdminUser } from "@/lib/roles";
 import { useMessageScroll } from "@/hooks/useMessageScroll";
 import { ScrollToBottom } from "./ScrollToBottom";
 
@@ -86,6 +92,7 @@ export function ChatWindow() {
   const abortRef = useRef<AbortController | null>(null);
   const pendingTitleRef = useRef("");
   const { user, oauthEnabled } = useAuth();
+  const showModelSwitcher = isAdminUser(user, oauthEnabled);
   const workspaceSlug = user?.workspace_slug ?? "local";
 
   const refreshThreads = useCallback(async () => {
@@ -378,6 +385,7 @@ export function ChatWindow() {
 
   async function handleResume(approve: boolean) {
     if (!threadId || streaming) return;
+    if (isClarificationInterrupt(interrupt)) return;
     setStreaming(true);
     setStreamStartedAt(Date.now());
     setError(null);
@@ -403,6 +411,49 @@ export function ChatWindow() {
     } finally {
       setStreaming(false);
       setStreamStartedAt(null);
+    }
+  }
+
+  async function handleClarificationSubmit(answers: Record<string, string>) {
+    if (!threadId || streaming) return;
+    setStreaming(true);
+    setStreamStartedAt(Date.now());
+    setError(null);
+    setInterrupt(null);
+    const assistantId = uid();
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: assistantId,
+        role: "assistant",
+        content: "",
+        tools: [],
+        subagents: [],
+      },
+    ]);
+    resetFollow();
+    const ac = new AbortController();
+    abortRef.current = ac;
+    try {
+      await resumeChat(
+        threadId,
+        [],
+        (event, data) => applyStreamEvent(event, data, assistantId),
+        ac.signal,
+        { answers }
+      );
+    } catch (e) {
+      if ((e as Error).name !== "AbortError") {
+        setError((e as Error).message || String(e));
+      }
+    } finally {
+      setStreaming(false);
+      setStreamStartedAt(null);
+      abortRef.current = null;
+      setMessages((prev) =>
+        prev.filter((m) => shouldKeepAssistant(m, assistantId))
+      );
+      void refreshThreads();
     }
   }
 
@@ -457,7 +508,11 @@ export function ChatWindow() {
           }))
       );
       if (data.interrupts && data.interrupts.length) {
-        setInterrupt({ interrupts: data.interrupts, thread_id: id });
+        setInterrupt({
+          interrupts: data.interrupts,
+          thread_id: id,
+          kind: undefined,
+        });
       }
     } catch (e) {
       setError((e as Error).message || String(e));
@@ -488,6 +543,7 @@ export function ChatWindow() {
   }
 
   const lastAssistantId = [...messages].reverse().find((m) => m.role === "assistant")?.id;
+  const clarification = extractClarificationFromInterrupt(interrupt);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3 md:flex-row">
@@ -543,7 +599,14 @@ export function ChatWindow() {
               onContinue={() => void handleContinue()}
             />
           )}
-          {interrupt && (
+          {clarification && (
+            <ClarificationPanel
+              payload={clarification}
+              busy={streaming}
+              onSubmit={(answers) => void handleClarificationSubmit(answers)}
+            />
+          )}
+          {interrupt && !clarification && (
             <HitlPanel
               payload={interrupt}
               busy={streaming}
@@ -604,7 +667,7 @@ export function ChatWindow() {
               </button>
             )}
           </form>
-          <ModelSwitcher disabled={streaming} />
+          {showModelSwitcher && <ModelSwitcher disabled={streaming} />}
         </div>
       </section>
     </div>

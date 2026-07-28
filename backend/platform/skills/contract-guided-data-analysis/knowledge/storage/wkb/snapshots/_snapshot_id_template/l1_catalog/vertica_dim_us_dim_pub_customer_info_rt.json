@@ -1,0 +1,389 @@
+{
+  "entity_id": "dim_us.dim_pub_customer_info_rt",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dim_us.dim_pub_customer_info_rt",
+  "schema_name": "dim_us",
+  "table_name": "dim_pub_customer_info_rt",
+  "columns": [
+    {
+      "name": "mcust_no",
+      "type": "int"
+    },
+    {
+      "name": "mcust_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cust_no",
+      "type": "int"
+    },
+    {
+      "name": "cust_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cust_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cust_type_descr",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "cust_acct_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "is_restricted",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "is_discontinued",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "sales_terr",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "sales_terr_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "sales_segment",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "division_desc",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "lead_id",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "profile_c",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "outside_sales_rep",
+      "type": "int"
+    },
+    {
+      "name": "outside_sales_rep_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_cust_addr",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_cust_zip",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_cust_city",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_cust_state",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_cust_country",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_contact_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_contact_email",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_contact_phone",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "bill_to_contact_title",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "resale_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "store_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "default_terms",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "currency",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp"
+    },
+    {
+      "name": "finance_master",
+      "type": "int"
+    },
+    {
+      "name": "division",
+      "type": "int"
+    },
+    {
+      "name": "region",
+      "type": "int"
+    },
+    {
+      "name": "credit_analyst",
+      "type": "int"
+    },
+    {
+      "name": "program_analyst",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "service_analyst",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "collector_id",
+      "type": "int"
+    },
+    {
+      "name": "collector_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "release_code",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "credit_limit",
+      "type": "int"
+    },
+    {
+      "name": "reviewer",
+      "type": "int"
+    },
+    {
+      "name": "next_review",
+      "type": "timestamp"
+    },
+    {
+      "name": "pending_amt",
+      "type": "int"
+    },
+    {
+      "name": "cust_channel",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "varnex_members",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "customer_entry_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "program_analyst_id",
+      "type": "int"
+    },
+    {
+      "name": "service_analyst_id",
+      "type": "int"
+    },
+    {
+      "name": "collector_manager_id",
+      "type": "int"
+    },
+    {
+      "name": "collector_manager_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "collector_director_id",
+      "type": "int"
+    },
+    {
+      "name": "collector_director_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "collector_vp_id",
+      "type": "int"
+    },
+    {
+      "name": "collector_vp_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "credit_analyst_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "credit_analyst_manager_id",
+      "type": "int"
+    },
+    {
+      "name": "credit_analyst_manager_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "credit_analyst_director_id",
+      "type": "int"
+    },
+    {
+      "name": "credit_analyst_director_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "credit_analyst_vp_id",
+      "type": "int"
+    },
+    {
+      "name": "credit_analyst_vp_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "buying_group_no",
+      "type": "int"
+    },
+    {
+      "name": "price_grid",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "finance_cust_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ec_contact_no",
+      "type": "int"
+    },
+    {
+      "name": "ec_contact_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ec_contact_phone_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "ec_contact_email_address",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "customer_delete_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "customer_update_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "collector_supervisor_id",
+      "type": "int"
+    },
+    {
+      "name": "collector_supervisor_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "collector_senior_manager_id",
+      "type": "int"
+    },
+    {
+      "name": "collector_senior_manager_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "collector_svp_id",
+      "type": "int"
+    },
+    {
+      "name": "collector_svp_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "credit_analyst_supervisor_id",
+      "type": "int"
+    },
+    {
+      "name": "credit_analyst_supervisor_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "credit_analyst_senior_manager_id",
+      "type": "int"
+    },
+    {
+      "name": "credit_analyst_senior_manager_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "credit_analyst_svp_id",
+      "type": "int"
+    },
+    {
+      "name": "credit_analyst_svp_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "stop_mailing",
+      "type": "timestamp"
+    },
+    {
+      "name": "credit_app",
+      "type": "timestamp"
+    },
+    {
+      "name": "website_address",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "last_update_comb",
+      "type": "timestamp"
+    },
+    {
+      "name": "company_code",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "company_no",
+      "type": "int"
+    },
+    {
+      "name": "cust_seg_id",
+      "type": "int"
+    },
+    {
+      "name": "customer_alias_name",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "currency_profile",
+      "type": "varchar(100)"
+    }
+  ],
+  "column_count": 92,
+  "partition_keys": [],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dim_pub_customer_info_rt.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:45.277521+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dim_pub_customer_info_rt.md"
+}

@@ -28,6 +28,7 @@ from app.auth.session import (
 )
 from app.auth.settings import OAuth2Settings, get_oauth_settings
 from app.auth.userinfo import parse_oidc_userinfo, workspace_slug
+from app.auth.roles import user_role
 from app.deps import get_session_user
 from app.store.paths import ensure_user_layout
 
@@ -48,6 +49,7 @@ class AuthUserResponse(BaseModel):
     email: Optional[str] = None
     name: Optional[str] = None
     workspace_slug: str
+    role: str = "user"
 
 
 class AuthBootstrapResponse(BaseModel):
@@ -62,6 +64,7 @@ def _user_response(user: AuthenticatedUser) -> AuthUserResponse:
         email=user.email,
         name=user.name,
         workspace_slug=user.workspace_slug,
+        role=user_role(user.workspace_slug),
     )
 
 

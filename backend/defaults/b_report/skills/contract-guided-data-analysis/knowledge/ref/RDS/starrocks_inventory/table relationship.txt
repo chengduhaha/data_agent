@@ -1,0 +1,184 @@
+# StarRocks Inventory table relationships
+#
+# Country schemas are normalized with xx, for example:
+#   dw_us.dwd_disty_inv_qty_df -> dw_xx.dwd_disty_inv_qty_df
+#   ods_ca.ods_cis_corp_inv_qty_rt -> ods_xx.ods_cis_corp_inv_qty_rt
+#
+# Base table rules:
+#   Use date_flag/current snapshot filters whenever the table has date_flag or *_rt suffix snapshot logic.
+#   Prefer inventory fact or inventory ODS table as the driving table, then left join product/order/customer/location dimensions.
+#
+# Main inventory sources:
+#   dw_xx.dwd_disty_inv_qty_df: curated inventory quantity fact.
+#   dw_xx.dwd_disty_inv_aging_df: curated inventory aging fact; filter view_level = 'IT_PART' for part-level aging.
+#   ods_xx.ods_dw_prod_dws_dw_inv_qty: StarRocks ODS inventory quantity source from DW PROD.
+#   ods_xx.ods_cis_corp_inv_qty_rt: CIS real-time/current inventory quantity source.
+#   ods_xx.ods_cis_corp_inv_qty: CIS inventory quantity source.
+
+
+# Core Inventory Relationships
+
+dw_xx.dwd_disty_inv_qty_df (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+dw_xx.dwd_disty_inv_qty_df (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_inv_qty_df (one to one/many) dw_xx.dwd_disty_inv_aging_df by using join columns date_flag, sku_no, inv_type and filter view_level = 'IT_PART'
+dw_xx.dwd_disty_inv_qty_df (one to one/many) dw_xx.dwd_disty_inv_qty_revise_df by using join columns date_flag, sku_no, inv_type, loc_no when available
+dw_xx.dwd_disty_inv_qty_df (one to one/many) ods_xx.ods_cis_corp_inv_qty_rt by using join columns sku_no, inv_type, loc_no
+dw_xx.dwd_disty_inv_qty_df (one to one/many) ods_xx.ods_cis_corp_inv_qty by using join columns sku_no, inv_type, loc_no
+dw_xx.dwd_disty_inv_qty_df (one to one/many) ods_xx.ods_dw_prod_dws_dw_inv_qty by using join columns sku_no, inv_type, loc_no when available
+
+dw_xx.dwd_disty_inv_aging_df (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+dw_xx.dwd_disty_inv_aging_df (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_inv_aging_df should use date_flag and view_level = 'IT_PART' for part-level aging logic.
+
+ods_xx.ods_cis_corp_inv_qty_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+ods_xx.ods_cis_corp_inv_qty_rt (many to one) ods_xx.ods_cis_corp_location_info_rt by using join columns loc_no
+ods_xx.ods_cis_corp_inv_qty_rt (many to one) ods_xx.ods_cis_corp_inv_type_rt by using join columns inv_type
+ods_xx.ods_cis_corp_inv_qty_rt (one to one/many) ods_xx.ods_cis_corp_order_detail_rt by using join columns sku_no
+ods_xx.ods_cis_corp_inv_qty_rt (one to one/many) ods_xx.ods_cis_corp_order_header_rt by using join columns loc_no to from_loc_no and inv_type to from_inv_type when calculating order availability.
+
+ods_xx.ods_cis_corp_inv_qty (many to one) ods_xx.ods_cis_corp_part_master by using join columns sku_no
+ods_xx.ods_cis_corp_inv_qty (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no when mixing RT product attributes
+ods_xx.ods_dw_prod_dws_dw_inv_qty (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+
+
+# Product, Vendor, VPL, and Manager Relationships
+
+ods_xx.ods_cis_corp_part_master_rt (many to one) ods_xx.ods_cis_corp_vend_master_rt by using join columns vend_no
+ods_xx.ods_cis_corp_part_master_rt (many to one) ods_xx.ods_cis_corp_dw_vend_pl_rt by using join columns vpl_no, vend_no
+ods_xx.ods_cis_corp_part_master_rt (one to one/many) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_part_master_rt (one to one/many) ods_xx.ods_cis_corp_sku_extension_rt by using join columns sku_no
+ods_xx.ods_cis_corp_part_master_rt (one to many) ods_xx.ods_cis_corp_sku_profile_rt by using join columns sku_no; filter profile_type/profile_cat/active when used.
+ods_xx.ods_cis_corp_part_master_rt (one to many) ods_xx.ods_cis_corp_part_prod_detail_rt by using join columns sku_no
+ods_xx.ods_cis_corp_part_master_rt (one to one/many) ods_xx.ods_cis_corp_bom_cost_var_rt by using join columns sku_no
+ods_xx.ods_cis_corp_part_master_rt (one to many) ods_xx.ods_cis_corp_bom_rt by using join columns sku_no or comp_no when bill-of-material logic is required.
+ods_xx.ods_cis_corp_part_master_rt (one to one/many) ods_xx.ods_cis_corp_cws_part_rt by using join columns sku_no
+ods_xx.ods_cis_corp_part_master_rt (many to one) ods_xx.ods_cis_corp_part_cat_rt by using join columns group_id
+
+ods_xx.ods_cis_corp_part_cat_rt (many to one) ods_xx.ods_cis_corp_pco_cat_id_rt by using join columns family_id to cat_id
+ods_xx.ods_cis_corp_part_cat_rt (many to one) ods_xx.ods_cis_corp_pco_cat_id_rt by using join columns cat_id
+ods_xx.ods_cis_corp_part_cat_rt (many to one) ods_xx.ods_cis_corp_pco_cat_id_rt by using join columns subcat_id to cat_id
+
+ods_xx.ods_cis_corp_part_master (many to one) ods_xx.ods_cis_corp_vend_master by using join columns vend_no
+ods_xx.ods_cis_corp_part_master (one to one/many) ods_xx.ods_cis_corp_inv_qty by using join columns sku_no
+ods_xx.ods_cis_corp_vend_master_rt (one to many) ods_xx.ods_cis_corp_vendor_xref_rt by using join columns vend_no
+ods_xx.ods_cis_corp_vend_master_rt (one to many) ods_xx.ods_cis_corp_vend_user_matrix_rt by using join columns vend_no
+ods_xx.ods_cis_corp_vend_master (one to many) ods_xx.ods_cis_corp_vend_user_matrix_rt by using join columns vend_no when RT vendor master is not used.
+
+ods_xx.ods_cis_corp_manager_rt (one to one/many) dim_xx.dim_pub_manager by using join columns userid
+ods_xx.ods_cis_corp_manager_rt (one to many) ods_xx.ods_cis_corp_employee_contacts_rt by using join columns userid to user_id
+ods_xx.ods_cis_corp_vend_user_matrix_rt (many to one) ods_xx.ods_cis_corp_manager_rt by using join columns primary_id, manager_id, other_id, or member_id to userid when available.
+Any userid, entry_id, account_rep, pm_id, primary_id, manager_id, other_id, or similar user column can usually join with ods_xx.ods_cis_corp_manager_rt.userid or dim_xx.dim_pub_manager.userid to get user attributes.
+
+
+# Runrate Relationships
+
+dw_xx.dws_disty_pur_ips_runrate_1w (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+dw_xx.dws_disty_pur_ips_runrate_1w (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dws_disty_pur_ips_runrate_1w should usually be filtered by week, sum_type, and inv_type. Use max(week) from the runrate table before calculating WTD/1W/2W/4W/10W metrics.
+
+
+# Backorder, Open Order, and Shipment Relationships
+
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) ods_xx.ods_cis_corp_order_soldto_rt by using join columns order_no, order_type
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) ods_xx.ods_cis_corp_history_header_rt by using join columns order_no, order_type when historical order context is required
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) ods_xx.ods_cis_corp_customer_header_rt by using join columns cust_no
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) ods_xx.ods_cis_corp_location_info_rt by using join columns loc_no
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) ods_xx.ods_cis_corp_territory_rt by using join columns cust_terr to sales_terr
+
+dw_xx.dwd_disty_pub_dw_orders_extend_di (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type when order context is required
+dw_xx.dwd_disty_pub_dw_orders_extend_di (many to one) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type, order_line_no when line context is required
+
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header (one to many) ods_xx.ods_cis_corp_order_detail by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_soldto_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_comments_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_profile_rt by using join columns order_no, order_type; filter profile_type and active = 'Y'.
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_exp_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_eta_detail_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_eu_common_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_eu_custom_rt by using join columns order_no, order_type and EU map keys when available.
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_customer_header_rt by using join columns to_acct_no to cust_no
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_customer_mymdm_customer_header_rt by using join columns to_acct_no to cust_no when MDM customer attributes are required.
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_location_info_rt by using join columns from_loc_no to loc_no
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_manager_rt by using join columns entry_id or account_rep to userid
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_territory_rt by using join columns sales_terr
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_sales_que_rt by using join columns order_no, order_type
+
+ods_xx.ods_cis_corp_order_detail_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+ods_xx.ods_cis_corp_order_detail_rt (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_order_detail_rt (one to one/many) ods_xx.ods_cis_corp_order_detail_date_rt by using join columns order_no, order_type, order_line_no
+ods_xx.ods_cis_corp_order_detail_rt (one to many) ods_xx.ods_cis_corp_order_eta_detail_rt by using join columns order_no, order_type, order_line_no
+ods_xx.ods_cis_corp_order_detail (one to many) ods_xx.ods_cis_corp_order_eta_detail by using join columns order_no, order_type, order_line_no
+ods_xx.ods_cis_corp_order_detail_rt (one to one/many) ods_xx.ods_cis_corp_inv_qty_rt by using join columns sku_no and order header from_loc_no/from_inv_type to inventory loc_no/inv_type
+
+ods_xx.ods_cis_corp_order_exp_rt (one to many) ods_xx.ods_cis_corp_order_profile_rt by using join columns order_no, order_type, order_line_no, order_expense_line_no to profile_no; filter active = 'Y' and profile_type such as 'REBATE_ADJ'.
+ods_xx.ods_cis_corp_order_exp_rt (many to one) ods_xx.ods_cis_corp_proj_usage_budget_rt by using join columns project_no to proj_no
+ods_xx.ods_cis_corp_order_soldto_rt (many to one) ods_xx.ods_cis_corp_customer_header_rt by using join columns to_acct_no to cust_no
+ods_xx.ods_cis_corp_order_soldto_rt (many to one) ods_xx.ods_cis_corp_from_ref_type_rt by using join columns from_ref_type
+
+
+# History Relationships
+
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_detail_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_inv_tran_rt by using join columns order_no, order_type when available
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_serial_nbr_rt by using join columns order_no, order_type when available
+ods_xx.ods_cis_corp_history_header_rt (many to one) ods_xx.ods_cis_corp_territory_rt by using join columns sales_terr
+ods_xx.ods_cis_corp_history_header_rt (many to one) ods_xx.ods_customer_mymdm_customer_header_rt by using join columns to_acct_no to cust_no
+ods_xx.ods_cis_corp_history_header_rt (many to one) ods_xx.ods_cis_corp_manager_rt by using join columns entry_id to userid
+ods_xx.ods_cis_corp_history_header_rt (many to one) ods_xx.ods_cis_corp_customer_header_rt by using join columns to_acct_no to cust_no when CIS customer attributes are required.
+
+ods_xx.ods_cis_corp_history_detail_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+ods_xx.ods_cis_corp_history_detail_rt (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_history_detail_rt (one to one/many) ods_xx.ods_cis_corp_mc_order_ref_rt by using join columns order_no, order_type, order_line_no
+
+
+# RIO, CWS, and Consignment Relationships
+
+ods_xx.ods_cis_corp_rio_request_header_rt (one to many) ods_xx.ods_cis_corp_rio_req_detail_rt by using join columns rio_req_no
+ods_xx.ods_cis_corp_rio_request_header_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no when available
+ods_xx.ods_cis_corp_rio_request_header_rt (many to one) ods_xx.ods_cis_corp_location_info_rt by using join columns loc_no
+ods_xx.ods_cis_corp_rio_req_detail_rt should filter inproc_ref_type as required by the report, for example inproc_ref_type = 18 for CWS/RIO committed quantity.
+
+ods_xx.ods_cis_corp_cws_cop_ship_progress (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+ods_xx.ods_cis_corp_cws_cop_ship_progress (many to one) ods_xx.ods_cis_corp_inv_qty_rt by using join columns sku_no, inv_type, loc_no when comparing committed quantity to current inventory.
+ods_xx.ods_cis_corp_cws_cop_ship_progress should usually filter order_type = 18 for RIO/CWS committed quantity.
+
+ods_xx.ods_cis_corp_consignment_mt_que_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+ods_xx.ods_cis_corp_consignment_mt_que_rt (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns int_ref_no to order_no and int_ref_type to order_type
+ods_xx.ods_cis_corp_consignment_mt_que_rt (many to one) ods_xx.ods_cis_corp_location_info_rt by using join columns cust_no to ext_no when customer location is represented as a location.
+ods_xx.ods_cis_corp_consignment_mt_que_rt (many to one) ods_xx.ods_cis_corp_addr_xref_rt by using join columns cust_no to xref_no and cust_loc_no to xref_seq
+ods_xx.ods_cis_corp_addr_xref_rt (many to one) ods_xx.ods_cis_corp_address_rt by using join columns addr_no
+ods_xx.ods_cis_corp_address_rt (one to many) ods_xx.ods_cis_corp_addr_profile_rt by using join columns addr_no; filter profile_type and active when used.
+
+
+# Customer and Customer Part Relationships
+
+ods_xx.ods_cis_corp_customer_header_rt (one to many) ods_xx.ods_cis_corp_cust_profile_rt by using join columns cust_no
+ods_xx.ods_cis_corp_customer_header_rt (one to many) ods_xx.ods_cis_corp_cust_xref_rt by using join columns cust_no
+ods_xx.ods_cis_corp_customer_header_rt (one to many) ods_xx.ods_cis_corp_cust_part_no_rt by using join columns cust_no
+ods_xx.ods_cis_corp_customer_header_rt (one to one/many) ods_xx.ods_customer_mymdm_customer_header_rt by using join columns cust_no
+ods_xx.ods_cis_corp_cust_part_no_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns synnex_sku_no to sku_no
+ods_xx.ods_cis_corp_cust_part_no_rt (many to one) ods_xx.ods_cis_corp_order_detail_rt by using join columns synnex_sku_no to sku_no when customer-specific part numbers are needed on order lines.
+ods_xx.ods_cis_corp_cust_part_no_rt (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns cust_no to to_acct_no when customer-specific part numbers are needed on orders.
+
+
+# ETA / UniETA Relationships
+
+dm_xx.dm_pur_unieta_boso_detail_rt (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type
+dm_xx.dm_pur_unieta_boso_detail_rt (many to one) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type, order_line_no
+dm_xx.dm_pur_unieta_boso_detail_rt (many to one) dm_xx.dm_pur_unieta_sku_detail_rt by using join columns sku_no when SKU-level UniETA attributes are required.
+dm_xx.dm_pur_unieta_boso_detail_rt can self-join or aggregate by sku_no, order_no, order_type, order_line_no to select min ETA or latest ETA rows.
+ods_xx.ods_cis_corp_uni_eta_log_rt (many to one) dm_xx.dm_pur_unieta_boso_detail_rt by using join columns sku_no, order_no, order_type, order_line_no when ETA audit/log details are required.
+
+
+# Miscellaneous Lookup Rules
+
+ods_xx.ods_cis_corp_carton_header_rt (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type when carton/shipment context is required.
+ods_xx.ods_cis_corp_serial_nbr_rt (many to one) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type, order_line_no when serial number context is required.
+ods_xx.ods_cis_corp_ship_method is a shipping method lookup; join by ship_method or ship_via style columns when present in order tables.
+ods_xx.ods_cis_corp_trans_type is a transaction type lookup; join by trans_type when present in inventory/order transaction tables.
+ods_xx.ods_cis_corp_from_ref_type_rt is a from-reference type lookup; join by from_ref_type.
+ods_xx.ods_cis_corp_proj_usage_budget_rt is a project usage/budget lookup; join from order expense or project fields by project_no/proj_no.
+

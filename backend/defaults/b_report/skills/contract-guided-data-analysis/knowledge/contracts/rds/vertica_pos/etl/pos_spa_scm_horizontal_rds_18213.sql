@@ -1,0 +1,145 @@
+-- Typical POS example: horizontal SPA/SCM expense groups on POS order lines.
+-- Source: US/run/rds_18213_rtv.sp
+
+drop table if exists rdsetl.rds_tmp;
+drop table if exists rdsetl.rds_tmp_body;
+
+drop table if exists table_final_data_us_18213;
+create local temporary table table_final_data_us_18213 on commit preserve rows as
+select
+     f.order_no
+    ,f.order_type
+    ,f.order_line_no
+    ,to_char(f.ship_date,'MM/DD/YYYY') as ship_date
+    ,f.vend_no
+    ,f.vend_name
+    ,f.ship_qty
+    ,f.base_cost
+    ,f.extend_base_cost
+    ,f.bill_to_cust_no
+    ,f.bill_to_cust_name
+    ,f.bill_to_cust_zip
+    ,f.bill_to_cust_city
+    ,f.bill_to_cust_state
+    ,f.sold_to_cust_name
+    ,f.cpo_no as customer_po_no
+    ,f.sales_terr
+    ,f.terr_name
+    ,f.ship_to_name
+    ,f.ship_to_city
+    ,f.ship_to_zip
+    ,f.ship_to_state
+    ,f.eu_company_name as end_user_name
+    ,f.eu_city as end_user_city
+    ,f.eu_state as end_user_state
+    ,f.from_loc_no
+    ,p.part_no
+    ,p.mfg_partno
+    ,f.part_desc
+    ,f.synnex_po_no as synnex_po
+    ,f.vpl_code
+    ,e.track_no
+    ,f.master_cust_no as mcust_no
+from dw_us.dwd_disty_common_pos_di f
+left join dim_us.dim_pub_part_info_rt p on f.sku_no = p.sku_no
+left join dw_us.dwd_pub_common_history_header_extend e on f.order_type = e.order_type and f.order_no = e.order_no
+where 1 = 1
+and f.date_flag >= cast(trunc(timestampadd (dd, -1, getdate()), 'year') as date)
+and f.date_flag < current_date()
+and f.order_line_type <> 'Comp'
+and f.order_type not in (select distinct t.order_type from dim_us.dim_pub_order_type t where t.ship_tran_no is null)
+and f.vend_no = 69925
+order by
+     f.order_type
+    ,f.order_no
+    ,f.order_line_no
+;
+
+
+drop table if exists rds_scm_us_18213;
+create local temporary table rds_scm_us_18213 on commit preserve rows as
+select
+     fd.order_type
+    ,fd.order_no
+    ,fd.order_line_no
+    ,he.exp_code
+    ,he.claim_type
+    ,he.scm_no
+    ,he.unit_exp
+    ,he.extend_exp as extended_exp
+    ,he.spa_no
+    ,he.spa_ref_no
+    ,row_number() over (partition by he.order_type,he.order_no,he.order_line_no order by he.spa_no) scm_row
+from table_final_data_us_18213 fd
+inner join dw_us.dwd_pub_common_shipped_order_scm_spa_detail_di he
+        on fd.order_no = he.order_no
+       and fd.order_type = he.order_type
+       and fd.order_line_no = he.order_line_no
+;
+
+drop table if exists rdsetl.rds_tmp;
+create table rdsetl.rds_tmp as
+select
+     a.order_no
+    ,a.order_type
+    ,a.order_line_no
+    ,a.ship_date
+    ,a.vend_no
+    ,a.vend_name
+    ,a.ship_qty as 'Ship_Qty'
+    ,a.base_cost as 'Base_Cost'
+    ,a.extend_base_cost as 'Extend_Base_Cost'
+    ,a.bill_to_cust_no
+    ,a.bill_to_cust_name
+    ,a.bill_to_cust_zip
+    ,a.bill_to_cust_city
+    ,a.bill_to_cust_state
+    ,a.sold_to_cust_name
+    ,a.customer_po_no
+    ,a.sales_terr
+    ,a.terr_name
+    ,a.ship_to_name
+    ,a.ship_to_city
+    ,a.ship_to_zip
+    ,a.ship_to_state
+    ,a.end_user_name
+    ,a.end_user_city
+    ,a.end_user_state
+    ,a.from_loc_no
+    ,a.part_no as 'TD SYNNEX Part#'
+    ,a.mfg_partno as 'Vendor Part#'
+    ,a.part_desc
+    ,a.synnex_po
+    ,a.vpl_code
+    ,b.exp_code as exp_code1
+    ,b.scm_no as project_no_1
+    ,b.claim_type as claim_type_1
+    ,b.unit_exp as scm_unit_exp1
+    ,b.extended_exp as extended_exp_1
+    ,b.spa_no as spa_no1
+    ,b.spa_ref_no as spa_ref_no1
+    ,c.exp_code as exp_code2
+    ,c.scm_no as project_no_2
+    ,c.claim_type as claim_type_2
+    ,c.unit_exp as scm_unit_exp2
+    ,c.extended_exp as extended_exp_2
+    ,c.spa_no as spa_no2
+    ,c.spa_ref_no as spa_ref_no2
+    ,a.track_no
+    ,a.mcust_no
+from table_final_data_us_18213 a
+left join rds_scm_us_18213 b on a.order_type = b.order_type and a.order_no = b.order_no and a.order_line_no = b.order_line_no and b.scm_row = 1
+left join rds_scm_us_18213 c on a.order_type = c.order_type and a.order_no = c.order_no and a.order_line_no = c.order_line_no and c.scm_row = 2
+;
+
+drop table if exists rdsetl.rds_tmp_body;
+create table rdsetl.rds_tmp_body as
+select 1 as flag
+    ,'Standard' as body_type
+    ,count(*) as cnt
+from rdsetl.rds_tmp
+;
+
+drop table if exists table_final_data_us_18213;
+drop table if exists rds_scm_us_18213;
+

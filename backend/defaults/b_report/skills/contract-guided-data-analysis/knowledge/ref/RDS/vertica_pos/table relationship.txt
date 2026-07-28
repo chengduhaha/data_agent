@@ -1,0 +1,136 @@
+# POS table relationship reference
+
+# Scope
+# - Use xx as the region placeholder, matching table list.txt.
+# - Use dw_xx.dwd_disty_common_pos_di as the driving table for POS reports.
+# - Prefer LEFT JOIN from POS base to enrichment tables to preserve POS rows.
+# - Pre-aggregate or rank one-to-many detail tables when the final report must stay at POS order-line grain.
+
+# Base table
+dw_xx.dwd_disty_common_pos_di
+
+# Common POS grain
+# - POS order header grain: order_no, order_type
+# - POS order-line grain: order_no, order_type, order_line_no
+# - POS date filter: date_flag
+
+# Primary POS fact/detail relationships
+dw_xx.dwd_disty_common_pos_di (many to one) dw_xx.dwd_pub_common_history_header_extend by using join columns order_no, order_type
+dw_xx.dwd_disty_common_pos_di (many to one) dw_xx.dwd_pub_common_order_header_extend by using join columns order_no, order_type
+dw_xx.dwd_disty_common_pos_di (many to one) dw_xx.dwd_disty_sales_order_soldto_di by using join columns order_no, order_type
+dw_xx.dwd_disty_common_pos_di (one to one) dw_xx.dwd_pub_common_history_detail_date by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_common_pos_di (one to many) dw_xx.dwd_disty_common_order_serial_no_di by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_common_pos_di (one to many) dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_common_pos_di (one to many) dw_xx.dwd_disty_scm_shipped_order_spa_di by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_common_pos_di (one to many) dw_xx.dwd_disty_sales_eu_custom_di by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_common_pos_di (one to many) dw_xx.dwd_disty_sales_open_order_detail by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_common_pos_di (many to one) dw_xx.dwd_disty_common_dw_orders_pl_extend_di by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_common_pos_di (one to many) dw_xx.dwd_disty_tm_order_frt_detail_di by using join columns order_no, order_type, order_line_no
+
+# POS dimension relationships
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_customer_info_rt by using join columns cust_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_customer_credit_info by using join columns cust_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_customer_address_contacts_info by using join columns cust_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_cust_profile_all by using join columns cust_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_cust_xref_all by using join columns cust_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_part_info_rt by using join columns sku_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_sku_profile_all by using join columns sku_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_sku_profile_extend by using join columns sku_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_sku_profile_rt by using join columns sku_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_sku_xref_all by using join columns sku_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_vendor_info_rt by using join columns vend_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_vendor_xref by using join columns vend_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_vpl_info by using join columns vpl_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_vpl_hierarchy_info by using join columns vpl_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_vpl_pm_hierarchy_info by using join columns vpl_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_vpc_group_view by using join columns vpc_code or vpc_group
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_vpc_group_xref_view by using join columns vpc_code or vpc_group
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_date by using join columns date_flag
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_dw_calendar by using join columns date_flag or calendar_date
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_sales_hierarchy_primary_role_by_terr_view by using join columns sales_terr
+dw_xx.dwd_disty_common_pos_di (one to many) dim_xx.dim_pub_sales_hierarchy_by_terr_user_role by using join columns sales_terr
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_order_type by using join columns order_type
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_ship_method by using join columns ship_method
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_location_info by using join columns whse_no or location_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_terms_file_view by using join columns terms_code
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_sales_cust_type by using join columns cust_type
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_inv_type_view by using join columns inv_type
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_project_info by using join columns project_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_eu_custom_map_view by using join columns eu_custom_code or end_user_no
+
+# Employee/user attributes
+# - Any POS, order, buyer, sales, entry, manager, director, VP, PM, marketing, or VCM user id can join to dim_xx.dim_pub_manager.userid.
+# - Common source columns include entry_id, user_id, buyer_id, sales_rep_id, mgr_id, dir_id, vp_id, pm_id, marketing_id, and vcm_id.
+
+# Product, buyer, and authority program relationships
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vpl_info by using join columns vpl_no
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vpl_hierarchy_info by using join columns vpl_no
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vpl_pm_hierarchy_info by using join columns vpl_no
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vpc_group_view by using join columns vpc_code or vpc_group
+dim_xx.dim_disty_pm_authority_program_sku (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dim_xx.dim_disty_pm_authority_program_cust (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no
+dim_xx.dim_disty_bd_project_sku (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dim_xx.dim_disty_bd_project_cust (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no
+
+# Open order, CPO, and BO context
+dw_xx.dwd_disty_common_pos_di (many to one) dw_xx.dwd_disty_common_cpo_header by using join columns cpo_no or customer_po_no
+dw_xx.dwd_disty_common_cpo_header (one to many) dm_xx.dm_disty_sales_open_cpo by using join columns cpo_no
+dm_xx.dm_disty_sales_open_cpo (one to many) dw_xx.dwd_disty_sales_open_cpo_header_extend by using join columns cpo_no
+dw_xx.dwd_disty_sales_open_cpo_header_extend (one to many) dw_xx.dwd_disty_sales_open_cpo_detail_extend by using join columns cpo_no
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dw_xx.dwd_disty_common_pos_di by using join columns order_no, order_type, order_line_no when matching shipped POS to original open order
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) dw_xx.dwd_disty_common_pos_di by using join columns order_no, order_type, order_line_no when backorder detail is compared with POS
+
+# SCM, SPA, claim, and project relationships
+dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di (many to one) dw_xx.dwd_disty_scm_pm_claim by using join columns claim_no or scm_no
+dw_xx.dwd_disty_scm_shipped_order_spa_di (many to one) dw_xx.dwd_disty_scm_pm_claim by using join columns claim_no or scm_no
+dw_xx.dwd_disty_scm_open_order_spa_df (many to one) dw_xx.dwd_disty_sales_open_order_detail by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di (many to one) dim_xx.dim_pub_project_info by using join columns project_no
+dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no
+
+# Inventory and purchase context used by POS reports
+dw_xx.dwd_disty_common_pos_di (many to one) dw_xx.dwd_disty_inv_qty_df by using join columns sku_no, whse_no
+dw_xx.dwd_disty_common_pos_di (many to one) dw_xx.dwd_disty_inv_aging_df by using join columns sku_no, whse_no
+dw_xx.dwd_disty_common_pos_di (many to one) dw_xx.dwd_disty_inv_aging_rollover_rtv2_df by using join columns sku_no, whse_no
+dw_xx.dwd_disty_common_pos_di (many to one) dw_xx.dwd_disty_common_po_basic by using join columns po_no, po_line_no when POS line carries PO reference
+dw_xx.dwd_disty_common_pos_di (many to one) dw_xx.dws_disty_pur_ips_runrate_1w by using join columns sku_no, vend_no or vpl_no
+dw_xx.dwd_disty_common_pos_di (many to one) dm_xx.dm_disty_sales_rio_sku_inv_loc by using join columns sku_no, whse_no
+dm_xx.dm_disty_sales_rio_sku_inv_loc (many to one) dlake_dg.dwd_disty_inv_rio_req_detail by using join columns sku_no, whse_no or request_no
+dlake_dg.dwd_disty_inv_rio_req_detail (many to one) dlake_dg.dwd_disty_inv_rio_request_header by using join columns request_no
+
+# ODS source table relationship patterns
+ods_xx.ods_cis_corp_order_header (one to many) ods_xx.ods_cis_corp_order_detail by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_detail (one to one) ods_xx.ods_cis_corp_order_detail_date by using join columns order_no, order_type, order_line_no
+ods_xx.ods_cis_corp_order_detail (one to many) ods_xx.ods_cis_corp_order_exp by using join columns order_no, order_type, order_line_no
+ods_xx.ods_cis_corp_order_detail (one to many) ods_xx.ods_cis_corp_order_eu_custom by using join columns order_no, order_type, order_line_no
+ods_xx.ods_cis_corp_order_header (one to many) ods_xx.ods_cis_corp_order_profile by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header (one to many) ods_xx.ods_cis_corp_order_comments by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header (one to many) ods_xx.ods_cis_corp_history_detail by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_detail (one to many) ods_xx.ods_cis_corp_history_serial_nbr by using join columns order_no, order_type, order_line_no
+ods_xx.ods_cis_corp_history_detail (one to many) ods_xx.ods_cis_corp_history_exp by using join columns order_no, order_type, order_line_no
+ods_xx.ods_cis_corp_history_detail (one to many) ods_xx.ods_cis_corp_history_eu_custom by using join columns order_no, order_type, order_line_no
+ods_xx.ods_cis_corp_history_detail (one to one) ods_xx.ods_cis_corp_history_profile by using join columns order_no, order_type, order_line_no
+ods_xx.ods_cis_corp_history_header (one to many) ods_xx.ods_cis_corp_history_comments by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header (one to many) ods_xx.ods_cis_corp_history_carton_header by using join columns order_no, order_type
+ods_xx.ods_cis_corp_carton_header (one to many) ods_xx.ods_cis_corp_serial_nbr by using join columns carton_no or order_no, order_type
+ods_xx.ods_cis_corp_cpo_header (one to many) ods_xx.ods_cis_corp_cpo_profile by using join columns cpo_no
+ods_xx.ods_cis_corp_cpo_header (one to many) ods_xx.ods_cis_corp_cpo_comments by using join columns cpo_no
+ods_xx.ods_cis_corp_cpo_header (one to many) ods_xx.ods_cis_corp_cpo_eu_custom by using join columns cpo_no
+ods_xx.ods_cis_corp_spa_header (one to many) ods_xx.ods_cis_corp_spa_detail by using join columns spa_no
+ods_xx.ods_cis_corp_pm_claim (many to one) ods_xx.ods_cis_corp_pm_claim_type by using join columns claim_type
+ods_xx.ods_cis_corp_part_master (one to many) ods_xx.ods_cis_corp_part_prod_detail by using join columns sku_no
+ods_xx.ods_cis_corp_part_master (one to many) ods_xx.ods_cis_corp_cust_part_no by using join columns sku_no
+ods_xx.ods_cis_corp_customer_header (one to many) ods_xx.ods_cis_corp_cust_change_log by using join columns cust_no
+ods_xx.ods_cis_corp_customer_header (one to many) ods_xx.ods_cis_corp_cust_doc by using join columns cust_no
+ods_xx.ods_cis_corp_vend_master (one to one) ods_xx.ods_cis_corp_vend_master_etc by using join columns vend_no
+ods_xx.ods_cis_corp_vend_master (one to many) ods_xx.ods_cis_corp_vend_doc by using join columns vend_no
+ods_xx.ods_cis_corp_vend_master (one to many) ods_xx.ods_cis_corp_vend_user_matrix by using join columns vend_no
+
+# Notes for tables without a stable direct POS key
+# - Reference/config tables such as dim_xx.dim_pub_list_box_detail and ods_xx.ods_dw_prod_dws_dw_param_xref usually join by code_type/code_value or param name/value.
+# - Product technical content tables ods_xx.ods_cis_corp_tc_attribute_en, ods_xx.ods_cis_corp_tc_part_technotes_en, and ods_xx.ods_cis_corp_tc_value_en usually join through sku_no or technical attribute identifiers.
+# - Finance tables such as dw_xx.dwd_disty_ar_cust_doc_df, dw_xx.dwd_disty_ar_payment_cust_application, dw_xx.dwd_disty_ar_payment_cust_payment, and dw_xx.dwd_disty_ap_hold_df are usually joined by cust_no, vend_no, invoice_no, doc_no, or payment_no depending on the report.
+# - Goal/forecast/close tables such as dw_xx.dwd_disty_pm_report_goal, dm_xx.dm_disty_pur_purch_forecast461_rtv2, dm_xx.dm_disty_sales_close_cpo_di, and dw_xx.dws_disty_brpt_cust_mtd are usually joined by report grain keys such as sku_no, vend_no, vpl_no, cust_no, sales_terr, and fiscal period.

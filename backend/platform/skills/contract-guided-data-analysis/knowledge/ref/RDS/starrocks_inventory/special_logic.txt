@@ -1,0 +1,77 @@
+1. StarRocks Inventory scripts use `tempdb.rds_tmp` and `tempdb.rds_tmp_body` as the final output tables. Some older converted scripts may still show unqualified `rds_tmp`; for new StarRocks SQL, prefer `tempdb.rds_tmp` and `tempdb.rds_tmp_body`.
+
+2. StarRocks temporary/report staging tables are often created as physical tempdb tables. For larger update-heavy intermediate tables, historical scripts commonly use:
+   `CREATE TABLE tempdb.<table_name> PRIMARY KEY(id) DISTRIBUTED BY HASH(id) AS SELECT uuid_numeric() AS id, ...`
+   Use this pattern when later UPDATE steps need a stable row id or when the result is large.
+
+3. For part-level inventory aging from `dw_xx.dwd_disty_inv_aging_df`, always filter `view_level = 'IT_PART'` and apply a date filter, usually `date_flag = date_add(current_date(), interval -1 day)`.
+
+4. StarRocks date syntax in existing Inventory scripts is not the same as Vertica. Common patterns are:
+   - `date_add(current_date(), interval -1 day)`
+   - `cast(DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY) as date)`
+   - `date_format(date_add(CURRENT_DATE(), INTERVAL -1 DAY), '%Y-%m-%d')`
+   - `date_trunc('month', date_add(curdate(), interval n month))`
+   Match the date expression style used by the selected source table and existing example.
+
+5. StarRocks Inventory may use multiple inventory quantity sources. Choose the source by report purpose:
+   - `dw_xx.dwd_disty_inv_qty_df`: curated DW inventory quantity.
+   - `ods_xx.ods_cis_corp_inv_qty_rt`: CIS real-time/current inventory snapshot.
+   - `ods_xx.ods_cis_corp_inv_qty`: CIS inventory quantity when RT is not used.
+   - `ods_xx.ods_dw_prod_dws_dw_inv_qty`: DW PROD ODS quantity used by some StarRocks converted reports.
+   Do not mix these sources unless the historical report does so or a reconciliation/comparison is requested.
+
+6. Standard Inventory reports usually use `inv_type = 1`. Some reports combine standard/special stock with `inv_type in (1, 300)`. Broad inventory extracts may use a wide inventory type set such as `(1,2,3,4,7,32,33,37,40,68,100,200,300)`. Use wide sets only when the request asks for all inventory types, hazardous/DG style extracts, or when following an existing report.
+
+7. Common availability formulas differ slightly by source/report:
+   - Full formula: `on_hand_qty - bo_qty + intran_in - intran_out - alloc_qty`.
+   - StarRocks RT/open-order variants may use `on_hand_qty - bo_qty - alloc_qty - wip_qty - intran_out`.
+   - Total inventory is usually `on_hand_qty + intran_in`.
+   Preserve the formula from the closest example or business request; do not silently swap formulas.
+
+8. Location pivot reports turn `loc_no` into warehouse columns such as DFR, DCH, DTN, DDC, DON, DFL, DGA, DSW, DIN, DFW, DFO, DEX/310, or LOC312. Use the country/report-specific location mapping from examples; do not reuse US location columns for CA/HY unless requested.
+
+9. RIO/CWS committed quantity can come from `ods_xx.ods_cis_corp_cws_cop_ship_progress`; filter `order_type = 18` and sum `order_qty` by `sku_no`, `inv_type`, and `loc_no` when location-level RIO columns are needed.
+
+10. RIO request logic uses `ods_xx.ods_cis_corp_rio_request_header_rt` and `ods_xx.ods_cis_corp_rio_req_detail_rt`. Join by `rio_req_no`; filter `inproc_ref_type` according to the request, commonly `18` for CWS/RIO committed quantity. RIO/open RIO logic is normally tied to standard inventory type unless a report explicitly uses a wider set.
+
+11. KWO/SO allocation logic is derived from open order detail, not from inventory `alloc_qty` alone. Historical scripts calculate quantities as `order_qty - ship_qty`, filter `delete_date is null`, and use order types such as `(1, 18)` for KWO allocation or `(1, 4, 6, 10, 11)` for SO allocation depending on report purpose.
+
+12. Open PO / on-order ETA bucket reports use `ods_xx.ods_cis_corp_order_eta_detail_rt` joined to order header/detail. ETA buckets are often split by month using `date_trunc('month', date_add(curdate(), interval n month))`. Location-specific ETA reports may filter `to_loc_no` values such as `310` or `312`.
+
+13. Backorder detail reports use `dw_xx.dwd_disty_brpt_bo_detail_df` when order line context is required, especially order number, order type, order line, customer, ship-to, ETA, unit price/cost, serial/tracking, or marketing comments. Use `date_flag = date_format(date_add(CURRENT_DATE(), INTERVAL -1 DAY), '%Y-%m-%d')` when the table has daily snapshots.
+
+14. Some StarRocks Inventory reports union shipped sales/order history with current backorder/open order rows. For these reports, preserve the union shape and align columns with explicit casts/null placeholders before enrichment.
+
+15. Runrate logic uses `dw_xx.dws_disty_pur_ips_runrate_1w`. First compute `max(week)` per required grain, then calculate WTD/1W/2W/4W/10W/13W/52W based on the report. Common `sum_type` is `WITYPESTD`; rare DOS/location logic uses `WITYPESTU`.
+
+16. DOS-style logic may calculate days of supply as `AvailQty * 20 / q4w`, using `NULL` when `q4w = 0` to avoid divide-by-zero. Keep this as a business metric, not a generic availability formula.
+
+17. Profile tables are one-to-many and must be filtered. Common StarRocks Inventory profile filters include:
+   - `profile_type = 'SHIP_CPLE' and active = 'Y'` for ship complete status.
+   - `profile_type = 'EXPSHIPDAY' and active = 'Y'` for expected ship day.
+   - `profile_type = 'REBATE_ADJ' and active = 'Y'` for rebate adjustment profile on order expenses.
+   - `profile_type = 'DEF_WH' and active = 'Y'` for default warehouse from address profile.
+   Missing profile filters can duplicate rows.
+
+18. Consignment logic uses `ods_xx.ods_cis_corp_consignment_mt_que_rt`. It often filters `from_ref_type = 81`, customer number, current-month entry date, and joins to current order header first, then falls back to history header fields when current order fields are null.
+
+19. Customer address/default warehouse logic uses `ods_xx.ods_cis_corp_addr_xref_rt`, `ods_xx.ods_cis_corp_address_rt`, and `ods_xx.ods_cis_corp_addr_profile_rt`. For customer address joins, filter `xref_type = 'ADDR_CUST'` and `active = 'Y'`; for default warehouse, filter address profile `profile_type = 'DEF_WH'` and `active = 'Y'`.
+
+20. Customer-specific part number logic uses `ods_xx.ods_cis_corp_cust_part_no_rt`. Join `synnex_sku_no` to `sku_no` and `cust_no` to the order/customer account. Filter deleted/inactive rows when the table provides delete or active fields.
+
+21. Hazardous/DG inventory extracts use `ods_xx.ods_cis_corp_sku_extension_rt.dg_code` and product category tables. Existing logic filters `dg_code in ('HAZRV','HAZDS','HAZLG','HAZOB','HAZIT') or dg_code is null`, active sellable parts, and removes rows where both on-hand and on-order totals are zero.
+
+22. Product category hierarchy is built from `ods_xx.ods_cis_corp_part_cat_rt` and `ods_xx.ods_cis_corp_pco_cat_id_rt`: `family_id`, `cat_id`, and `subcat_id` each map to category descriptions through `cat_id`.
+
+23. Vendor purchasing number logic may use `ods_xx.ods_cis_corp_vendor_xref_rt` with `xref_type = 'VEND_PURCH'` and `active = 'Y'`; if no purchasing vendor is found, historical logic defaults `pur_vend_no` to `vend_no`.
+
+24. Large output reports may split final result into multiple output tables, for example `rds_tmp`, `rds_tmp_2`, `rds_tmp_3`, and append corresponding rows into `rds_tmp_body` with `flag = 1, 2, 3`. Use this only when the historical report or row-count requirement needs multi-part output.
+
+25. Multi-sheet reports may create `tempdb.rds_tmp_sheet_config` before final output. Preserve this when the report has multiple sheets, titles, or sheet-level date patterns.
+
+26. StarRocks scripts often set `time_zone = 'America/Los_Angeles'` for US reports. Preserve explicit time zone settings from historical reports when date/current-day logic depends on US business day.
+
+27. Serial/tracking reports use `ods_xx.ods_cis_corp_serial_nbr_rt`, `ods_xx.ods_cis_corp_history_serial_nbr_rt`, carton, and shipment/order detail tables. Only join these tables when serial number, tracking number, or carton/shipment details are requested.
+
+28. Some scanned StarRocks Inventory RTV files are converted from older Sybase format and may still contain `object_id`, `go`, or `tempdb..` comments/blocks. For new StarRocks SQL, use StarRocks-compatible syntax: `DROP TABLE IF EXISTS`, `CREATE TABLE tempdb... AS`, `IFNULL`, `date_add`, and `date_format`.
+

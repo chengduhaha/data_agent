@@ -1,0 +1,163 @@
+# Vertica CPO table relationships
+#
+# Country schemas are normalized with xx, for example:
+#   dm_us.dm_disty_sales_open_cpo -> dm_xx.dm_disty_sales_open_cpo
+#   ods_ca.ods_cis_corp_cpo_header -> ods_xx.ods_cis_corp_cpo_header
+#
+# Base table rules:
+#   Use CPO DM/fact tables as the driving source for CPO reports.
+#   Use ODS CPO/order/history tables only when the report requires attributes not present in the curated CPO facts.
+#   Apply date_flag/current snapshot filters whenever a curated DW fact table has date_flag.
+
+
+# Core CPO Facts
+
+dm_xx.dm_disty_sales_open_cpo (many to one) dim_xx.dim_pub_part_info by using join columns cpo_sku_no to sku_no
+dm_xx.dm_disty_sales_open_cpo (many to one) dim_xx.dim_pub_part_info_rt by using join columns cpo_sku_no to sku_no
+dm_xx.dm_disty_sales_open_cpo (many to one) dim_xx.dim_pub_customer_info by using join columns cpo_cust_no to cust_no
+dm_xx.dm_disty_sales_open_cpo (many to one) dim_xx.dim_pub_customer_info_rt by using join columns cpo_cust_no to cust_no
+dm_xx.dm_disty_sales_open_cpo (many to one) dim_xx.dim_pub_customer_info by using join columns reseller_cust_no to cust_no when reseller attributes are required
+dm_xx.dm_disty_sales_open_cpo (many to one) dim_xx.dim_pub_sales_hierarchy_by_terr_user_role by using join columns cpo_sales_terr to sales_terr
+dm_xx.dm_disty_sales_open_cpo (many to one) dim_xx.dim_pub_manager by using join columns cpo_entry_id, cpo_delete_id, or other user id columns to userid
+dm_xx.dm_disty_sales_open_cpo (many to one) ods_xx.ods_cis_corp_order_header by using join columns cpo_id to int_ref_no
+dm_xx.dm_disty_sales_open_cpo (many to one) ods_xx.ods_cis_corp_history_header by using join columns cpo_id to int_ref_no and cpo_no to ext_ref when historical order context is needed
+dm_xx.dm_disty_sales_open_cpo (many to one) ods_xx.ods_cis_corp_order_detail by using join columns cpo_id to int_ref_no, cpo_no to ext_ref, cpo_line_seq to int_ref_line_no
+dm_xx.dm_disty_sales_open_cpo (one to one/many) dw_xx.dwd_disty_sales_open_cpo_detail_extend by using join columns cpo_id, cpo_line_seq when detailed open CPO extension fields are needed
+dm_xx.dm_disty_sales_open_cpo (one to one/many) dw_xx.dwd_disty_sales_open_cpo_header_extend by using join columns cpo_id when header extension fields are needed
+
+dm_xx.dm_disty_sales_close_cpo_di (many to one) dim_xx.dim_pub_part_info by using join columns cpo_sku_no to sku_no
+dm_xx.dm_disty_sales_close_cpo_di (many to one) dim_xx.dim_pub_customer_info by using join columns cpo_cust_no to cust_no
+dm_xx.dm_disty_sales_close_cpo_di (many to one) dim_xx.dim_pub_manager by using join columns cpo_entry_id to userid
+dm_xx.dm_disty_sales_close_cpo_di (many to one) ods_xx.ods_cis_corp_order_header by using join columns cpo_id to int_ref_no
+dm_xx.dm_disty_sales_close_cpo_di (many to one) ods_xx.ods_cis_corp_history_detail by using join columns cpo_id to int_ref_no when closed CPO is tied back to shipped history lines
+dm_xx.dm_disty_sales_close_cpo_di (one to one/many) dw_xx.dwd_disty_sales_close_cpo_detail_extend_di by using join columns cpo_id, cpo_line_seq when detail extension fields are needed
+dm_xx.dm_disty_sales_close_cpo_di (one to one/many) dw_xx.dwd_disty_common_pos_di by using join columns cpo_id to int_ref_no and cpo_sku_no to sku_no when shipped POS context is needed
+
+dw_xx.dwd_disty_common_cpo_header (one to one/many) dm_xx.dm_disty_sales_open_cpo by using join columns cpo_id
+dw_xx.dwd_disty_common_cpo_header (one to one/many) dw_xx.dwd_disty_sales_open_cpo_detail_extend by using join columns cpo_id
+dw_xx.dwd_disty_common_cpo_header (many to one) dim_xx.dim_pub_part_info by using join columns cpo_sku_no to sku_no
+dw_xx.dwd_disty_common_cpo_header (many to one) dim_xx.dim_pub_manager by using join columns cpo_delete_id or cpo_entry_id to userid
+dw_xx.dwd_disty_common_cpo_header (many to one) ods_xx.ods_cis_corp_order_header by using join columns cpo_id to int_ref_no
+
+dw_xx.dwd_disty_sales_open_cpo_detail_extend (many to one) dw_xx.dwd_disty_sales_open_cpo_header_extend by using join columns cpo_id
+dw_xx.dwd_disty_sales_open_cpo_detail_extend (many to one) dim_xx.dim_pub_part_info by using join columns cpo_sku_no to sku_no
+dw_xx.dwd_disty_sales_close_cpo_detail_extend_di (many to one) dm_xx.dm_disty_sales_close_cpo_di by using join columns cpo_id, cpo_line_seq
+dw_xx.dwd_disty_sales_close_cpo_detail_extend_di (many to one) dim_xx.dim_pub_part_info by using join columns cpo_sku_no to sku_no
+
+
+# Product, Vendor, VPL, Customer, Sales, and User Dimensions
+
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vpl_info by using join columns vpl_no
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vpl_hierarchy_info by using join columns vend_no, vpl_no
+dim_xx.dim_pub_part_info (one to many) dim_xx.dim_pub_sku_profile_all by using join columns sku_no
+dim_xx.dim_pub_vendor_info (many to one) dim_xx.dim_pub_vendor_info by using join columns master_vend_no to vend_no when master vendor attributes are required
+
+dim_xx.dim_pub_customer_info (one to many) dim_xx.dim_pub_customer_address_contacts_info by using join columns cust_no
+dim_xx.dim_pub_customer_info (one to one/many) dim_xx.dim_pub_customer_info_rt by using join columns cust_no
+dim_xx.dim_pub_customer_info (many to one) dim_xx.dim_pub_sales_hierarchy_by_terr_user_role by using join columns sales_terr
+dim_xx.dim_pub_sales_hierarchy_by_terr_user_role (many to one) dim_xx.dim_pub_manager by using join columns user_id or name to userid/name when sales rep attributes are needed
+dim_xx.dim_pub_location_info (many to one) dim_xx.dim_pub_manager by using join columns loc_no to user_loc when user location attributes are needed
+dim_xx.dim_pub_date is a calendar/date lookup; join by date_flag or report date when calendar attributes are required.
+dim_xx.dim_pub_order_type is an order type lookup; join by order_type.
+dim_xx.dim_pub_project_info is a project/SCM lookup; join by proj_no or scm_no when project fields are requested.
+
+
+# CPO ODS Header, Detail, Profile, Comments, Expenses, and EU Custom
+
+ods_xx.ods_cis_corp_cpo_header (one to many) ods_xx.ods_cis_corp_cpo_profile by using join columns cpo_id and cpo_line_seq when line-level profile is required
+ods_xx.ods_cis_corp_cpo_header (one to many) ods_xx.ods_cis_corp_cpo_comments by using join columns cpo_id, cpo_line_seq
+ods_xx.ods_cis_corp_cpo_header (one to many) ods_xx.ods_cis_corp_cpo_exp by using join columns cpo_id, cpo_line_seq
+ods_xx.ods_cis_corp_cpo_header (one to many) ods_xx.ods_cis_corp_cpo_eu_common by using join columns cpo_id
+ods_xx.ods_cis_corp_cpo_header (one to many) ods_xx.ods_cis_corp_cpo_eu_custom by using join columns cpo_id, cpo_line_seq, eu_map_id, eu_map_line_no
+ods_xx.ods_cis_corp_cpo_header (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no or cpo_cust_no when available
+ods_xx.ods_cis_corp_cpo_header (many to one) dim_xx.dim_pub_part_info by using join columns cpo_sku_no to sku_no when available
+
+dm_xx.dm_disty_sales_open_cpo (one to many) ods_xx.ods_cis_corp_cpo_profile by using join columns cpo_id; filter profile_type such as 'EMAILQUOTE' and active = 'Y'
+dm_xx.dm_disty_sales_open_cpo (one to many) ods_xx.ods_cis_corp_cpo_comments by using join columns cpo_id, cpo_line_seq; filter cpo_comment_type such as 'OX'
+dm_xx.dm_disty_sales_open_cpo (one to many) ods_xx.ods_cis_corp_cpo_eu_common by using join columns cpo_id
+dm_xx.dm_disty_sales_open_cpo (one to many) ods_xx.ods_cis_corp_cpo_eu_custom by using join columns cpo_id, cpo_line_seq, eu_map_id, eu_map_line_no
+dw_xx.dwd_disty_common_cpo_header (one to many) ods_xx.ods_cis_corp_history_cpo_comments by using join columns cpo_id, cpo_line_seq; filter cpo_comment_type such as 'OX'
+dw_xx.dwd_disty_sales_open_cpo_detail_extend (one to many) ods_xx.ods_cis_corp_history_cpo_comments by using join columns cpo_id, cpo_line_seq; filter cpo_comment_type such as 'OX'
+ods_xx.ods_cis_corp_history_cpo_profile (many to one) ods_xx.ods_cis_corp_history_header by using join columns cpo_id to int_ref_no when historical CPO profile is tied to history order context
+ods_xx.ods_cis_corp_history_cpo_eu_custom (many to one) ods_xx.ods_cis_corp_history_header by using join columns cpo_id to int_ref_no when historical CPO EU custom is tied to history order context
+
+dim_xx.dim_pub_eu_custom_map_view (one to many) ods_xx.ods_cis_corp_cpo_eu_custom by using join columns eu_map_id, eu_map_line_no
+ods_xx.ods_cis_corp_eu_custom_map (one to many) ods_xx.ods_cis_corp_history_eu_custom by using join columns eu_map_id, eu_map_line_no
+ods_xx.ods_cis_corp_eu_custom_map (many to one) ods_xx.ods_cis_corp_list_box_detail by using join columns map_data_desc to code_value and filter list_box_code such as 'CEDM'
+
+
+# Sales Order and History Relationships Used By CPO
+
+ods_xx.ods_cis_corp_order_header (one to many) ods_xx.ods_cis_corp_order_detail by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header (one to many) ods_xx.ods_cis_corp_order_soldto by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header (one to many) ods_xx.ods_cis_corp_order_profile by using join columns order_no, order_type; filter order_line_no is null and profile_type such as 'EXPSHIPDAY'
+ods_xx.ods_cis_corp_order_header (one to many) ods_xx.ods_cis_corp_order_eu_common by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header (one to many) ods_xx.ods_cis_corp_order_eu_custom by using join columns order_no, order_type, eu_map_id, eu_map_line_no
+ods_xx.ods_cis_corp_order_header (many to one) dim_xx.dim_pub_customer_info by using join columns to_acct_no to cust_no
+ods_xx.ods_cis_corp_order_header (many to one) dim_xx.dim_pub_location_info by using join columns from_loc_no to loc_no
+ods_xx.ods_cis_corp_order_header (many to one) dim_xx.dim_pub_manager by using join columns entry_id to userid
+ods_xx.ods_cis_corp_order_header can self-join by int_ref_no/int_ref_type to order_no/order_type when linking CPO-derived orders back to source orders or invoice/VPO orders.
+ods_xx.ods_cis_corp_order_header (one to many) ods_xx.ods_wms_mywms_cws_bto_lab by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header (one to many) ods_xx.ods_wms_mywms_cws_bto_lab_ext by using join columns order_no, order_type
+
+ods_xx.ods_cis_corp_order_detail (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_order_detail (many to one) dm_xx.dm_disty_sales_open_cpo by using join columns int_ref_no to cpo_id, ext_ref to cpo_no, int_ref_line_no to cpo_line_seq
+ods_xx.ods_cis_corp_order_detail (many to one) ods_xx.ods_cis_corp_inv_qty by using join columns sku_no, inv_type, loc_no when inventory context is required
+ods_xx.ods_cis_corp_order_soldto (many to one) dim_xx.dim_pub_customer_info by using join columns to_acct_no to cust_no
+
+ods_xx.ods_cis_corp_history_header (one to many) ods_xx.ods_cis_corp_history_detail by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header (one to many) ods_xx.ods_cis_corp_history_soldto by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header (many to one) dim_xx.dim_pub_customer_info by using join columns to_acct_no to cust_no
+ods_xx.ods_cis_corp_history_header (many to one) dim_xx.dim_pub_location_info by using join columns from_loc_no to loc_no
+ods_xx.ods_cis_corp_history_header (many to one) dim_xx.dim_pub_sales_hierarchy_by_terr_user_role by using join columns sales_terr
+ods_xx.ods_cis_corp_history_header (many to one) dim_xx.dim_pub_order_type by using join columns order_type
+ods_xx.ods_cis_corp_history_header (many to one) dim_xx.dim_pub_manager by using join columns entry_id to userid
+ods_xx.ods_cis_corp_history_detail (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_history_detail (many to one) dm_xx.dm_disty_sales_close_cpo_di by using join columns int_ref_no to cpo_id when closed CPO context is needed
+
+
+# POS, DW Orders, SCM/SPA, and Shipment Context
+
+dw_xx.dwd_disty_common_pos_di (many to one) ods_xx.ods_cis_corp_history_header by using join columns order_no, order_type
+dw_xx.dwd_disty_common_pos_di (many to one) ods_xx.ods_cis_corp_history_detail by using join columns order_no, order_type
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_customer_info by using join columns bill_to_cust_no to cust_no
+dw_xx.dwd_disty_common_pos_di (one to one/many) dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_common_pos_di (one to one/many) dw_xx.dwd_disty_scm_shipped_order_spa_di by using join columns date_flag, order_no, order_type, order_line_no
+dw_xx.dwd_disty_common_pos_di (one to many) ods_xx.ods_cis_corp_carton_header by using join columns order_no, order_type
+dw_xx.dwd_disty_common_pos_di (many to one) ods_xx.ods_cis_corp_cpo_header by using join columns int_ref_no to cpo_id when POS rows are tied to CPO
+
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) ods_xx.ods_cis_corp_history_header by using join columns order_no, order_type
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no
+dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di (many to one) dim_xx.dim_pub_project_info by using join columns scm_no to proj_no
+
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_sales_open_order_detail (many to one) ods_xx.ods_cis_corp_order_header by using join columns order_no, order_type
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dm_xx.dm_disty_sales_open_cpo by using join columns int_ref_no to cpo_id when open order is CPO-backed
+
+
+# E-Commerce Cart and SMB/Vendor Image Context
+
+ods_xx.ods_etl_ec_cart_current (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_etl_ec_cart_current (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no
+ods_xx.ods_etl_ec_cart_current (many to one) ods_xx.ods_cis_corp_ec_user by using join columns user_id
+ods_xx.ods_etl_ec_cart_current (many to one) ods_xx.ods_cis_corp_ec_cache_part_master by using join columns sku_no
+ods_xx.ods_etl_ec_cart_current (many to one) dm_xx.dm_disty_sales_open_cpo by using join columns cust_no to cpo_cust_no and sku_no to cpo_sku_no when cart lines are compared to CPO
+
+ods_xx.ods_etl_ec_cart_history (many to one) ods_xx.ods_cis_corp_ec_cache_part_master by using join columns sku_no
+ods_xx.ods_etl_ec_cart_history (many to one) ods_xx.ods_cis_corp_history_header by using join columns cpo_id to int_ref_no when historical cart has converted order context
+ods_xx.ods_etl_ec_cart_history (many to one) ods_xx.ods_cis_corp_order_header by using join columns cpo_id to int_ref_no when current order context is needed
+ods_xx.ods_cis_corp_ec_cache_part_master (many to one) ods_xx.ods_daas_mygbldaas_smb_vend_image_config by using join columns vend_no; filter country_code, active, and e_catalog_source when present
+
+
+# Miscellaneous CPO Lookup and Detail Relationships
+
+ods_xx.ods_cis_corp_asset_tag (many to one) ods_xx.ods_cis_corp_order_detail by using join columns order_no, order_type, order_line_no when asset tag details are requested
+ods_xx.ods_cis_corp_bom (many to one) dim_xx.dim_pub_part_info by using join columns sku_no and comp_no to sku_no for kit/component logic
+ods_xx.ods_cis_corp_list_box_detail is a generic code lookup; join by code_value and filter list_box_code for the specific business code set
+ods_xx.ods_cis_corp_mc_order_ref (many to one) ods_xx.ods_cis_corp_order_header by using join columns order_no, order_type, order_line_no when manufacturer/customer reference order context is required
+ods_xx.ods_cis_corp_inv_qty (many to one) dim_xx.dim_pub_part_info by using join columns sku_no when CPO reports need inventory context
+ods_xx.ods_wms_mywms_cws_bto_lab (one to many) ods_xx.ods_wms_mywms_cws_bto_lab_ext by using join columns order_no, order_type when BTO/lab extension attributes are needed
+

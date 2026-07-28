@@ -1,0 +1,56 @@
+# Vertica RMA table relationships
+#
+# Country schemas are normalized with xx in this file.
+#
+# Scope
+#   Generated from Vertica RMA rds_xxx_rtv.sp scripts identified by matching
+#   Vertica *_gen.sp files that contain rdsetl.rds_tmp.
+#   RMA scripts are identified by SELECT/FROM usage of dwd_disty_cs_rma_info.
+#   Use dw_xx.dwd_disty_cs_rma_info as the main RMA source.
+#
+# Common grain
+#   RMA line grain: rma_no, rma_line_no
+#   RMA product grain: sku_no or part_no
+#   Location grain: loc_no
+#   Order header grain: order_no, order_type
+#   Freight tracking grain: track_no / rma_track_no
+
+
+# Core RMA Relationships
+
+dw_xx.dwd_disty_cs_rma_info (many to one) dim_xx.dim_pub_location_info by using join columns loc_no
+dw_xx.dwd_disty_cs_rma_info (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_cs_rma_info can be filtered by rma_status, rma_type, vend_segment, delete_id, company_no, sku_no, and rma_entry_datetime/rma_issue_date according to the report scenario.
+dw_xx.dwd_disty_cs_rma_info uses rma_track_no when matching RMA returns to freight tracking detail.
+
+
+# GFS Repair / Material Transaction Relationships
+
+dim_xx.dim_pub_location_info (one to one/many) dim_xx.dim_gfs_location_info by using join columns loc_no when building the valid GFS site list.
+dw_xx.dwd_gfs_pur_mt_detail (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_gfs_pur_mt_detail (many to one) dim_xx.dim_pub_location_info by using join columns to_loc_no or from_loc_no to loc_no when site/location attributes are required.
+dw_xx.dwd_gfs_pur_mt_detail (many to one) dim_xx.dim_gfs_location_info by using join columns to_loc_no or from_loc_no to loc_no when GFS active-site filtering is required.
+dw_xx.dwd_gfs_pur_mt_detail (many to one) dw_xx.dwd_pub_common_order_profile_lightweight by using join columns order_no, order_type; filter profile_type = 'SF_ORD_NO' and active = 'Y' when linking repair yield orders to source repair orders.
+dw_xx.dwd_gfs_pur_mt_detail can self-link by using join columns profile_c to order_no, order_type, and sku_no when matching repair return transactions back to the original defective-to-repair movement.
+dw_xx.dwd_gfs_pur_mt_detail can be filtered by order_type, gfs_order_type, company_no, from_inv_type, to_inv_type, from_loc_no, to_loc_no, to_loc_type, closed_date, rec_qty, and ship_qty according to the repair transaction stage.
+
+
+# Open Order / Shipment Status Relationships
+
+dw_xx.dwd_disty_sales_open_order_detail (many to one) ods_xx.ods_cis_corp_order_header by using join columns order_no, order_type
+dw_xx.dwd_disty_sales_open_order_detail can be filtered by cust_no, vend_no, order_delete_date, and order_line_delete_date when producing shipment status tabs for RMA-related reports.
+
+
+# Freight Tracking Relationships
+
+dw_xx.dwd_disty_cs_rma_info (one to many) dw_xx.dwd_disty_ap_freight_none_order_view by using join columns rma_track_no to track_no when rma_track_no contains the carrier tracking number.
+dw_xx.dwd_disty_ap_freight_none_order_view normalizes tracking in historical RTV logic with substr(track_no, 2) before matching to rma_track_no.
+dw_xx.dwd_disty_ap_freight_none_order_view can be filtered by report_week for weekly freight snapshots.
+
+
+# Output and Grain Notes
+
+Use RMA rows as the driving source when the report is about return authorization, receipt, or RMA line attributes.
+Use GFS material transaction rows as the driving source when the report is about defective returns, repair yield, or defective-to-repair transaction history.
+Use LEFT JOIN from open order rows to ods_xx.ods_cis_corp_order_header when order header fields such as ext_ref or printed_date are optional enrichments.
+Pre-aggregate material transaction quantities before final output when the report grain is month, site, product, and transaction code.

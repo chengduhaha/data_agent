@@ -1,0 +1,22 @@
+{
+  "seed_id": "knowledgebase.cpo.folder",
+  "layer": "l1_catalog",
+  "domain": "cpo",
+  "source_folder": "target/knowledgebase/cpo",
+  "documents": [
+    "target/knowledgebase/cpo/dwd_disty_sales_close_cpo_detail_extend_di.md",
+    "target/knowledgebase/cpo/dwd_disty_sales_close_cpo_header_extend_di.md",
+    "target/knowledgebase/cpo/dwd_disty_sales_close_duplicate_cpo_detail_df.md",
+    "target/knowledgebase/cpo/dwd_disty_sales_close_duplicate_cpo_header_df.md",
+    "target/knowledgebase/cpo/dwd_disty_sales_open_cpo_detail_extend_df.md",
+    "target/knowledgebase/cpo/dwd_disty_sales_open_cpo_detail_extend_rt.md",
+    "target/knowledgebase/cpo/dwd_disty_sales_open_cpo_header_extend_df.md",
+    "target/knowledgebase/cpo/dwd_disty_sales_open_cpo_header_extend_rt.md",
+    "target/knowledgebase/cpo/fix_duplicate_close_cpo_detail_di_vertica.md",
+    "target/knowledgebase/cpo/fix_duplicate_close_cpo_header_di_vertica.md",
+    "target/knowledgebase/cpo/fix_dwd_disty_sales_close_cpo_detail_extend_di.md",
+    "target/knowledgebase/cpo/fix_dwd_disty_sales_close_cpo_header_extend_di.md",
+    "target/knowledgebase/cpo/readme.md"
+  ],
+  "notes": "Folder-level L1 catalog seed for all cpo knowledgebase docs."
+}

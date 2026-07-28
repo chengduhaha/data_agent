@@ -1,0 +1,110 @@
+From:	Anderson, Serena
+Sent:	Tuesday, June 9, 2026 3:22 AM
+To:	He, Dave; Wang, Rick; BigDataAdmin (SNX); Wang, Gavin
+Cc:	Yaitanes, Melissa; Barnes, Richard; Newman, Jeff; DataPlatform Data Engineer(SNX)
+Subject:	RE: GL Journal Entry tables need to be refreshed for month end close processing
+
+Importance:	High
+
+Hi Team-
+
+It seems again the data in Vertica is stale and needs to be updated as soon as possible.
+
+Can one of you provide us with the schedule for refreshing?
+
+Thanks,
+Serena Anderson
+Senior TM1 Developer & Security Specialist, FP&A 
+US - Clearwater, FL
+Serena.Anderson@tdsynnex.com
+
+
+
+
+
+From: He, Dave <Dave.He@tdsynnex.com>  
+Sent: Friday, June 5, 2026 6:39 AM 
+To: Wang, Rick <Rick.Wang@tdsynnex.com>; Anderson, Serena <Serena.Anderson@tdsynnex.com>; 
+BigDataAdmin (SNX) <BigDataAdmin@tdsynnex.com>; Wang, Gavin <Gavin.Wang@tdsynnex.com> 
+Cc: Yaitanes, Melissa <Melissa.Yaitanes@tdsynnex.com>; Barnes, Richard 
+<Richard.Barnes@tdsynnex.com>; Newman, Jeff <Jeff.Newman@tdsynnex.com>; DataPlatform Data 
+Engineer(SNX) <bigdataplatformdataengineer@tdsynnex.com> 
+Subject: RE: GL Journal Entry tables need to be refreshed for month end close processing
+
+@Anderson, Serena,
+
+It is daily refreshed. It seems the data can be matched between Vertica and Sybase CIS for May 
+2026 now. If it still has issue, please share more details and provide us an example? Thank you.
+ 
+
+
+Best Regards,
+Dave He
+From: Wang, Rick <Rick.Wang@tdsynnex.com>  
+Sent: Friday, June 5, 2026 8:22 AM 
+To: Anderson, Serena <Serena.Anderson@tdsynnex.com>; BigDataAdmin (SNX) 
+<BigDataAdmin@tdsynnex.com>; Wang, Gavin <Gavin.Wang@tdsynnex.com>; He, Dave 
+<Dave.He@tdsynnex.com> 
+Cc: Yaitanes, Melissa <Melissa.Yaitanes@tdsynnex.com>; Barnes, Richard 
+<Richard.Barnes@tdsynnex.com>; Newman, Jeff <Jeff.Newman@tdsynnex.com> 
+Subject: Re: GL Journal Entry tables need to be refreshed for month end close processing
+
+@Wang, Gavin ? @He, Dave
+Can you please help check ?
+
+ 
+Rick Wang
+Senior Manager, BigData Platform
+ 
+Direct: 86-10-82012588, ext 782094
+Address: B-6 China International Science and Technology Convention Center,
+No.12 Yumin Rd., Chaoyang District, Beijing 100029, China
+ 
+ 
+From: Anderson, Serena <Serena.Anderson@tdsynnex.com> 
+Sent: Friday, June 5, 2026 7:28 
+To: BigDataAdmin (SNX) <BigDataAdmin@tdsynnex.com> 
+Cc: Yaitanes, Melissa <Melissa.Yaitanes@tdsynnex.com>; Barnes, Richard 
+<Richard.Barnes@tdsynnex.com>; Newman, Jeff <Jeff.Newman@tdsynnex.com> 
+Subject: GL Journal Entry tables need to be refreshed for month end close processing 
+ 
+Hi Team-
+ 
+We are trying to complete month end close and it appears that these table are not fully updated.
+ 
+Assuming the chart of accounts and department tables are updated, the GL Journal Entry tables 
+need to be refreshed.
+ 
+localhost: jdbc:vertica://vertica-prod1.tdsnx.tdsynnex.com:5433/VC_DW? 
+BackupServerNode=vertica-prod2.tdsnx. 
+dw_ca.dwd_disty_gl_journal_entry 
+dw_us.dwd_disty_gl_journal_entry 
+dw_wcla.dwd_disty_gl_journal_entry
+ 
+ 
+ 
+ 
+ 
+ 
+Thanks,
+Serena Anderson
+Senior TM1 Developer & Security Specialist, FP&A 
+USA – Clearwater – Eastern Time Zone
+Serena.Anderson@tdsynnex.com
+ 
+ 
+Co-Workers:
+Richard Barnes
+Senior TM1 Developer, FP&A 
+USA – Clearwater – Eastern Time Zone
+ 
+Martial Bien-Amie
+Senior TM1 Developer & Power BI Specialist, FP&A 
+Canada – Eastern Time Zone
+ 
+Melissa Yaitanes
+Senior Director, FP&A 
+USA – Clearwater – Eastern Time Zone
+ 
+ 
+ 

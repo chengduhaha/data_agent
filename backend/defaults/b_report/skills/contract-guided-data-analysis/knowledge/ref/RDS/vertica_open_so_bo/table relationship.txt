@@ -1,0 +1,163 @@
+# Vertica OPEN_SO_BO table relationships
+#
+# Country schemas are normalized with xx in this file.
+#
+# Scope
+#   Generated from Vertica OPEN_SO_BO rds_xxx_rtv.sp scripts identified by matching
+#   Vertica *_gen.sp files that contain rdsetl.rds_tmp.
+#   OPEN_SO_BO scripts are identified by SELECT/FROM usage of dwd_disty_sales_open_order_detail.
+#   Use dw_xx.dwd_disty_sales_open_order_detail as the main open sales order / backorder detail source.
+#
+# Common grain
+#   Open SO/BO line grain: order_no, order_type, order_line_no
+#   Open SO/BO SKU grain: order_no, order_type, order_line_no, sku_no
+#   Product grain: sku_no
+#   Customer grain: cust_no or master_cust_no
+#   Location grain: from_loc_no / to_loc_no / loc_no
+#   CPO bridge grain: cpo_id / int_ref_no and cpo_line_seq / int_ref_line_no
+#   SCM/SPA grain: order_no, order_type, order_line_no, scm_no/spa_no
+
+
+# Core OPEN_SO_BO Relationships
+
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dim_xx.dim_pub_part_info_rt by using join columns sku_no when real-time product attributes are required.
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dim_xx.dim_pub_location_info by using join columns from_loc_no to loc_no
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dim_xx.dim_pub_manager by using join columns entry_id to userid when order entry user or CSR attributes are required.
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dim_xx.dim_pub_ship_method by using join columns ship_method to ship_method
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dim_xx.dim_pub_order_type by using join columns order_type
+dw_xx.dwd_disty_sales_open_order_detail should filter order_delete_date is null and order_line_delete_date is null for active open-order reporting unless deleted lines are explicitly requested.
+dw_xx.dwd_disty_sales_open_order_detail should filter order_line_type <> 'Comp' when component lines should be excluded from line-level backlog or shipment metrics.
+dw_xx.dwd_disty_sales_open_order_detail should preserve report-specific filters on order_type, vend_no, cust_no, master_cust_no, sku_no, prod_code, from_loc_no, to_loc_no, order_status, ship_method, and requested/expected dates.
+
+
+# Order Header, History Header, and Operational Context
+
+dw_xx.dwd_disty_sales_open_order_detail (many to one) ods_xx.ods_cis_corp_order_header by using join columns order_no, order_type
+dw_xx.dwd_disty_sales_open_order_detail (many to one) ods_xx.ods_cis_corp_order_header by using join columns order_no to int_ref_no and order_type when the report links open order rows to related source order headers.
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dw_xx.dwd_pub_common_order_header_extend by using join columns order_no, order_type
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dw_xx.dwd_pub_common_history_header_extend by using join columns order_no, order_type when historical/invoice header context is required.
+dw_xx.dwd_pub_common_history_header_extend (many to one) dim_xx.dim_pub_customer_info by using join columns to_acct_no to cust_no
+dw_xx.dwd_disty_sales_open_order_detail (one to many) ods_xx.ods_cis_corp_order_profile by using join columns order_no, order_type and sometimes sku_no, from_loc_no, or order_line_no depending on profile_type.
+ods_xx.ods_cis_corp_order_profile should filter profile_type/profile_cat to the report's business attribute before joining back to open order detail.
+dw_xx.dwd_disty_sales_open_order_detail (one to many) ods_xx.ods_cis_corp_order_comments by using join columns order_no, order_type when order comment text is required.
+dw_xx.dwd_disty_sales_open_order_detail (one to many) ods_xx.ods_cis_corp_cust_doc by using join columns order_no, order_type when customer document or external reference fields are required.
+dw_xx.dwd_disty_sales_open_order_detail (one to many) ods_xx.ods_cis_corp_order_frt_detail by using join columns order_no, order_type when freight detail is required.
+dw_xx.dwd_disty_sales_open_order_detail (one to many) ods_xx.ods_cis_corp_history_exp by using join columns order_no, order_type when historical expense context is required.
+
+
+# Customer, Vendor, VPL, and Sales Hierarchy Relationships
+
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dim_xx.dim_pub_customer_info by using join columns master_cust_no to cust_no when master customer attributes are required.
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dim_xx.dim_pub_customer_info_rt by using join columns cust_no when real-time customer attributes are required.
+dw_xx.dwd_disty_sales_open_order_detail (one to many) dim_xx.dim_pub_customer_address_contacts_info by using join columns cust_no
+dim_xx.dim_pub_customer_address_contacts_info is one-to-many per customer; de-duplicate or filter to the required address/contact type before joining to preserve open-order line grain.
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dim_xx.dim_pub_sales_hierarchy_primary_role_by_terr_view by using join columns sales_terr
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dim_xx.dim_pub_vpl_info by using join columns vpl_no
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dim_xx.dim_pub_vpl_pm_hierarchy_info by using join columns vpl_no; some reports add fixed vend_no, pm_manager_name, or role filters.
+dim_xx.dim_pub_vpl_pm_hierarchy_info (many to one) dim_xx.dim_pub_vpl_hierarchy_info by using join columns vend_no, vpl_no
+dim_xx.dim_pub_part_info (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no
+dim_xx.dim_pub_vendor_info (many to one) dim_xx.dim_pub_manager by using join columns member_id to userid when vendor owner or buyer attributes are required.
+dim_xx.dim_pub_vendor_info (many to one) dim_xx.dim_pub_vendor_xref by using join columns vend_no when vendor cross-reference fields are required.
+dim_xx.dim_pub_vendor_info (one to one/many) dim_xx.dim_pub_vendor_info_rt by using join columns vend_no when real-time vendor attributes are required.
+
+
+# Product, SKU Cross Reference, Inventory, Runrate, and RIO
+
+dim_xx.dim_pub_part_info (one to many) dim_xx.dim_pub_sku_xref_all by using join columns sku_no; filter xref_type such as REPL_SKU when replacement SKU logic is required.
+dim_xx.dim_pub_part_info (one to many) dim_xx.dim_pub_sku_profile_rt by using join columns sku_no; filter profile_type/profile_cat before joining when profile-driven SKU attributes are required.
+dim_xx.dim_pub_part_info (one to one/many) dim_xx.dim_disty_cws_part by using join columns sku_no when CWS/BTO product attributes are required.
+dw_xx.dwd_disty_sales_open_order_detail (one to one/many) dw_xx.dwd_disty_inv_qty_df by using join columns sku_no and sometimes vend_no, company_no, loc_no/from_loc_no when open order demand is compared to stock.
+dw_xx.dwd_disty_inv_qty_df (many to one) dim_xx.dim_pub_part_info_rt by using join columns sku_no, company_no
+dw_xx.dwd_disty_inv_qty_df (many to one) dim_xx.dim_pub_vendor_info_rt by using join columns vend_no
+dw_xx.dwd_disty_inv_qty_df should usually filter date_flag = current_date() - 1 for daily inventory snapshots.
+dw_xx.dwd_disty_sales_open_order_detail (one to one/many) dw_xx.dwd_disty_inv_aging_df by using join columns sku_no when inventory aging is compared to open backlog.
+dw_xx.dwd_disty_inv_aging_df (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_inv_aging_df (one to one/many) dw_xx.dwd_disty_inv_tran_df by using join columns sku_no when inventory transaction history is required.
+dw_xx.dwd_disty_inv_aging_rollover_rtv2_df (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_inv_aging_rollover_rtv2_df (many to one) ods_xx.ods_cis_corp_vend_master_etc by using join columns sku_no, vend_no
+dw_xx.dwd_disty_sales_open_order_detail (one to one/many) dw_xx.dws_disty_pur_ips_runrate_1w by using join columns sku_no when runrate demand context is required.
+dw_xx.dwd_disty_sales_open_order_detail (one to one/many) dw_xx.dwd_disty_inv_rio_req_header by using join columns order_no, order_type or sku/customer criteria when RIO allocation context is required.
+dw_xx.dwd_disty_inv_rio_req_header (one to many) dw_xx.dwd_disty_inv_rio_req_detail by using join columns rio_req_no
+dw_xx.dwd_disty_inv_rio_req_header (one to many) dw_xx.dwd_disty_inv_rio_req_consumed by using join columns rio_req_no
+
+
+# CPO Bridge and CPO EU Custom Relationships
+
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dm_xx.dm_disty_sales_open_cpo by using join columns int_ref_no to cpo_id when an open sales order is CPO-backed.
+dw_xx.dwd_disty_sales_open_order_detail (many to one) dw_xx.dwd_disty_sales_open_cpo_detail_extend by using join columns int_ref_no to cpo_id and sku_no to cpo_sku_no
+dw_xx.dwd_disty_sales_open_cpo_detail_extend (many to one) dw_xx.dwd_disty_sales_open_cpo_header_extend by using join columns cpo_id
+dw_xx.dwd_disty_sales_open_cpo_detail_extend (many to one) dim_xx.dim_pub_part_info by using join columns cpo_sku_no to sku_no
+dw_xx.dwd_disty_sales_open_order_detail (one to many) ods_xx.ods_cis_corp_cpo_comments by using join columns int_ref_no to cpo_id when current CPO comments are required.
+dw_xx.dwd_disty_sales_open_order_detail (one to many) ods_xx.ods_cis_corp_history_cpo_comments by using join columns int_ref_no to cpo_id when historical CPO comments are required.
+dw_xx.dwd_disty_sales_open_order_detail (one to many) ods_xx.ods_cis_corp_cpo_eu_custom by using join columns int_ref_no to cpo_id and cpo_line_seq/order_line_no when current CPO EU custom values are required.
+dw_xx.dwd_disty_sales_open_order_detail (one to many) ods_xx.ods_cis_corp_history_cpo_eu_custom by using join columns int_ref_no to cpo_id and cpo_line_seq/order_line_no when historical CPO EU custom values are required.
+ods_xx.ods_cis_corp_cpo_eu_custom (many to one) dim_xx.dim_pub_eu_custom_map_view by using join columns eu_map_id, eu_map_line_no
+ods_xx.ods_cis_corp_history_cpo_eu_custom (many to one) dim_xx.dim_pub_eu_custom_map_view by using join columns eu_map_id, eu_map_line_no
+
+
+# Order EU Custom, CEDM, and List Box Relationships
+
+dw_xx.dwd_disty_sales_open_order_detail (one to many) ods_xx.ods_cis_corp_order_eu_custom by using join columns order_no, order_type and sometimes order_line_no, eu_map_id, eu_map_line_no.
+ods_xx.ods_cis_corp_order_eu_custom (many to one) dim_xx.dim_pub_eu_custom_map_view by using join columns eu_map_id, eu_map_line_no
+ods_xx.ods_cis_corp_order_eu_common (one to many) ods_xx.ods_cis_corp_order_eu_custom by using join columns order_no, order_type when both EU common and custom rows are required.
+dim_xx.dim_pub_eu_custom_map_view (many to one) dim_xx.dim_pub_list_box_detail by using join columns map_data_desc to code_value when resolving CEDM or other list-box coded values.
+dim_xx.dim_pub_eu_custom_map_view (many to one) ods_xx.ods_cis_corp_list_box_detail by using join columns map_data_desc to code_value when the report uses the ODS list-box lookup.
+ods_xx.ods_cis_corp_vend_master_etc (many to one) ods_xx.ods_cis_corp_list_box_detail by using join columns code_value and filter list_box_code for the specific vendor or product code set.
+ods_xx.ods_cis_corp_prod_code_detail (many to one) ods_xx.ods_cis_corp_list_box_detail by using join columns code_value and filter list_box_code when product-code lookup labels are required.
+
+
+# POS, Shipment, Carton, Serial Number, and SCM/SPA Relationships
+
+dw_xx.dwd_disty_sales_open_order_detail (one to many) dw_xx.dwd_disty_common_pos_di by using join columns order_no, order_type, order_line_no or int_ref_no depending on whether the report starts from open order or shipped sales context.
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_ship_method by using join columns ship_method
+dw_xx.dwd_disty_common_pos_di (many to one) dim_xx.dim_pub_location_info by using join columns from_loc_no to loc_no
+dw_xx.dwd_disty_common_pos_di (many to one) dw_xx.dwd_pub_common_history_header_extend by using join columns order_no, order_type
+dw_xx.dwd_disty_common_pos_di (one to many) ods_xx.ods_cis_corp_carton_header by using join columns order_no, order_type and sometimes sku_no
+dw_xx.dwd_disty_sales_open_order_detail (one to many) ods_xx.ods_cis_corp_carton_header by using join columns order_no, order_type and sometimes sku_no
+dw_xx.dwd_disty_common_order_serial_no_di (many to one) dw_xx.dwd_disty_common_pos_di by using join columns order_no, order_type, order_line_no or sku_no/customer fields depending on the report grain.
+dw_xx.dwd_disty_common_order_serial_no_di (many to one) dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di by using join columns order_no, order_type, order_line_no when serial rows need shipped SCM/SPA context.
+dw_xx.dwd_disty_sales_open_order_detail (one to many) dw_xx.dwd_disty_scm_open_order_spa_df by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_sales_open_order_detail (one to many) dw_xx.dwd_disty_scm_shipped_order_spa_di by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_common_pos_di (one to many) dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_common_pos_di (one to many) dw_xx.dwd_disty_scm_open_order_spa_df by using join columns order_no, order_type, order_line_no when shipped/open SPA context is compared.
+dw_xx.dwd_disty_common_pos_di (one to many) dw_xx.dwd_disty_scm_shipped_order_spa_di by using join columns order_no, order_type, order_line_no
+SCM/SPA detail tables can be one-to-many per order line; pre-aggregate or rank before joining if final output must stay one row per open order line.
+
+
+# ETA, Backorder Detail, BRPT, AP, and Forecast Relationships
+
+dw_xx.dwd_disty_sales_open_order_detail (one to one/many) dm_xx.dm_pur_unieta_boso_detail_rt by using join columns order_no, order_type, sku_no
+dm_xx.dm_pur_unieta_boso_detail_rt (one to one/many) ods_xx.ods_cis_corp_carton_header by using join columns order_no, order_type when ETA is reconciled with carton/shipment context.
+dm_xx.dm_pur_unieta_boso_detail_rt (one to many) ods_xx.ods_cis_corp_order_profile by using join columns order_no, order_type, sku_no when ETA/source markers are stored as profiles.
+dw_xx.dwd_disty_sales_open_order_detail (one to one/many) dw_xx.dwd_disty_brpt_bo_detail_df by using join columns order_no, order_type, order_line_no; filter date_flag to the current snapshot.
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) ods_xx.ods_cis_corp_order_header by using join columns order_no, order_type
+dw_xx.dwd_disty_brpt_bb_orders (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_brpt_bb_orders (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no
+dw_xx.dwd_disty_brpt_bb_orders (many to one) dim_xx.dim_pub_sales_cust_type by using join columns cust_type
+dw_xx.dwd_disty_brpt_bb_orders (many to one) dim_xx.dim_pub_sales_hierarchy_primary_role_by_terr_view by using join columns sales_terr
+dw_xx.dwd_disty_sales_open_order_detail (one to one/many) dw_xx.dwd_disty_ap_hold_df by using join columns order_no, order_type, order_line_no, sku_no when AP hold or document context is requested.
+dw_xx.dwd_disty_sales_open_order_detail (one to one/many) dw_xx.dwd_disty_common_po_basic by using join columns int_ref_no to order_no or order_no to int_ref_no when open sales order rows are tied to VPO/PO context.
+dw_xx.dwd_disty_sales_open_order_detail (one to one/many) dm_xx.dm_disty_pur_purch_forecast461_rtv2 by using join columns sku_no, vend_no or forecast-specific product/vendor keys when forecast context is required.
+
+
+# BTO, WMS, Lab, and Quality Relationships
+
+dw_xx.dwd_disty_sales_open_order_detail (one to many) ods_xx.ods_wms_mywms_bto_lab_qc_log by using join columns order_no, order_type
+ods_xx.ods_wms_mywms_bto_lab_qc_log (many to one) ods_xx.ods_wms_mywms_cws_bto_lab by using join columns order_no, order_type
+ods_xx.ods_wms_mywms_bto_lab_qc_log (many to one) ods_xx.ods_wms_mywms_cws_bto_lab_ext by using join columns order_no, order_type
+ods_xx.ods_wms_mywms_cws_bto_lab (many to one) dim_xx.dim_pub_manager by using join columns lab_in_uid or tech_user_id to userid
+ods_xx.ods_wms_mywms_cws_bto_lab_ext (many to one) dim_xx.dim_pub_manager by using join columns user id fields to userid when technician or QC owner details are required.
+
+
+# Output and Grain Notes
+
+Use LEFT JOIN from dw_xx.dwd_disty_sales_open_order_detail to optional enrichment tables such as product, location, manager, order profile, EU custom, CPO, ETA, SCM/SPA, carton, serial, inventory, and BTO/QC to preserve open order rows.
+Use INNER JOIN only when the source report intentionally restricts to a vendor/customer/SKU list, required hierarchy, required part list, or required operational status.
+Pre-aggregate, rank, or filter one-to-many enrichment tables before the final join when output grain must remain one row per open SO/BO line.
+Apply date_flag/current snapshot filters to daily snapshot tables such as dw_xx.dwd_disty_brpt_bo_detail_df, dw_xx.dwd_disty_inv_qty_df, dw_xx.dwd_disty_inv_aging_df, dw_xx.dwd_disty_inv_aging_rollover_rtv2_df, and dm snapshot tables.
+Keep report-specific filters in the earliest staging table so downstream joins stay small and optional relationships do not change the open backlog population.

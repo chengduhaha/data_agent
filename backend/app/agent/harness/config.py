@@ -41,6 +41,8 @@ class HarnessConfig:
     step_warn_fraction: float = 0.80
     shell_timeout: int = 60
     mcp_timeout: float = 60.0
+    mcp_tool_max_retries: int = 2
+    mcp_retry_backoff: float = 1.0
     summarization_trigger_fraction: float = 0.85
     summarization_keep_fraction: float = 0.15
     summarization_buffer_tokens: int = 13_000
@@ -68,6 +70,8 @@ def load_harness_config(*, extended_run: bool = False) -> HarnessConfig:
         step_warn_fraction=_float_env("DATA_AGENT_STEP_WARN_FRACTION", 0.80),
         shell_timeout=_int_env("DATA_AGENT_SHELL_TIMEOUT", 60),
         mcp_timeout=_float_env("DATA_AGENT_MCP_TIMEOUT", 60.0),
+        mcp_tool_max_retries=_int_env("DATA_AGENT_MCP_TOOL_MAX_RETRIES", 2),
+        mcp_retry_backoff=_float_env("DATA_AGENT_MCP_RETRY_BACKOFF", 1.0),
         summarization_trigger_fraction=_float_env(
             "DATA_AGENT_SUMMARIZATION_TRIGGER_FRACTION", 0.85
         ),

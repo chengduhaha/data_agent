@@ -15,6 +15,8 @@ from app.agent.harness.wrapup import (
     count_research_tool_calls,
     count_sql_evidence_in_messages,
     last_ai_text,
+    looks_like_substantial_answer,
+    looks_truncated,
     missing_answer_in_stream,
     needs_final_answer_wrapup,
     needs_synthesis_wrapup,
@@ -108,6 +110,35 @@ def test_missing_answer_in_stream() -> None:
     assert missing_answer_in_stream(streamed, ckpt) == ckpt
     assert missing_answer_in_stream(ckpt, ckpt) == ""
     assert missing_answer_in_stream("", ckpt) == ckpt
+
+
+def test_looks_truncated_and_substantial_chinese_answer() -> None:
+    truncated = (
+        "C. 供应商维度分析\n\n"
+        "| Vendor | Feb |\n| :--- | :--- |\n| NVIDIA | 1 |\n\n"
+        "D. 订单分析\n该单一业务链的 NGM% 从 2 月的 3.783% 降至 3 月的 1.767%。由于其绝对体量巨大，该"
+    )
+    assert looks_truncated(truncated)
+    complete = truncated + "客户组合是主要驱动因素。"
+    assert not looks_truncated(complete)
+    assert looks_like_substantial_answer(complete)
+    assert not needs_final_answer_wrapup(
+        "Let me dig deeper.",
+        query_count=4,
+        streamed_text=complete,
+    )
+
+
+def test_last_ai_text_scopes_to_current_turn() -> None:
+    messages = [
+        SimpleNamespace(type="human", content="Q1", tool_calls=[]),
+        SimpleNamespace(type="ai", content="## Summary\nAnswer one.", tool_calls=[]),
+        SimpleNamespace(type="human", content="Q2", tool_calls=[]),
+        SimpleNamespace(type="ai", content="Now let me query.", tool_calls=[]),
+        SimpleNamespace(type="ai", content="", tool_calls=[]),
+    ]
+    assert last_ai_text(messages) == "Now let me query."
+    assert last_ai_text(messages, current_turn_only=False) == "Now let me query."
 
 
 def test_last_ai_text_skips_trailing_empty_assistant() -> None:

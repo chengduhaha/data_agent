@@ -1,0 +1,396 @@
+
+ 
+From: Hu, Klay  
+Sent: Saturday, December 20, 2025 16:40 
+To: Wang, Rick <Rick.Wang@tdsynnex.com>; ** WH Video Monitoring (SNX) <vmt@tdsynnex.com>; 
+Hua, Rick <Rick.Hua@tdsynnex.com>; Minor, Kirt <Kirt.Minor@tdsynnex.com>; Pereira, Rafael 
+<Rafael.Pereira@tdsynnex.com>; Brasil, Ana Lourdes <Ana.Lourdes@tdsynnex.com>; Santos, Rafael 
+<Rafael.Santos@tdsynnex.com>; Rodrigo De Oliveira Pereira, Carlos <Carlos.Pereira2@tdsynnex.com>; 
+Correa, Daniela <Daniela.Correa@tdsynnex.com>; IT Exec (SNX) <ITExec@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Jian, Jerval <Jerval.Jian@tdsynnex.com>; He, Dave 
+<Dave.He@tdsynnex.com>; Song, Tiger <Tiger.Song@tdsynnex.com>; DataPlatform Data Engineer(SNX) 
+<bigdataplatformdataengineer@tdsynnex.com>; Wang, Harrison <Harrison.Wang@tdsynnex.com> 
+Cc: Allard, Bona Lea <bonalea.allard@tdsynnex.com>; Munisamy, Senthil (c) 
+<Senthil.Munisamy@tdsynnex.com>; Figueroa, Aaron <Aaron.Figueroa@tdsynnex.com>; Cooper, Glen 
+<Glen.Cooper@tdsynnex.com> 
+Subject: RE: Final BTL and NGM in BR?
+ 
+It�s weird, I�m investigating root cause.
+ 
+Meanwhile @** WH Video Monitoring (SNX) please call Harrison Wang or Dave He to reload BR 
+dw_orders_pl_extend_di table asap. 
+ 
+select date_flag, order_no, order_type, order_line_no,one_time_btl,ngm_amt
+from dw_br.dwd_disty_brpt_orders_pl_etl_mi 
+where dt_month = '2025-11' 
+and order_type = 125
+and order_no in (401940,403098,403188)
+ 
+ 
+Best Regards
+ 
+Klay Hu
+Data engineer, Data Service
+ 
+ext. 791438   |   Mobile:  15928841782
+Address: Tianfu Software Park, Chengdu, Sichuan, China  610041
+ 
+ 
+ 
+From: Wang, Rick <Rick.Wang@tdsynnex.com>  
+Sent: Saturday, December 20, 2025 13:04 
+To: Hua, Rick <Rick.Hua@tdsynnex.com>; Minor, Kirt <Kirt.Minor@tdsynnex.com>; Pereira, Rafael 
+<Rafael.Pereira@tdsynnex.com>; Brasil, Ana Lourdes <Ana.Lourdes@tdsynnex.com>; Santos, Rafael 
+<Rafael.Santos@tdsynnex.com>; Rodrigo De Oliveira Pereira, Carlos <Carlos.Pereira2@tdsynnex.com>; 
+Correa, Daniela <Daniela.Correa@tdsynnex.com>; IT Exec (SNX) <ITExec@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Jian, Jerval <Jerval.Jian@tdsynnex.com>; He, Dave 
+<Dave.He@tdsynnex.com>; Hu, Klay <Klay.Hu@tdsynnex.com>; Song, Tiger 
+<Tiger.Song@tdsynnex.com>; DataPlatform Data Engineer(SNX) 
+<bigdataplatformdataengineer@tdsynnex.com> 
+Cc: Allard, Bona Lea <bonalea.allard@tdsynnex.com>; Munisamy, Senthil (c) 
+<Senthil.Munisamy@tdsynnex.com>; Figueroa, Aaron <Aaron.Figueroa@tdsynnex.com>; Cooper, Glen 
+<Glen.Cooper@tdsynnex.com> 
+Subject: ??: Final BTL and NGM in BR?
+ 
+@Minor, Kirt
+I will have team to check this ASAP .  
+ 
+ BCC @BigDataAdmin (SNX) as they are not right team for Data issue. 
+ 
+ 
+@He, Dave and @DataPlatform Data Engineer(SNX)? Can you please help check the root cause of 
+refresh issue and make sure Vertica is got refreshed ?
+ 
+@Song, Tiger , @Hu, Klay , Can you please take care of monitoring process on One-Time BTL 
+loading and NGM recalc?
+ 
+ 
+ 
+Rick Wang
+Senior Manager, BigData Platform
+ 
+Direct: 86-10-82012588, ext 782094
+Address: B-6 China International Science and Technology Convention Center,
+No.12 Yumin Rd., Chaoyang District, Beijing 100029, China
+ 
+ 
+ 
+ 
+???: Hua, Rick <Rick.Hua@tdsynnex.com> 
+???: 2025 ? 12 ? 20 ? ??? 9:53 
+???: Minor, Kirt <Kirt.Minor@tdsynnex.com>; Pereira, Rafael 
+<Rafael.Pereira@tdsynnex.com>; Brasil, Ana Lourdes <Ana.Lourdes@tdsynnex.com>; Santos, 
+Rafael <Rafael.Santos@tdsynnex.com>; Rodrigo De Oliveira Pereira, Carlos 
+<Carlos.Pereira2@tdsynnex.com>; BigDataAdmin (SNX) <BigDataAdmin@tdsynnex.com>; 
+Correa, Daniela <Daniela.Correa@tdsynnex.com>; IT Exec (SNX) <ITExec@tdsynnex.com>; 
+Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven <Keven.Zhang@tdsynnex.com>; Jian, 
+Jerval <Jerval.Jian@tdsynnex.com> 
+??: Allard, Bona Lea <bonalea.allard@tdsynnex.com>; Munisamy, Senthil (c) 
+<Senthil.Munisamy@tdsynnex.com>; Figueroa, Aaron <Aaron.Figueroa@tdsynnex.com>; 
+Cooper, Glen <Glen.Cooper@tdsynnex.com> 
+??: RE: Final BTL and NGM in BR? 
+ 
+Add @Jian, Jerval for visibility.
+ 
+From: Minor, Kirt <Kirt.Minor@tdsynnex.com> 
+Sent: December 19, 2025 4:44 PM 
+To: Pereira, Rafael <Rafael.Pereira@tdsynnex.com>; Brasil, Ana Lourdes <Ana.Lourdes@tdsynnex.com>; 
+Santos, Rafael <Rafael.Santos@tdsynnex.com>; Rodrigo De Oliveira Pereira, Carlos 
+<Carlos.Pereira2@tdsynnex.com>; BigDataAdmin (SNX) <BigDataAdmin@tdsynnex.com>; Correa, 
+Daniela <Daniela.Correa@tdsynnex.com>; IT Exec (SNX) <ITExec@tdsynnex.com>; Wang, Rick 
+<Rick.Wang@tdsynnex.com>; Zhang, Keven <Keven.Zhang@tdsynnex.com> 
+Cc: Allard, Bona Lea <bonalea.allard@tdsynnex.com>; Munisamy, Senthil (c) 
+<Senthil.Munisamy@tdsynnex.com>; Figueroa, Aaron <Aaron.Figueroa@tdsynnex.com>; Cooper, Glen 
+<Glen.Cooper@tdsynnex.com> 
+Subject: Re: Final BTL and NGM in BR?
+ 
+Adding @IT Exec (SNX)
+Derrick, this is an IT failure that you should include in your stats.
+ 
+BigData,
+I didn't get any response from you about why this data refresh didn't happen for Brazil like it 
+did for US, CA, and MX.
+ 
+Honestly, I'm just the messenger and I should be the last guy to find out this problem. We 
+need better monitoring and escalation procedures for NGM related factors.... and perhaps 
+there are others I'm not aware of. I assumed this was an operational issue that the Finance 
+team hadn't posted the One-Time BTL, but when this took way too long I asked Rafael for 
+help to find out who is responsible to post the data. After finding Ana Lourdes, it turns out 
+they did their work very timely on the 2nd day of the month. After I checked the data in 
+Sybase DW_PROD, I found that data was updated properly, but there was some failure for 
+those changes to reach Vertica. This is an IT issue rather than operational issue.
+ 
+Owning it
+I found this issue and will own it until it passes to the correct team that is responsible to fix 
+the immediate problem and to provide the long-term solution to prevent this in the future.
+ 
+@Pereira, Rafael, 
+I found this issue using my own imperfect trick to check for one time BTL in the Vertica 
+tables being over a minimal threshold. I do this for US, CA, MX, and BR using historical data 
+to define a separate threshold for each country. There is usually some amount in One Time 
+BTL from normal processing throughout the month, but there is a significant increase in the 
+sum after the postings have processed. There is likely a better method to determine that 
+operationally, the finance team has completed their postings and that we should check 
+local Sybase and then Vertica to make sure those updates have made it to all appropriate 
+tables. Can you suggest the best way to monitor that finance has completed their work? 
+Do we need them to log something or can we just monitor the table where they do the 
+posting?
+ 
+@BigDataAdmin (SNX)
+Please acknowledge ASAP you are working on this issue with urgency. You need to refresh 
+the data for BR immediately. It will be up to the report owners if they want to rerun their 
+reports or pick up these changes in the next time. Given this was the final month of the 
+fiscal year, I'm guessing they will want to rerun the reports for a correct full fiscal year view 
+as well as the Q4 summaries. You need to notify people on this email when this is 
+completed so the next steps can take place.
+Also, you need to design a monitoring system for One-Time BTL (perhaps other PL factors 
+as well) refreshing and build in an alert to VMT if it doesn't happen by a certain day of the 
+month.  This system needs to apply to all CIS instances. I don't know if One Time BTL is 
+used by Hyve or Shyft, but certainly all the disty instances need this.
+ 
+@Wang, Rick, @Zhang, Keven
+Can one of you take ownership of this issue to fix the data and to develop the monitoring 
+process on One-Time BTL loading and NGM recalc?
+ 
+Thanks,
+Kirt
+ 
+ Kirt Minor 
+Associate VP, Information Systems 
+ 
+ 
+ 
+TD SYNNEX
+Robert T. Huang Center
+44201 Nobel Dr.
+Fremont, CA 94536
+(510) 668-3547   
+Kirt.Minor@tdsynnex.com 
+ 
+ 
+From: Pereira, Rafael <Rafael.Pereira@tdsynnex.com> 
+Sent: Friday, December 19, 2025 5:14 AM 
+To: Minor, Kirt <Kirt.Minor@tdsynnex.com>; Brasil, Ana Lourdes <Ana.Lourdes@tdsynnex.com>; Santos, 
+Rafael <Rafael.Santos@tdsynnex.com>; Rodrigo De Oliveira Pereira, Carlos 
+<Carlos.Pereira2@tdsynnex.com>; BigDataAdmin (SNX) <BigDataAdmin@tdsynnex.com>; Correa, 
+Daniela <Daniela.Correa@tdsynnex.com> 
+Cc: Allard, Bona Lea <bonalea.allard@tdsynnex.com>; Munisamy, Senthil (c) 
+<Senthil.Munisamy@tdsynnex.com>; Figueroa, Aaron <Aaron.Figueroa@tdsynnex.com> 
+Subject: RE: Final BTL and NGM in BR?
+ 
+I would say @Santos, Rafael and @Correa, Daniela would be the right people to be 
+informed about it.
+@Minor, Kirt, what�s the plan? Are we refreshing the date for the month of November or 
+considering this delta for December?
+ 
+Thanks.
+ 
+ 
+Rafael Pereira
+Manager, Business Operations
+GL,TAX,CREDIT,AR,AP,VCM, Expenses
+TD SYNNEX
+ 
+Avenida Alfredo Egidio de Souza Aranha, 100 � 11 andar.
+S�o Paulo, SP, 04726-170
++55(11) 96060-0721
+rafael.pereira@tdsynnex.com
+ 
+From: Minor, Kirt <Kirt.Minor@tdsynnex.com> 
+Sent: Thursday, December 18, 2025 12:25 AM 
+To: Brasil, Ana Lourdes <Ana.Lourdes@tdsynnex.com>; Pereira, Rafael <Rafael.Pereira@tdsynnex.com>; 
+Santos, Rafael <Rafael.Santos@tdsynnex.com>; Rodrigo De Oliveira Pereira, Carlos 
+<Carlos.Pereira2@tdsynnex.com>; BigDataAdmin (SNX) <BigDataAdmin@tdsynnex.com> 
+Cc: Allard, Bona Lea <bonalea.allard@tdsynnex.com>; Munisamy, Senthil (c) 
+<Senthil.Munisamy@tdsynnex.com>; Figueroa, Aaron <Aaron.Figueroa@tdsynnex.com> 
+Subject: Re: Final BTL and NGM in BR?
+ 
+Thanks Ana Lourdes.
+ 
+@BigDataAdmin (SNX)
+It seems we have a replication problem for Brazil. They posted One Time BTL early in 
+December for November orders, but this has not yet shown up in the Vertica table. I'll 
+provide some examples for you.
+ 
+ 
+select date_flag, order_type, order_no, order_line_no, cust_no, sku_no, BTL, BTL_SALES, 
+BTL_BACKOUT, ONE_TIME_BTL, NGM_amt
+from DW_PROD..dw_orders_pl
+where order_type = 125
+and order_no in (401940,
+403098,
+403188)
+ 
+ 
+ 
+select date_flag, order_type, order_no, order_line_no, cust_no, sku_no, btl, btl_sales, 
+btl_backout, one_time_btl, ngm_amt
+from dw_br.dwd_disty_common_dw_orders_pl_extend_di dwo
+where order_type = 125
+and order_no in (401940,
+403098,
+403188)
+ 
+As you can see, the One Time BTL has been applied on Sybase and the NGM Amt has been 
+updated, but this is not represented on Vertica. This applies to all the orders for November 
+for BR. I did not see such a problem for US, CA, or WCLA. Can you take action to fix this?
+ 
+@Pereira, Rafael, if there are people in Brazil and FP&A who need to be notified that NGM 
+on their reports for November are wrong, can you take care of that?
+ 
+Kirt
+ 
+ Kirt Minor 
+Associate VP, Information Systems 
+ 
+ 
+ 
+TD SYNNEX
+Robert T. Huang Center
+44201 Nobel Dr.
+Fremont, CA 94536
+(510) 668-3547   
+Kirt.Minor@tdsynnex.com 
+ 
+ 
+From: Brasil, Ana Lourdes <Ana.Lourdes@tdsynnex.com> 
+Sent: Wednesday, December 17, 2025 1:00 PM 
+To: Minor, Kirt <Kirt.Minor@tdsynnex.com>; Pereira, Rafael <Rafael.Pereira@tdsynnex.com>; Santos, 
+Rafael <Rafael.Santos@tdsynnex.com>; Rodrigo De Oliveira Pereira, Carlos 
+<Carlos.Pereira2@tdsynnex.com> 
+Subject: RE: Final BTL and NGM in BR?
+ 
+Hi Kirt, it was done in 1WD and 2WD.
+ 
+The last one has been done at �12/02/2025 21:58:24� as you can see in the file attached.
+ 
+Regards,
+ 
+Ana Lourdes Brasil
+Financial Manager Brazil | VCM
+ 
+From: Minor, Kirt <Kirt.Minor@tdsynnex.com> 
+Sent: Wednesday, December 17, 2025 4:27 PM 
+To: Brasil, Ana Lourdes <Ana.Lourdes@tdsynnex.com>; Pereira, Rafael <Rafael.Pereira@tdsynnex.com>; 
+Santos, Rafael <Rafael.Santos@tdsynnex.com>; Rodrigo De Oliveira Pereira, Carlos 
+<Carlos.Pereira2@tdsynnex.com> 
+Subject: Re: Final BTL and NGM in BR?
+ 
+Hi Ana Lourdes,
+ 
+Do you recall when this was completed?
+ 
+@Rodrigo De Oliveira Pereira, Carlos
+Are you aware of any reports for Brazil using the Vertica table, 
+dw_br.dwd_disty_common_dw_orders_pl_extend_di to show NGM$ and %?
+ 
+This table doesn't show data for November. See simple test below.
+ 
+select month(date_flag), round(sum(one_time_btl),0) as sum_one_time_btl
+from dw_br.dwd_disty_common_dw_orders_pl_extend_di dwo
+where dwo.order_type in (1,125)
+and dwo.date_flag >= '2025-09-01' and dwo.date_flag < '2025-12-01'
+group by month(date_flag);
+ 
+Carlos, if this one_time_btl PL factor is 0 for November orders, then NGM$ and % are not 
+accurate yet. What reports would be affected by this?
+ 
+This might be an issue on Vertica. I need to know when the posting was made. Perhaps 
+they attempt to update only for the first x days of the month and if not posted by then, it 
+doesn't make it into Vertica and we need BigData to do a manual refresh.
+ 
+Please advise when the posting was completed in CIS and what reports would be affected 
+by incomplete NGM.
+ 
+Thanks,
+Kirt
+ Kirt Minor 
+Associate VP, Information Systems 
+ 
+ 
+ 
+TD SYNNEX
+Robert T. Huang Center
+44201 Nobel Dr.
+Fremont, CA 94536
+(510) 668-3547   
+Kirt.Minor@tdsynnex.com 
+ 
+ 
+From: Brasil, Ana Lourdes <Ana.Lourdes@tdsynnex.com> 
+Sent: Wednesday, December 17, 2025 9:55 AM 
+To: Pereira, Rafael <Rafael.Pereira@tdsynnex.com>; Minor, Kirt <Kirt.Minor@tdsynnex.com>; Santos, 
+Rafael <Rafael.Santos@tdsynnex.com> 
+Cc: Rodrigo De Oliveira Pereira, Carlos <Carlos.Pereira2@tdsynnex.com> 
+Subject: RE: Final BTL and NGM in BR?
+ 
+Hi Rafa, yes it�s me.
+ 
+I�m responsible to approve and registering clicking in �Run Booking Now�.  And its was done in 
+November during the closing period.
+ 
+ 
+ 
+ 
+ 
+Tks,
+ 
+Ana Lourdes Brasil
+Financial Manager Brazil | VCM
+ 
+From: Pereira, Rafael <Rafael.Pereira@tdsynnex.com> 
+Sent: Wednesday, December 17, 2025 2:07 PM 
+To: Minor, Kirt <Kirt.Minor@tdsynnex.com>; Brasil, Ana Lourdes <Ana.Lourdes@tdsynnex.com>; Santos, 
+Rafael <Rafael.Santos@tdsynnex.com> 
+Cc: Rodrigo De Oliveira Pereira, Carlos <Carlos.Pereira2@tdsynnex.com> 
+Subject: RE: Final BTL and NGM in BR?
+ 
+@Brasil, Ana Lourdes
+ 
+Are you the right person for BTL postings?
+Cc: @Santos, Rafael
+ 
+ 
+ 
+ 
+Rafael Pereira
+Manager, Business Operations
+GL,TAX,CREDIT,AR,AP,VCM, Expenses
+TD SYNNEX
+ 
+Avenida Alfredo Egidio de Souza Aranha, 100 � 11 andar.
+S�o Paulo, SP, 04726-170
++55(11) 96060-0721
+rafael.pereira@tdsynnex.com
+ 
+From: Minor, Kirt <Kirt.Minor@tdsynnex.com> 
+Sent: Wednesday, December 17, 2025 2:01 PM 
+To: Pereira, Rafael <Rafael.Pereira@tdsynnex.com> 
+Cc: Rodrigo De Oliveira Pereira, Carlos <Carlos.Pereira2@tdsynnex.com> 
+Subject: Final BTL and NGM in BR?
+ 
+Hi Rafael,
+ 
+Do you know who in Brazil is responsible to post the final BTL data and have it prorated to 
+orders from November? I'm watching for this in Vertica and haven't seen it yet for BR. It has 
+been done by US and CA by around the 3rd business day and MX has done this as well a 
+little later. But BR is usually later, but not this late. Is there something wrong? Or maybe 
+they have done it and something has failed to move this into Vertica. Reports for BR coming 
+from Vertica and trying to show NGM% will not be correct until this is completed. Do you 
+know anything about this or who might know about it?
+ 
+Thanks,
+Kirt
+ 
+ Kirt Minor 
+Associate VP, Information Systems 
+ 
+ 
+ 
+TD SYNNEX
+Robert T. Huang Center
+44201 Nobel Dr.
+Fremont, CA 94536
+(510) 668-3547   
+Kirt.Minor@tdsynnex.com 
+ 

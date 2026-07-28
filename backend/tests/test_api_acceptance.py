@@ -61,6 +61,18 @@ def test_disabled_skill_hidden_from_slash_list(
     assert r.status_code == 200
     names = [s["name"] for s in r.json().get("skills", [])]
     assert "contract-guided-data-analysis" not in names
+    assert "file-ops" not in names
+    assert "web-research" not in names
+
+
+def test_default_skills_visible_in_settings_list(
+    client: TestClient, workspace_tmp: Path,
+) -> None:
+    r = client.get("/api/skills", params={"include_disabled": "true"})
+    assert r.status_code == 200
+    by_name = {s["name"]: s for s in r.json().get("skills", [])}
+    assert by_name.get("file-ops", {}).get("default_skill") is True
+    assert by_name.get("web-research", {}).get("default_skill") is True
 
 
 def test_disabled_skill_visible_with_include_disabled(

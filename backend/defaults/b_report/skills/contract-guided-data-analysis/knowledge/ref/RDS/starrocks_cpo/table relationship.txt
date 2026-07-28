@@ -1,0 +1,172 @@
+# StarRocks CPO table relationship reference
+#
+# Country schemas are normalized with xx in this file.
+#
+# Scope
+#   Generated from StarRocks CPO rds_xxx_rtv.sp scripts identified by matching
+#   StarRocks *_gen.sp files that contain tempdb.rds_tmp.
+#   Use the CPO header/detail tables as the driving tables for quote/CPO reports.
+#   Use order/history tables when a CPO has been converted to sales order or shipped history context.
+#   Prefer LEFT JOIN for optional profile, EU custom, address, contact, territory, manager, pipeline, ETA, and service-contract enrichment.
+#
+# Common grain
+#   CPO header grain: cpo_id
+#   CPO line grain: cpo_id, cpo_line_seq
+#   Order header grain: order_no, order_type
+#   Order line grain: order_no, order_type, order_line_no
+#   Product grain: sku_no
+#   Customer grain: cust_no
+
+
+# Core Current CPO Relationships
+
+ods_xx.ods_cis_corp_cpo_header_rt (one to many) ods_xx.ods_cis_corp_cpo_detail_rt by using join columns cpo_id
+ods_xx.ods_cis_corp_cpo_detail_rt (many to one) ods_xx.ods_cis_corp_cpo_header_rt by using join columns cpo_id
+ods_xx.ods_cis_corp_cpo_detail_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns cpo_sku_no to sku_no
+ods_xx.ods_cis_corp_cpo_detail_rt (many to one) dim_xx.dim_pub_part_info by using join columns cpo_sku_no to sku_no when curated product attributes are required
+ods_xx.ods_cis_corp_cpo_detail_rt should usually filter cpo_delete_datetime is null for active quote/CPO lines.
+ods_xx.ods_cis_corp_cpo_header_rt should usually filter cpo_delete_datetime is null for active quote/CPO headers.
+
+ods_xx.ods_cis_corp_cpo_header_rt (many to one) ods_xx.ods_cis_corp_customer_header_rt by using join columns cpo_cust_no to cust_no
+ods_xx.ods_cis_corp_cpo_header_rt (many to one) ods_xx.ods_cis_corp_customer_header by using join columns cpo_cust_no to cust_no when non-RT customer attributes are used
+ods_xx.ods_cis_corp_cpo_header_rt (many to one) dim_xx.dim_pub_customer_info by using join columns cpo_cust_no to cust_no when curated customer attributes are required
+ods_xx.ods_cis_corp_cpo_header_rt (many to one) ods_xx.ods_cis_corp_territory_rt by using join columns cpo_sales_terr to sales_terr
+ods_xx.ods_cis_corp_cpo_header_rt (many to one) ods_xx.ods_cis_corp_manager_rt by using join columns cpo_entry_id, cpo_delete_id, or other CPO user id columns to userid
+ods_xx.ods_cis_corp_cpo_header_rt (many to one) dim_xx.dim_pub_manager by using join columns cpo_entry_id, cpo_delete_id, or other CPO user id columns to userid
+
+ods_xx.ods_cis_corp_cpo_header_rt (one to many) ods_xx.ods_cis_corp_cpo_profile_rt by using join columns cpo_id; add cpo_line_seq for line-level profile rows
+ods_xx.ods_cis_corp_cpo_detail_rt (one to many) ods_xx.ods_cis_corp_cpo_profile_rt by using join columns cpo_id, cpo_line_seq when profile_cat = 'CPOL' or line profile fields are required
+ods_xx.ods_cis_corp_cpo_header_rt (one to many) ods_xx.ods_cis_corp_cpo_eu_common_rt by using join columns cpo_id; use cpo_line_seq = 0 for header-level end-user fields when present
+ods_xx.ods_cis_corp_cpo_header_rt (one to many) ods_xx.ods_cis_corp_cpo_eu_custom_rt by using join columns cpo_id and EU map keys when available
+ods_xx.ods_cis_corp_cpo_detail_rt (one to many) ods_xx.ods_cis_corp_cpo_eu_custom_rt by using join columns cpo_id, cpo_line_seq and EU map keys when line-level EU custom fields are required
+ods_xx.ods_cis_corp_eu_custom_map_rt (one to many) ods_xx.ods_cis_corp_cpo_eu_custom_rt by using join columns eu_map_id, eu_map_line_no when EU custom descriptions are required
+
+ods_xx.ods_cis_corp_cpo_header_rt (many to one) ods_xx.ods_snx_crm_mycrm_pipeline_header_rt by using join columns cpo_id when CRM opportunity or quote stage fields are required
+ods_xx.ods_cis_corp_cpo_header_rt (one to many) ods_xx.ods_cis_corp_spl_open_rt by using join columns cpo_id to int_ref_no when SPL/open opportunity context is required
+
+
+# Historical CPO Relationships
+
+ods_xx.ods_cis_corp_history_cpo_header_rt (one to many) ods_xx.ods_cis_corp_history_cpo_detail_rt by using join columns cpo_id
+ods_xx.ods_cis_corp_history_cpo_detail_rt (many to one) ods_xx.ods_cis_corp_history_cpo_header_rt by using join columns cpo_id
+ods_xx.ods_cis_corp_history_cpo_detail_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns cpo_sku_no to sku_no
+ods_xx.ods_cis_corp_history_cpo_detail_rt (many to one) dim_xx.dim_pub_part_info by using join columns cpo_sku_no to sku_no when curated product attributes are required
+ods_xx.ods_cis_corp_history_cpo_detail_rt should usually filter cpo_delete_datetime is null unless deleted/cancelled CPO lines are requested.
+
+ods_xx.ods_cis_corp_history_cpo_header_rt (many to one) ods_xx.ods_cis_corp_customer_header_rt by using join columns cpo_cust_no to cust_no
+ods_xx.ods_cis_corp_history_cpo_header_rt (many to one) dim_xx.dim_pub_customer_info by using join columns cpo_cust_no to cust_no when curated customer attributes are required
+ods_xx.ods_cis_corp_history_cpo_header_rt (many to one) ods_xx.ods_cis_corp_territory_rt by using join columns cpo_sales_terr to sales_terr
+ods_xx.ods_cis_corp_history_cpo_header_rt (many to one) ods_xx.ods_cis_corp_manager_rt by using join columns cpo_entry_id, cpo_delete_id, or other CPO user id columns to userid
+
+ods_xx.ods_cis_corp_history_cpo_header_rt (one to many) ods_xx.ods_cis_corp_history_cpo_profile_rt by using join columns cpo_id; add cpo_line_seq for line-level profile rows
+ods_xx.ods_cis_corp_history_cpo_detail_rt (one to many) ods_xx.ods_cis_corp_history_cpo_profile_rt by using join columns cpo_id, cpo_line_seq when line profile fields are required
+ods_xx.ods_cis_corp_history_cpo_header_rt (one to many) ods_xx.ods_cis_corp_history_cpo_eu_common_rt by using join columns cpo_id; use cpo_line_seq = 0 for header-level end-user fields when present
+ods_xx.ods_cis_corp_history_cpo_header_rt (one to many) ods_xx.ods_cis_corp_history_cpo_profile_rt by using join columns cpo_id and filter profile_type such as 'SPAREF#', 'CUSTMSRP', or report-specific profile types
+
+
+# Product, Vendor, VPL, and SKU Relationships
+
+ods_xx.ods_cis_corp_part_master_rt (many to one) ods_xx.ods_cis_corp_vend_master_rt by using join columns vend_no
+ods_xx.ods_cis_corp_part_master_rt (many to one) ods_xx.ods_cis_corp_dw_vend_pl_rt by using join columns vpl_no
+ods_xx.ods_cis_corp_part_master_rt (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_part_master_rt (one to one/many) ods_xx.ods_part_mymdm_sku_staging_rt by using join columns sku_no when MDM SKU attributes are required
+ods_xx.ods_cis_corp_dw_vend_pl_rt (many to one) ods_xx.ods_cis_corp_vend_master_rt by using join columns vend_no when vendor attributes are needed from VPL context
+ods_xx.ods_cis_corp_vpc_group_xref_rt (many to one) ods_xx.ods_cis_corp_vpc_group_rt by using join columns group_id or vpc_group_id when VPC group attributes are required
+ods_xx.ods_cis_corp_vpc_group_xref_rt (many to one) ods_xx.ods_cis_corp_vend_master_rt by using join columns vend_no when VPC group membership is vendor-based
+
+
+# Order, Open Order, and Shipped History Relationships
+
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_soldto_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_profile_rt by using join columns order_no, order_type; add order_line_no for line-level profiles and filter profile_type/active when used
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_exp_rt by using join columns order_no, order_type; add order_line_no for line-level expense rows
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_comments_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_order_type_rt by using join columns order_type
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_customer_header_rt by using join columns to_acct_no to cust_no
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_location_info_rt by using join columns from_loc_no to loc_no
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_territory_rt by using join columns sales_terr
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_manager_rt by using join columns entry_id or account_rep to userid
+ods_xx.ods_cis_corp_order_detail_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+ods_xx.ods_cis_corp_order_detail_rt (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_cpo_header_rt by using join columns int_ref_no to cpo_id when int_ref_type indicates CPO
+ods_xx.ods_cis_corp_order_detail_rt (many to one) ods_xx.ods_cis_corp_cpo_detail_rt by using join columns int_ref_no to cpo_id and int_ref_line_no to cpo_line_seq
+ods_xx.ods_dw_prod_dbo_dw_orders_pl (many to one) ods_xx.ods_cis_corp_cpo_header_rt by using join columns int_ref_no to cpo_id when CPO-backed order context is required
+ods_xx.ods_dw_prod_dbo_dw_orders_pl (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_detail_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_soldto_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_profile_rt by using join columns order_no, order_type; add order_line_no for line-level profiles and filter profile_type/active when used
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_exp_rt by using join columns order_no, order_type; add order_line_no for line-level expense rows
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_comments by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_inv_tran_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header_rt (many to one) ods_xx.ods_cis_corp_customer_header_rt by using join columns to_acct_no to cust_no
+ods_xx.ods_cis_corp_history_header_rt (many to one) ods_xx.ods_cis_corp_location_info_rt by using join columns from_loc_no to loc_no
+ods_xx.ods_cis_corp_history_header_rt (many to one) ods_xx.ods_cis_corp_territory_rt by using join columns sales_terr
+ods_xx.ods_cis_corp_history_header_rt (many to one) ods_xx.ods_cis_corp_manager_rt by using join columns entry_id or account_rep to userid
+ods_xx.ods_cis_corp_history_detail_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+ods_xx.ods_cis_corp_history_detail_rt (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_history_header_rt (many to one) ods_xx.ods_cis_corp_history_cpo_header_rt by using join columns int_ref_no to cpo_id when historical order rows are CPO-backed
+ods_xx.ods_cis_corp_history_detail_rt (many to one) ods_xx.ods_cis_corp_history_cpo_detail_rt by using join columns int_ref_no to cpo_id and int_ref_line_no to cpo_line_seq
+
+
+# Customer, Address, Contact, and Credit Relationships
+
+ods_xx.ods_cis_corp_customer_header_rt (one to many) ods_xx.ods_cis_corp_cust_xref_rt by using join columns cust_no
+ods_xx.ods_cis_corp_cust_xref_rt (many to one) ods_xx.ods_cis_corp_customer_header_rt by using join columns xref_no to cust_no when xref_type = 'MASTER_SUB'
+ods_xx.ods_cis_corp_customer_header_rt (many to one) ods_xx.ods_cis_corp_customer_credit_rt by using join columns cust_no when credit fields are required
+ods_xx.ods_cis_corp_customer_header_rt (many to one) dim_xx.dim_pub_customer_info by using join columns cust_no
+ods_xx.ods_cis_corp_customer_header_rt (many to one) ods_xx.ods_cis_corp_territory_rt by using join columns sales_terr when customer territory is required
+
+ods_xx.ods_cis_corp_customer_header_rt (one to many) ods_xx.ods_cis_corp_addr_xref_rt by using join columns cust_no to xref_no and filter xref_type = 'ADDR_CUST'
+ods_xx.ods_cis_corp_addr_xref_rt (many to one) ods_xx.ods_cis_corp_address_rt by using join columns addr_no
+ods_xx.ods_cis_corp_addr_xref_rt (one to many) ods_xx.ods_cis_corp_contact_xref_rt by using join columns addr_no or xref_no depending on address/contact xref logic
+ods_xx.ods_cis_corp_contact_xref_rt (many to one) ods_xx.ods_cis_corp_contacts_rt by using join columns contact_no
+ods_xx.ods_cis_corp_contacts_rt should filter active/delete fields and title/contact role when a report needs a specific reseller or end-user contact.
+
+
+# Territory, Sales, Manager, and Location Relationships
+
+ods_xx.ods_cis_corp_territory_rt (many to one) ods_xx.ods_cis_corp_territory_group_rt by using join columns group_id
+ods_xx.ods_cis_corp_territory_group_rt (many to one) ods_xx.ods_cis_corp_cust_type_rt by using join columns cust_type
+ods_xx.ods_cis_corp_cust_type_rt (many to one) ods_xx.ods_cis_corp_division_rt by using join columns division
+ods_xx.ods_cis_corp_territory_rt (many to one) ods_xx.ods_cis_corp_manager_rt by using join columns primary_id, manager_id, or account manager id columns to userid
+ods_xx.ods_cis_corp_manager_rt (many to one) ods_xx.ods_cis_corp_location_info_rt by using join columns def_loc or user_loc to loc_no
+ods_xx.ods_cis_corp_manager_rt (one to one/many) dim_xx.dim_pub_manager by using join columns userid
+ods_gbl.ods_cis_mygbl_global_employee (many to one) ods_gbl.ods_cis_mygbl_global_job_code by using join columns job_code or job_code_id when employee job attributes are required
+ods_gbl.ods_cis_mygbl_global_employee (many to one) ods_gbl.ods_cis_mygbl_global_cost_center by using join columns cost_center or cost_center_id when cost-center attributes are required
+ods_gbl.ods_cis_mygbl_global_employee (many to one) ods_gbl.ods_cis_mygbl_global_location_rt by using join columns location_code, location_id, or work_location when global location attributes are required
+
+
+# Profile, Expense, SPA, List Box, and Change Log Relationships
+
+ods_xx.ods_cis_corp_cpo_profile_rt is a generic CPO profile table; join by cpo_id and optionally cpo_line_seq, then filter profile_cat, profile_type, active, or profile_no.
+ods_xx.ods_cis_corp_history_cpo_profile_rt is the historical CPO profile table; join by cpo_id and optionally cpo_line_seq, then filter profile_cat, profile_type, active, or profile_no.
+ods_xx.ods_cis_corp_order_profile_rt is a generic order profile table; join by order_no, order_type and optionally order_line_no, then filter profile_cat, profile_type, active, or profile_no.
+ods_xx.ods_cis_corp_history_profile_rt is a generic historical order profile table; join by order_no, order_type and optionally order_line_no, then filter profile_cat, profile_type, active, or profile_no.
+ods_xx.ods_cis_corp_order_exp_rt (one to many) ods_xx.ods_cis_corp_order_profile_rt by using join columns order_no, order_type, order_line_no, order_expense_line_no to profile_no when expense profile fields are required
+ods_xx.ods_cis_corp_history_exp_rt (one to many) ods_xx.ods_cis_corp_history_profile_rt by using join columns order_no, order_type, order_line_no, order_expense_line_no to profile_no when expense profile fields are required
+ods_xx.ods_cis_corp_order_profile_rt (many to one) ods_xx.ods_cis_corp_spa_header_rt by using join columns profile_i to spa_no when profile stores SPA reference
+ods_xx.ods_cis_corp_cpo_profile_rt (many to one) ods_xx.ods_cis_corp_spa_header_rt by using join columns profile_i or profile_f to spa_no when CPO profile stores SPA reference
+ods_xx.ods_cis_corp_list_box_detail_rt is a generic code lookup; join by code_value and filter list_box_code for the required code set such as SKU ABC, customer type, or report-specific list boxes.
+ods_xx.ods_cis_corp_change_log_ord (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type when current order change-log context is required
+ods_xx.ods_cis_corp_history_log_ord (many to one) ods_xx.ods_cis_corp_history_header_rt by using join columns order_no, order_type when historical order change-log context is required
+
+
+# ETA, RIO, Service Contract, and Miscellaneous Relationships
+
+dm_xx.dm_pur_unieta_boso_detail_rt (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type
+dm_xx.dm_pur_unieta_boso_detail_rt (many to one) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type, order_line_no
+dm_xx.dm_pur_unieta_boso_detail_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+dm_xx.dm_pur_unieta_boso_detail_rt should usually be aggregated by order_no, order_type, order_line_no, sku_no to select min ETA, max ETA, or latest ETA before joining back to order/CPO output.
+
+ods_xx.ods_cis_corp_rio_request_header_rt (one to many) ods_xx.ods_cis_corp_rio_req_consumed_rt by using join columns rio_req_no or request_no when RIO consumption context is required
+ods_xx.ods_cis_corp_rio_request_header_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no when request header contains SKU context
+ods_xx.ods_cis_corp_rio_req_consumed_rt (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type when consumed quantity is tied to an order
+
+ods_xx.ods_cis_corp_inv_tran_rt (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type when inventory transaction rows are tied to current order context
+ods_xx.ods_cis_corp_history_inv_tran_rt (many to one) ods_xx.ods_cis_corp_history_header_rt by using join columns order_no, order_type when inventory transaction rows are tied to historical order context
+ods_xx.ods_cis_corp_ot125_billing_entry (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type when billing entry rows are tied to current orders
+ods_xx.ods_cis_corp_service_contract_header (one to many) ods_xx.ods_cis_corp_service_contract_line_sum by using join columns service_contract_no, contract_no, or agreement_no depending on the report field names
+ods_xx.ods_cis_corp_service_contract_line_sum (many to one) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type, order_line_no when service-contract lines are tied to order lines

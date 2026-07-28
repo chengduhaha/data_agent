@@ -86,11 +86,11 @@ export async function apiSend<T = unknown>(
   return handleResponse<T>(res);
 }
 
-export async function apiUpload(
+export async function apiUpload<T = unknown>(
   path: string,
   formData: FormData,
   query?: Record<string, string>
-): Promise<void> {
+): Promise<T> {
   const url = new URL(apiUrl(path));
   if (query) {
     for (const [k, v] of Object.entries(query)) {
@@ -102,7 +102,7 @@ export async function apiUpload(
     method: "POST",
     body: formData,
   });
-  await handleResponse(res);
+  return handleResponse<T>(res);
 }
 
 export async function deleteThread(threadId: string): Promise<void> {
@@ -153,7 +153,8 @@ export async function resumeChat(
   threadId: string,
   decisions: Array<Record<string, unknown>>,
   onEvent: SseHandler,
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  clarification?: ClarificationResumePayload | null
 ): Promise<void> {
   const res = await fetch(apiUrl("/api/chat/resume"), {
     ...fetchOpts,
@@ -164,7 +165,8 @@ export async function resumeChat(
     },
     body: JSON.stringify({
       thread_id: threadId,
-      decisions,
+      decisions: clarification ? [] : decisions,
+      clarification: clarification ?? undefined,
     }),
     signal,
   });
@@ -248,6 +250,31 @@ export type SubagentEvent = {
 export type InterruptPayload = {
   interrupts: unknown[];
   thread_id?: string;
+  kind?: "hitl" | "clarification" | string;
+  clarification?: ClarificationPayload;
+};
+
+export type ClarificationOption = {
+  label: string;
+  description?: string;
+};
+
+export type ClarificationQuestion = {
+  question: string;
+  header?: string;
+  options?: ClarificationOption[];
+  multi_select?: boolean;
+  allow_free_text?: boolean;
+};
+
+export type ClarificationPayload = {
+  type?: "clarification";
+  reason?: string;
+  questions: ClarificationQuestion[];
+};
+
+export type ClarificationResumePayload = {
+  answers: Record<string, string>;
 };
 
 export type ContinuePromptPayload = {

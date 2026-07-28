@@ -1,0 +1,12 @@
+{
+  "seed_id": "knowledgebase.sales.folder",
+  "layer": "l1_catalog",
+  "domain": "sales",
+  "source_folder": "target/knowledgebase/sales",
+  "documents": [
+    "target/knowledgebase/sales/load_dm_disty_brpt_lost_sales_di.md",
+    "target/knowledgebase/sales/load_dm_disty_brpt_sales_tam_qf.md",
+    "target/knowledgebase/sales/readme.md"
+  ],
+  "notes": "Folder-level L1 catalog seed for all sales knowledgebase docs."
+}

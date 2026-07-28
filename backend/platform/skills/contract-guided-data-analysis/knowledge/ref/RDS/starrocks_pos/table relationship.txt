@@ -1,0 +1,67 @@
+# StarRocks POS table relationship reference
+
+# Scope
+# - Use xx as the region placeholder, matching table list.txt.
+# - Generated from StarRocks POS rds_xxx_rtv.sp scripts identified in table list.txt.
+# - Use dw_xx.dwd_disty_pub_dw_orders_extend_di or dw_xx.dwd_disty_common_dw_orders_pl_extend_di as the driving table for these reports.
+# - Prefer LEFT JOIN from POS/order base tables to enrichment tables to preserve order rows.
+# - Pre-aggregate one-to-many tables such as serial, carton, profile, expense, inventory, and ETA tables when the final report must stay at order-line grain.
+
+# Base tables
+dw_xx.dwd_disty_pub_dw_orders_extend_di
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di
+
+# Common grain
+# - Order header grain: order_no, order_type
+# - Order-line grain: order_no, order_type, order_line_no
+# - POS/report date filter: date_flag
+# - SKU/location inventory grain: sku_no, loc_no, inv_type
+
+# Core POS/order relationships
+dw_xx.dwd_disty_pub_dw_orders_extend_di (many to one) ods_xx.ods_cis_corp_order_type_rt by using join columns order_type
+dw_xx.dwd_disty_pub_dw_orders_extend_di (many to one) ods_xx.ods_cis_corp_history_header_rt by using join columns order_no, order_type
+dw_xx.dwd_disty_pub_dw_orders_extend_di (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type
+dw_xx.dwd_disty_pub_dw_orders_extend_di (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+dw_xx.dwd_disty_pub_dw_orders_extend_di (one to many) ods_xx.ods_cis_corp_history_profile by using join columns order_no, order_type
+dw_xx.dwd_disty_pub_dw_orders_extend_di (one to many) ods_xx.ods_cis_corp_order_profile by using join columns order_no, order_type
+dw_xx.dwd_disty_pub_dw_orders_extend_di (one to many) ods_xx.ods_cis_corp_history_eta_code_rt by using join columns synnex_po_no to order_no, order_type
+dw_xx.dwd_disty_pub_dw_orders_extend_di (one to many) ods_xx.ods_cis_corp_order_eta_code_rt by using join columns synnex_po_no to order_no, order_type
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+
+# Common DW order PL relationships
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) ods_xx.ods_cis_corp_order_type_rt by using join columns order_type
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) ods_xx.ods_cis_corp_customer_header_rt by using join columns cust_no
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (one to many) ods_xx.ods_cis_corp_history_profile_rt by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (one to many) ods_xx.ods_cis_corp_order_profile_rt by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (one to many) ods_xx.ods_cis_corp_history_exp_rt by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di (one to many) ods_xx.ods_cis_corp_order_exp_rt by using join columns order_no, order_type, order_line_no
+
+# SPA and expense relationships
+ods_xx.ods_cis_corp_history_exp_rt (one to many) ods_xx.ods_cis_corp_history_profile_rt by using join columns order_no, order_type, order_line_no, order_expense_line_no to profile_no
+ods_xx.ods_cis_corp_order_exp_rt (one to many) ods_xx.ods_cis_corp_order_profile_rt by using join columns order_no, order_type, order_line_no, order_expense_line_no to profile_no
+ods_xx.ods_cis_corp_history_profile_rt (many to one) ods_xx.ods_his_corp_history_spa_header by using join columns profile_i to spa_no
+ods_xx.ods_cis_corp_order_profile_rt (many to one) ods_xx.ods_cis_corp_spa_header_rt by using join columns profile_i to spa_no
+
+# Shipment, serial, tracking, and inventory relationships
+dw_xx.dwd_disty_pub_dw_orders_extend_di (one to many) ods_xx.ods_cis_corp_serial_nbr_rt by using join columns order_no, order_type, sku_no
+dw_xx.dwd_disty_pub_dw_orders_extend_di (one to many) ods_xx.ods_cis_corp_history_serial_nbr_rt by using join columns order_no, order_type, sku_no
+dw_xx.dwd_disty_pub_dw_orders_extend_di (one to many) ods_xx.ods_cis_corp_carton_header_rt by using join columns order_no, order_type
+dw_xx.dwd_disty_brpt_bo_detail_df (one to many) ods_xx.ods_cis_corp_uni_eta_log_rt by using join columns order_no, order_type
+dw_xx.dwd_disty_pub_dw_orders_extend_di (many to one) ods_xx.ods_cis_corp_inv_qty_rt by using join columns sku_no, from_loc_no to loc_no
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) ods_xx.ods_cis_corp_inv_qty_rt by using join columns sku_no, from_loc_no to loc_no
+dw_xx.dwd_disty_pub_dw_orders_extend_di (many to one) dm_xx.dm_pur_unieta_sku_detail_rt by using join columns sku_no, from_loc_no to loc_no
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) dm_xx.dm_pur_unieta_sku_detail_rt by using join columns sku_no, from_loc_no to loc_no
+
+# Header enrichment relationships
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_location_info_rt by using join columns from_loc_no to loc_no
+ods_xx.ods_cis_corp_history_header_rt (many to one) ods_xx.ods_cis_corp_location_info_rt by using join columns from_loc_no to loc_no
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_ship_method by using join columns ship_method
+ods_xx.ods_cis_corp_history_header_rt (many to one) ods_xx.ods_cis_corp_ship_method by using join columns ship_method
+
+# Notes for usage
+# - Profile tables are often filtered by profile_type, profile_cat, active, or profile_no; apply filters before joining when possible.
+# - Serial and tracking tables should usually be grouped by order_no, order_type, sku_no or order_no, order_type before joining back to report output.
+# - Inventory tables should be filtered to the required inv_type before aggregation; these reports use inv_type in (1, 300) for quantity and inv_type = 1 for ETA.
+# - ETA tables should usually be reduced to the minimum or maximum ETA per sku_no, loc_no or order_no, order_type depending on the report.

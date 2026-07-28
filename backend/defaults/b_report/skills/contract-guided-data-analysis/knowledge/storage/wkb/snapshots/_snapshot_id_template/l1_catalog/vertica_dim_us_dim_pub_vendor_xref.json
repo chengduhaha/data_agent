@@ -1,0 +1,57 @@
+{
+  "entity_id": "dim_us.dim_pub_vendor_xref",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dim_us.dim_pub_vendor_xref",
+  "schema_name": "dim_us",
+  "table_name": "dim_pub_vendor_xref",
+  "columns": [
+    {
+      "name": "vend_no",
+      "type": "int"
+    },
+    {
+      "name": "xref_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "xref_no",
+      "type": "int"
+    },
+    {
+      "name": "u_version",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "xref",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "active",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "entry_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "entry_id",
+      "type": "int"
+    },
+    {
+      "name": "company_no",
+      "type": "int"
+    }
+  ],
+  "column_count": 9,
+  "partition_keys": [],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dim_pub_vendor_xref.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:46.386014+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dim_pub_vendor_xref.md"
+}

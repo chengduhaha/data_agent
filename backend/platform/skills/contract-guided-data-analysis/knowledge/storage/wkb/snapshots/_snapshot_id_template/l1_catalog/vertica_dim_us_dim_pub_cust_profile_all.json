@@ -1,0 +1,85 @@
+{
+  "entity_id": "dim_us.dim_pub_cust_profile_all",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dim_us.dim_pub_cust_profile_all",
+  "schema_name": "dim_us",
+  "table_name": "dim_pub_cust_profile_all",
+  "columns": [
+    {
+      "name": "cust_no",
+      "type": "int"
+    },
+    {
+      "name": "profile_type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "profile_cat",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "u_version",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "profile_c",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "profile_i",
+      "type": "int"
+    },
+    {
+      "name": "profile_f",
+      "type": "numeric(20,8)"
+    },
+    {
+      "name": "profile_d",
+      "type": "timestamp"
+    },
+    {
+      "name": "active",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "entry_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "entry_id",
+      "type": "int"
+    },
+    {
+      "name": "company_no",
+      "type": "int"
+    },
+    {
+      "name": "update_id",
+      "type": "int"
+    },
+    {
+      "name": "update_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp"
+    },
+    {
+      "name": "data_source",
+      "type": "varchar(100)"
+    }
+  ],
+  "column_count": 16,
+  "partition_keys": [],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dim_pub_cust_profile_all.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:45.137902+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dim_pub_cust_profile_all.md"
+}

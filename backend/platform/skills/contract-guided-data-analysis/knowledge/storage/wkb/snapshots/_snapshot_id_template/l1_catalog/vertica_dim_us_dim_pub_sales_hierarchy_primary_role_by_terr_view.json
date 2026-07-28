@@ -1,0 +1,157 @@
+{
+  "entity_id": "dim_us.dim_pub_sales_hierarchy_primary_role_by_terr_view",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "b-report-us",
+  "qualified_name": "dim_us.dim_pub_sales_hierarchy_primary_role_by_terr_view",
+  "schema_name": "dim_us",
+  "table_name": "dim_pub_sales_hierarchy_primary_role_by_terr_view",
+  "columns": [
+    {
+      "name": "end_date",
+      "type": "timestamp",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "sub_group_id",
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "sub_group_desc",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "group_id",
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "group_desc",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "cust_type",
+      "type": "int",
+      "semantic_role": "technical",
+      "dimension_reference": "dim_us.dim_pub_sales_cust_type",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "cust_type_desc",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "division",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "division_desc",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "sales_terr",
+      "type": "int",
+      "semantic_role": "technical",
+      "dimension_reference": "dim_us.dim_pub_sales_territory",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "terr_name",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "sales_rep_id",
+      "type": "int",
+      "semantic_role": "dimension",
+      "dimension_reference": "dim_us.dim_pub_manager",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "sales_rep_name",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "sup_id",
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "sup_name",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "mgr_id",
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "mgr_name",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "dir_id",
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "dir_name",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "vp_id",
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "vp_name",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "house_territory_flag",
+      "type": "varchar(100)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    }
+  ],
+  "column_count": 22,
+  "partition_keys": [],
+  "grain": null,
+  "ddl_source": {
+    "repo": "BREPORT-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "C:\\Users\\T154858D.TDSNX\\Desktop\\git_repo_backup\\bigdata_wiki_llm_1\\source\\contracts\\b-report-us\\tables\\dim_pub_sales_hierarchy_primary_role_by_terr_view.md",
+    "commit": "b-report-contract-v2",
+    "fetched_at": "2026-07-16T04:07:39.219072+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_sales_hierarchy_primary_role_by_terr_view.md",
+  "semantic_enriched": true
+}

@@ -17,6 +17,7 @@ from app.agent.factory import create_user_agent, get_checkpointer
 from app.agent.harness.config import load_harness_config, recursion_limit
 from app.agent.harness.context import reset_harness_context, set_harness_context
 from app.agent.harness.middleware import reset_segment_state
+from app.agent.harness.evidence import reset_evidence_snapshot
 from app.agent.harness.topic_detect import detect_topic_relation
 from app.agent.harness.turn_summary import slice_messages_for_turn, summarize_turn
 from app.agent.models import build_model
@@ -61,11 +62,13 @@ async def _resolve_run_segment(user_id: str, thread_id: str, continue_run: bool)
     meta = await load_threads_meta(user_id)
     entry = meta.get(thread_id) or {}
     segment = int(entry.get("run_segment") or 1)
-    if continue_run:
+    prior_turns = int(entry.get("turn_index") or 0)
+    # Continue and each new user turn get a fresh segment so step budgets /
+    # evidence snapshots do not leak across questions in the same thread.
+    if continue_run or prior_turns > 0:
         segment = await increment_thread_run_segment(user_id, thread_id)
-        reset_segment_state(thread_id, segment)
-    else:
-        reset_segment_state(thread_id, segment)
+    reset_segment_state(thread_id, segment)
+    reset_evidence_snapshot(thread_id, segment)
     return segment
 
 
@@ -245,12 +248,14 @@ async def chat_resume(body: ChatResumeRequest, user_id: str = Depends(get_user_i
     run_segment = int((meta.get(thread_id) or {}).get("run_segment") or 1)
     config = _thread_config(thread_id, run_segment=run_segment)
 
-    if body.decisions:
+    if body.clarification is not None:
+        resume_value: Any = body.clarification
+    elif body.decisions:
         decisions = body.decisions
+        resume_value = {"decisions": decisions}
     else:
-        decisions = [{"type": "approve"}]
+        resume_value = {"decisions": [{"type": "approve"}]}
 
-    resume_value: Any = {"decisions": decisions}
     input_payload = Command(resume=resume_value)
 
     async def event_gen():
@@ -273,7 +278,12 @@ async def chat_resume(body: ChatResumeRequest, user_id: str = Depends(get_user_i
             require_synthesis=require_synthesis,
         )
         yield sse("meta", {"thread_id": thread_id, "user_id": uid, "resumed": True})
-        yield sse("status", {"text": "Resuming after approval…", "phase": "init"})
+        status_text = (
+            "Resuming after clarification…"
+            if body.clarification is not None
+            else "Resuming after approval…"
+        )
+        yield sse("status", {"text": status_text, "phase": "init"})
         try:
             if cfg is None:
                 cfg = await load_user_config(uid)

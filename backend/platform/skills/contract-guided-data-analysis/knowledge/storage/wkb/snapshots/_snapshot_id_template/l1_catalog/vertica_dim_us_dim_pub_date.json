@@ -1,0 +1,217 @@
+{
+  "entity_id": "dim_us.dim_pub_date",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "b-report-us",
+  "qualified_name": "dim_us.dim_pub_date",
+  "schema_name": "dim_us",
+  "table_name": "dim_pub_date",
+  "columns": [
+    {
+      "name": "date_flag",
+      "type": "date",
+      "semantic_role": "partition",
+      "dimension_reference": "dim_us.dim_pub_date",
+      "business_definition": "Daily business date partition"
+    },
+    {
+      "name": "u_version",
+      "type": "char",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "q",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "fq",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "m",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "w",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "d",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "year",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "qtr",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "month",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "week",
+      "type": "int",
+      "semantic_role": "partition",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "day",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "doy",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "fyear",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "fqtr",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "fdoy",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "dow",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "dname",
+      "type": "char",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "bonuswk",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "holiday",
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "payroll",
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "sales",
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "comment",
+      "type": "varchar(100)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "weekday",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "week_flag",
+      "type": "varchar(100)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "month_flag",
+      "type": "varchar(100)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "quarter_flag",
+      "type": "varchar(100)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "f_quarter_flag",
+      "type": "varchar(100)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "month_name",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "week_flag2",
+      "type": "varchar(100)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "w2",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "week2",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    }
+  ],
+  "column_count": 32,
+  "partition_keys": [
+    "date_flag"
+  ],
+  "grain": null,
+  "ddl_source": {
+    "repo": "BREPORT-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "C:\\Users\\T154858D.TDSNX\\Desktop\\git_repo_backup\\bigdata_wiki_llm_1\\source\\contracts\\b-report-us\\tables\\dim_pub_date.md",
+    "commit": "b-report-contract-v2",
+    "fetched_at": "2026-07-16T04:07:37.617286+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_date.md",
+  "semantic_enriched": true
+}

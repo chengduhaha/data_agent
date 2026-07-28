@@ -91,6 +91,9 @@ class ChatStreamRequest(BaseModel):
 class ChatResumeRequest(BaseModel):
     thread_id: str
     decisions: list[dict[str, Any]] = Field(default_factory=list)
+    # Clarification resume payload from ask_user (LangGraph interrupt value).
+    # Shape: {"answers": {"<question text>": "<selected or typed answer>", ...}}
+    clarification: dict[str, Any] | None = None
 
 
 class ProviderInfo(BaseModel):
@@ -133,6 +136,8 @@ class SkillInfo(BaseModel):
     content: str | None = None
     editable: bool = False
     disabled: bool = False
+    """Always loaded; hidden from `/` slash menu (e.g. file-ops, web-research)."""
+    default_skill: bool = False
     extensions: SkillExtensions = Field(default_factory=SkillExtensions)
     harness: SkillHarness = Field(default_factory=SkillHarness)
 

@@ -1,0 +1,193 @@
+# StarRocks OPEN_SO_BO table relationships
+#
+# Country schemas are normalized with xx in this file.
+#
+# Scope
+#   Generated from StarRocks OPEN_SO_BO rds_xxx_rtv.sp scripts identified by matching
+#   StarRocks *_gen.sp files that contain tempdb.rds_tmp.
+#   OPEN_SO_BO scripts are identified by SELECT/FROM usage of dm_pur_unieta_boso_detail_rt
+#   or order header sources with order_type = 1/8 and ship_date is null.
+#   Use current order header/detail tables as the driving source for open SO/BO rows;
+#   use dm_xx.dm_pur_unieta_boso_detail_rt when the report is ETA/backorder driven.
+#
+# Common grain
+#   Open order header grain: order_no, order_type
+#   Open order line grain: order_no, order_type, order_line_no
+#   Open SO/BO SKU grain: order_no, order_type, order_line_no, sku_no
+#   Product grain: sku_no
+#   Customer grain: cust_no
+#   ETA grain: order_no, order_type, order_line_no, sku_no
+
+
+# Core OPEN_SO_BO / Current Order Relationships
+
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header (one to many) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type when non-RT order header is used with RT detail context.
+ods_xx.ods_cis_corp_order_header_rt should filter order_type = 1 for open SO rows.
+ods_xx.ods_cis_corp_order_header_rt should filter order_type = 8 for open BO rows.
+ods_xx.ods_cis_corp_order_header_rt should filter ship_date is null when identifying open SO/BO rows from order header.
+ods_xx.ods_cis_corp_order_header_rt should filter delete_date is null when deleted/cancelled open orders are not requested.
+ods_xx.ods_cis_corp_order_detail_rt should filter delete_date is null when active open order lines are required.
+ods_xx.ods_cis_corp_order_detail_rt should filter order_type in (1,8) when the report combines open SO and open BO lines.
+ods_xx.ods_cis_corp_order_detail_rt (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_detail_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+ods_xx.ods_cis_corp_order_detail_rt (many to one) dim_xx.dim_pub_part_info by using join columns sku_no when curated product attributes are required.
+ods_xx.ods_cis_corp_order_detail_rt (one to one/many) ods_xx.ods_cis_corp_order_detail_date_rt by using join columns order_no, order_type, order_line_no when request/expected/order date extensions are required.
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_order_type_rt by using join columns order_type
+
+
+# UniETA / BO-SO ETA Relationships
+
+dm_xx.dm_pur_unieta_boso_detail_rt (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type
+dm_xx.dm_pur_unieta_boso_detail_rt (many to one) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type, order_line_no, sku_no
+dm_xx.dm_pur_unieta_boso_detail_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+dm_xx.dm_pur_unieta_boso_detail_rt should be aggregated before joining back when a single ETA per open order line is required.
+dm_xx.dm_pur_unieta_boso_detail_rt can drive ETA/backorder reports directly; preserve its order_no, order_type, order_line_no, sku_no grain unless the report aggregates to SKU, customer, vendor, or location.
+ods_xx.ods_cis_corp_order_eta_detail_rt (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_eta_detail_rt (many to one) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type, order_line_no
+ods_xx.ods_cis_corp_order_eta_detail_rt should be filtered or ranked before joining if multiple ETA rows exist per order line.
+
+
+# Order Extension, Expense, Comment, Profile, and Sold-To Relationships
+
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_exp_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_exp_rt (many to one) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type, order_line_no when expense rows are line-level.
+ods_xx.ods_cis_corp_order_exp_rt is often one-to-many per order line; pre-aggregate or filter expense lines before final output when open order grain must be preserved.
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_soldto_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_soldto_rt is used for sold-to/end-user PO and address fields; join after applying open SO/BO filters.
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_profile_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_profile_rt should filter profile_cat, profile_type, active, and optionally order_line_no before joining back to open order output.
+ods_xx.ods_cis_corp_order_exp_rt (one to many) ods_xx.ods_cis_corp_order_profile_rt by using join columns order_no, order_type, order_line_no, order_expense_line_no to profile_no when profile fields belong to expense lines.
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_comments_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_comments_rt should be filtered by comment type/location or ranked before joining when one comment row is required.
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_frt_detail_rt by using join columns order_no, order_type when freight service days or freight detail are required.
+
+
+# Historical Order and Current/History Context
+
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_detail_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_detail_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_exp_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_soldto_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_profile_rt by using join columns order_no, order_type; add order_line_no for line-level historical profiles.
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_comments by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_carton_header by using join columns order_no, order_type when historical carton context is required.
+ods_xx.ods_cis_corp_history_header_rt and ods_xx.ods_cis_corp_order_header_rt may be unioned or compared when an OPEN_SO_BO report includes shipped/history context for status, prior shipment, or current/history fallback.
+When current/history branches are unioned, align output columns with explicit null placeholders and keep branch-specific filters in each branch.
+
+
+# Product, Vendor, VPL, BOM, and SKU Relationships
+
+ods_xx.ods_cis_corp_part_master_rt (many to one) ods_xx.ods_cis_corp_vend_master_rt by using join columns vend_no
+ods_xx.ods_cis_corp_part_master_rt (many to one) ods_xx.ods_cis_corp_dw_vend_pl_rt by using join columns vpl_no
+ods_xx.ods_cis_corp_part_master_rt (many to one) ods_xx.ods_cis_corp_part_cat_rt by using join columns prod_code or cat_id when product category fields are required.
+ods_xx.ods_cis_corp_part_cat_rt (many to one) ods_xx.ods_cis_corp_pco_cat_id_rt by using join columns cat_id or pco_cat_id when PCO category descriptions are required.
+ods_xx.ods_cis_corp_part_master_rt (one to many) ods_xx.ods_cis_corp_sku_profile_rt by using join columns sku_no; filter profile_type/profile_cat before joining.
+ods_xx.ods_cis_corp_part_master_rt (one to many) ods_xx.ods_cis_corp_bom_rt by using join columns sku_no when kit/BOM component logic is required.
+ods_xx.ods_cis_corp_bom_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns comp_no to sku_no for component attributes.
+ods_xx.ods_cis_corp_bom_cost_var_rt (many to one) ods_xx.ods_cis_corp_exp_codes_rt by using join columns exp_code when BOM expense cost variance attributes are required.
+ods_xx.ods_cis_corp_vend_master_rt (one to many) ods_xx.ods_cis_corp_vend_master_etc_rt by using join columns vend_no when extended vendor attributes are required.
+ods_xx.ods_cis_corp_vend_master_rt (one to many) ods_xx.ods_cis_corp_vendor_xref_rt by using join columns vend_no when vendor cross-reference fields are required.
+ods_xx.ods_cis_corp_vend_user_matrix_rt (many to one) ods_xx.ods_cis_corp_manager_rt by using join columns primary_id or user id columns to userid when buyer/PM ownership is required.
+ods_xx.ods_cis_corp_vend_user_matrix_rt should join by vend_no and optionally vpl_no; preserve report-specific buyer fallback rules.
+
+
+# Customer, Address, Contact, Territory, Manager, and Location
+
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_customer_header_rt by using join columns to_acct_no to cust_no
+ods_xx.ods_cis_corp_order_exp_rt (many to one) ods_xx.ods_cis_corp_customer_header_rt by using join columns cust_no or to_acct_no to cust_no
+ods_xx.ods_cis_corp_history_header_rt (many to one) ods_xx.ods_cis_corp_customer_header_rt by using join columns to_acct_no to cust_no
+ods_xx.ods_cis_corp_customer_header_rt (one to many) ods_xx.ods_cis_corp_cust_xref_rt by using join columns cust_no
+ods_xx.ods_cis_corp_cust_xref_rt should filter xref_type = 'MASTER_SUB' and active = 'Y' when deriving master/sub-customer relationships.
+ods_xx.ods_cis_corp_customer_header_rt (many to one) ods_xx.ods_cis_corp_cust_type_rt by using join columns cust_type when customer type description is required.
+ods_xx.ods_cis_corp_customer_header_rt (one to many) ods_xx.ods_cis_corp_addr_xref_rt by using join columns cust_no to xref_no and filter xref_type for customer/address relationships.
+ods_xx.ods_cis_corp_addr_xref_rt (many to one) ods_xx.ods_cis_corp_address_rt by using join columns addr_no
+ods_xx.ods_cis_corp_address_rt (one to many) ods_xx.ods_cis_corp_contact_xref_rt by using join columns addr_no
+ods_xx.ods_cis_corp_contact_xref_rt (many to one) ods_xx.ods_cis_corp_contacts_rt by using join columns contact_no
+ods_xx.ods_cis_corp_contacts_rt should be filtered or ranked before joining when one contact row is required.
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_location_info_rt by using join columns from_loc_no to loc_no
+ods_xx.ods_cis_corp_order_detail_rt (many to one) ods_xx.ods_cis_corp_location_info_rt by using join columns from_loc_no to loc_no when line location differs from header context.
+ods_xx.ods_cis_corp_order_header (many to one) ods_xx.ods_cis_corp_location_info_rt by using join columns loc_no or from_loc_no to loc_no when non-RT header is used.
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_territory_rt by using join columns sales_terr
+ods_xx.ods_cis_corp_territory_rt (many to one) ods_xx.ods_cis_corp_territory_group_rt by using join columns group_id
+ods_xx.ods_cis_corp_territory_group_rt (many to one) ods_xx.ods_cis_corp_cust_type_rt by using join columns cust_type
+ods_xx.ods_cis_corp_cust_type_rt (many to one) ods_xx.ods_cis_corp_division_rt by using join columns division
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_manager_rt by using join columns entry_id, sales_id, account_rep, or user id fields to userid
+ods_xx.ods_cis_corp_manager_rt (one to one/many) dim_xx.dim_pub_manager by using join columns userid when curated manager attributes are required.
+ods_xx.ods_cis_corp_employee_contacts_rt (many to one) ods_xx.ods_cis_corp_manager_rt by using join columns user_id to userid when employee contact attributes are required.
+
+
+# CPO, Reference Order, and Related Order Chain
+
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_cpo_header_rt by using join columns int_ref_no to cpo_id when current open SO/BO rows are CPO-backed.
+ods_xx.ods_cis_corp_order_detail_rt (many to one) ods_xx.ods_cis_corp_cpo_detail_rt by using join columns int_ref_no to cpo_id and int_ref_line_no to cpo_line_seq
+ods_xx.ods_cis_corp_cpo_header_rt (one to many) ods_xx.ods_cis_corp_cpo_detail_rt by using join columns cpo_id
+ods_xx.ods_cis_corp_cpo_header_rt (one to many) ods_xx.ods_cis_corp_cpo_eu_custom_rt by using join columns cpo_id and EU map keys when current CPO EU custom fields are required.
+ods_xx.ods_cis_corp_history_cpo_header_rt (one to many) ods_xx.ods_cis_corp_history_cpo_comments by using join columns cpo_id when historical CPO comment context is required.
+ods_xx.ods_cis_corp_order_detail_rt (one to many) ods_xx.ods_cis_corp_mc_order_ref_rt by using join columns order_no, order_type, order_line_no when manufacturer/customer reference order context is required.
+ods_xx.ods_cis_corp_order_header_rt can self-link or link through ods_xx.ods_cis_corp_mc_order_ref_rt by int_ref_no/int_ref_type when an open SO/BO report traces MSO/BO/CPO/VPO relationships.
+ods_xx.ods_cis_corp_from_ref_type_rt is a reference-type lookup; join by from_ref_type or reference type columns when source-reference descriptions are required.
+
+
+# EU Custom, CEDM, List Box, and Localized Text
+
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_eu_common_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_eu_custom_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_eu_custom_rt (many to one) ods_xx.ods_cis_corp_eu_custom_map_rt by using join columns eu_map_id, eu_map_line_no
+ods_xx.ods_cis_corp_eu_custom_map_rt (many to one) ods_xx.ods_cis_corp_list_box_detail_rt by using join columns map_data_desc to code_value when resolving CEDM/list-box fields.
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_eu_common_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_eu_common_rt should be used for historical end-user common fields when current order EU common rows are unavailable.
+ods_xx.ods_cis_corp_list_box_detail_rt is a generic code lookup; join by code_value and filter list_box_code for the required code set.
+ods_xx.ods_cis_corp_tc_value_en is a localized text/value lookup; join by report-specific code or translated value keys when descriptions are required.
+
+
+# Inventory, RIO, Runrate, and BO Snapshot Relationships
+
+ods_xx.ods_cis_corp_inv_qty_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+ods_xx.ods_cis_corp_inv_qty_rt (many to one) ods_xx.ods_cis_corp_inv_type_rt by using join columns inv_type when inventory type descriptions are required.
+ods_xx.ods_cis_corp_inv_qty_rt should filter inv_type according to the report's inventory population before joining to open SO/BO output.
+dw_xx.dwd_disty_inv_qty_df (many to one) ods_xx.ods_cis_corp_order_detail_rt by using join columns sku_no and sometimes order_no, order_type, order_line_no when inventory is tied to open order lines.
+dw_xx.dwd_disty_inv_qty_df (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+dw_xx.dwd_disty_inv_qty_df should usually filter date_flag = date_add(current_date(), interval -1 day) or current snapshot equivalent when daily inventory is required.
+dw_xx.dwd_disty_inv_aging_df (many to one) ods_xx.ods_cis_corp_order_detail_rt by using join columns sku_no when inventory aging is compared to open order demand.
+dw_xx.dwd_disty_inv_aging_df (many to one) dim_xx.dim_pub_part_info by using join columns sku_no when curated part attributes are required.
+dw_xx.dws_disty_pur_ips_runrate_1w (many to one) dw_xx.dwd_disty_inv_qty_df by using join columns tdmat to sku_no or sku_no depending on the report.
+dw_xx.dws_disty_pur_ips_runrate_1w should be reduced to the requested week/sum_type before joining to inventory or open order output.
+ods_xx.ods_cis_corp_rio_request_header_rt (one to many) ods_xx.ods_cis_corp_rio_req_detail_rt by using join columns rio_req_no
+ods_xx.ods_cis_corp_rio_request_header_rt (one to many) ods_xx.ods_cis_corp_rio_req_consumed_rt by using join columns rio_req_no
+ods_xx.ods_cis_corp_rio_request_header_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no when RIO request header contains SKU context.
+ods_xx.ods_cis_corp_rio_req_consumed_rt (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type when consumed quantity is tied to an open order.
+ods_xx.ods_cis_corp_rio_request_header_rt (many to one) ods_xx.ods_cis_corp_manager_rt by using join columns approve_id or managerid to userid when RIO approval ownership is required.
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type
+dw_xx.dwd_disty_brpt_bo_detail_df (many to one) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type, order_line_no
+dw_xx.dwd_disty_brpt_bo_detail_df should filter date_flag to the current snapshot before joining to open SO/BO order rows.
+
+
+# Shipment, Carton, Serial, Consignment, and Queue Relationships
+
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_carton_header_rt by using join columns order_no, order_type when carton/tracking context is required.
+ods_xx.ods_cis_corp_order_detail_rt (one to many) ods_xx.ods_cis_corp_serial_nbr_rt by using join columns order_no, order_type, order_line_no when serial numbers are required.
+ods_xx.ods_cis_corp_history_detail_rt (one to many) ods_xx.ods_cis_corp_history_serial_nbr_rt by using join columns order_no, order_type, order_line_no when historical serial numbers are required.
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_ship_method by using join columns ship_method
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_ship_method_prof_rt by using join columns ship_method when ship method profile attributes are required.
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_sales_que_rt by using join columns order_no, order_type when sales queue state is required.
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_consignment_mt_que_rt by using join columns order_no, order_type when consignment queue context is required.
+ods_xx.ods_cis_corp_carton_header_rt can be one-to-many per order line; pre-aggregate or rank carton rows before final output when one row per open SO/BO line is required.
+
+
+# Company, Calendar, SPA, Project, and Miscellaneous Lookup Relationships
+
+ods_xx.ods_cfg_mymdm_company_info_rt is a company lookup; join by company_no when company description or country/company attributes are required.
+ods_xx.ods_cis_corp_dw_calendar_rt is a calendar lookup; join by date fields when fiscal period, week, or business calendar attributes are required.
+ods_xx.ods_cis_corp_spa_header_rt (one to many) ods_xx.ods_cis_corp_spa_detail_rt by using join columns spa_no
+ods_xx.ods_cis_corp_spa_detail_rt (many to one) ods_xx.ods_cis_corp_vend_master_rt by using join columns vend_no when vendor attributes are needed for SPA rows.
+ods_xx.ods_cis_corp_proj_usage_budget_rt is used for project/budget usage context; join by project, budget, or order reference keys present in the report.
+ods_xx.ods_cis_corp_pm_claim_rt is used for PM claim context; join by report-specific claim/order/vendor keys only when the source report requires it.
+
+
+# Output and Grain Notes
+
+Use LEFT JOIN from open SO/BO base rows to optional enrichment tables such as product, customer, location, manager, ETA, profile, EU custom, CPO, RIO, inventory, carton, serial, and shipment lookups to preserve open order rows.
+Use INNER JOIN only when the source report intentionally restricts to a required customer/vendor/SKU list, required CPO/order chain, required ETA population, or required operational status.
+Pre-aggregate, rank, or filter one-to-many enrichment tables before the final join when output grain must remain one row per order line.
+Keep order_type, ship_date, delete_date, vendor, customer, location, SKU, ETA, and date_flag filters in the earliest staging table so downstream joins stay small and optional joins do not change the open SO/BO population.

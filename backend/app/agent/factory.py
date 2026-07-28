@@ -39,6 +39,7 @@ from app.store.paths import (
     ORG_FRAGMENTS_DIR,
     ORG_KNOWLEDGE_DIR,
     ORG_SKILLS_DIR,
+    PLATFORM_SKILLS_DIR,
     ensure_user_layout,
     files_dir,
     org_rule_fragment_paths,
@@ -105,6 +106,11 @@ def build_backend(user_id: str) -> CompositeBackend:
             virtual_mode=True,
         ),
     }
+    if PLATFORM_SKILLS_DIR.exists():
+        routes["/skills/platform/"] = FilesystemBackend(
+            root_dir=str(PLATFORM_SKILLS_DIR),
+            virtual_mode=True,
+        )
     if ORG_SKILLS_DIR.exists():
         routes["/skills/org/"] = FilesystemBackend(
             root_dir=str(ORG_SKILLS_DIR),
@@ -196,6 +202,7 @@ def render_system_prompt(cfg: UserConfig, *, routing_suffix: str = "") -> str:
         "- Personal workspace files: `/workspace/`\n"
         "- Built-in skills: `/skills/builtin/`\n"
         "- Organization skills (shared): `/skills/org/`\n"
+        "- Platform-published skills: `/skills/platform/`\n"
         "- Personal skills: `/skills/user/`\n"
         "- Organization knowledge (shared): `/knowledge/org/` "
         "(read_file / ls / grep / search_knowledge)\n"
@@ -220,10 +227,12 @@ def build_memory_paths() -> list[str]:
 
 
 def build_skill_paths() -> list[str]:
-    """builtin → org → user (last wins on name collision)."""
+    """builtin → org → platform → user (last wins on name collision)."""
     paths = ["/skills/builtin/"]
     if ORG_SKILLS_DIR.exists():
         paths.append("/skills/org/")
+    if PLATFORM_SKILLS_DIR.exists():
+        paths.append("/skills/platform/")
     paths.append("/skills/user/")
     return paths
 

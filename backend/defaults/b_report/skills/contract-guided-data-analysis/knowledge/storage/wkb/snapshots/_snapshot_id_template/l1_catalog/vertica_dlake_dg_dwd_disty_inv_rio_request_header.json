@@ -1,0 +1,141 @@
+{
+  "entity_id": "dlake_dg.dwd_disty_inv_rio_request_header",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dlake_dg.dwd_disty_inv_rio_request_header",
+  "schema_name": "dlake_dg",
+  "table_name": "dwd_disty_inv_rio_request_header",
+  "columns": [
+    {
+      "name": "rio_req_no",
+      "type": "int"
+    },
+    {
+      "name": "sku_no",
+      "type": "int"
+    },
+    {
+      "name": "loc_no",
+      "type": "int"
+    },
+    {
+      "name": "req_qty",
+      "type": "int"
+    },
+    {
+      "name": "cust_no",
+      "type": "int"
+    },
+    {
+      "name": "agent_no",
+      "type": "int"
+    },
+    {
+      "name": "hold_auth_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "entry_id",
+      "type": "int"
+    },
+    {
+      "name": "entry_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "reason",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "status",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "type",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "approve_id",
+      "type": "int"
+    },
+    {
+      "name": "approved_qty",
+      "type": "int"
+    },
+    {
+      "name": "approve_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "pending_qty",
+      "type": "int"
+    },
+    {
+      "name": "expected_inv_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "end_date",
+      "type": "timestamp"
+    },
+    {
+      "name": "vpl_no",
+      "type": "int"
+    },
+    {
+      "name": "reject_reason",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "kit_flag",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "update_enddate_flag",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "group_id",
+      "type": "int"
+    },
+    {
+      "name": "rio_parent_id",
+      "type": "int"
+    },
+    {
+      "name": "ref_descr",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "forecast_source",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "update_id",
+      "type": "int"
+    },
+    {
+      "name": "update_reason",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "company_no",
+      "type": "int"
+    },
+    {
+      "name": "region_no",
+      "type": "int"
+    }
+  ],
+  "column_count": 30,
+  "partition_keys": [],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dwd_disty_inv_rio_request_header.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:50.085107+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dwd_disty_inv_rio_request_header.md"
+}

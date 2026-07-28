@@ -1,0 +1,267 @@
+# StarRocks CPO special logic reference
+#
+# Scope
+# - Derived from 42 existing StarRocks CPO rds_xxx_rtv.sp scripts.
+# - StarRocks scripts are identified by matching rds_xxx_gen.sp files that contain tempdb.rds_tmp.
+# - CPO scripts are identified by SELECT/FROM usage of current or history CPO header/detail RT tables.
+# - Use xx as the region placeholder, matching table list.txt and table relationship.txt.
+# - The rules below focus on uncommon, non-default, but reusable CPO patterns. Do not apply hardcoded report filters unless the request or source report requires them.
+
+
+# 1. Current and history CPO branches are often unioned
+# 21 of the scanned StarRocks CPO reports union current CPO tables with history CPO tables.
+#
+# Rule:
+# - Use both current and history CPO branches when the output must cover open quotes plus converted/closed/older quote rows.
+# - Keep both branches at the same grain before UNION: header grain by cpo_id, line grain by cpo_id + cpo_line_seq.
+# - Align columns with explicit casts/null placeholders when a field exists only in one branch.
+# - Do not replace UNION with a single current CPO table when historical coverage is required.
+
+
+# 2. Order linkage can require both current and history order branches
+# 16 scanned reports union current order tables with history order tables for converted CPO/order context.
+#
+# Rule:
+# - CPO-backed order linkage usually starts from int_ref_no = cpo_id.
+# - Line-level linkage uses int_ref_line_no = cpo_line_seq.
+# - Common order_type values are 1 and 8 for sales/open/backorder flows.
+# - When shipped or older order rows are possible, union:
+#   - ods_xx.ods_cis_corp_order_header_rt / ods_xx.ods_cis_corp_order_detail_rt
+#   - ods_xx.ods_cis_corp_history_header_rt / ods_xx.ods_cis_corp_history_detail_rt
+# - Preserve current/history fallback order from the source report when updating a staging table.
+
+
+# 3. Drop-ship and VPO/MSO/SSO chains use from_loc_no = 98 and order_type/int_ref_type rules
+# Several reports treat from_loc_no = 98 as a special drop-ship branch and derive VPO/MSO/SSO identifiers through chained references.
+#
+# Rule:
+# - For drop-ship order classification:
+#   - order_type = 8 usually represents Back Order.
+#   - order_type = 1 and from_loc_no = 98 and int_ref_type != 2 can represent Sales Order(Master).
+#   - order_type = 1 and from_loc_no = 98 and int_ref_type = 2 can represent Sales Order(Ship) or VPO-backed ship order.
+# - A common chain is:
+#   - CPO -> MSO: order_detail.order_type = 1 and int_ref_no = cpo_id.
+#   - MSO -> VPO: VPO order_type = 2, int_ref_type = 1, int_ref_no = MSO order_no, int_ref_line_no = MSO order_line_no.
+#   - VPO -> SSO: SSO order_type = 1, int_ref_type = 2, int_ref_no = VPO order_no, int_ref_line_no = VPO order_line_no.
+# - Resolve cpo_id through current and history headers when a drop-ship VPO points back through another order.
+
+
+# 4. CPO status filters define active quote pipeline populations
+# Some quote reports use a long cpo_status IN list rather than only cpo_delete_datetime is null.
+#
+# Rule:
+# - The long status list represents active quote/pipeline states, for example QUOTESHEET, QUOTEPO, CONVERTOK, EUSUBMIT, HOLDPO, READYAF, SHIPCUTOFF, SHIPMETHOD, SHIPTOFIX, and related validation/error states.
+# - Use this status filter only when the report asks for active quote pipeline, opportunity, or quote-stage style output.
+# - Do not add the long cpo_status list to every CPO report; many reports only need delete/null and date filters.
+
+
+# 5. SPAREF# profile stores SPA reference at CPO header level
+# SPAREF# appears in multiple reports and is usually read from CPO profile_cat = 'CPOH'.
+#
+# Rule:
+# - Join CPO profile by cpo_id.
+# - Filter profile_cat = 'CPOH' and profile_type = 'SPAREF#'.
+# - Use profile_f as the SPA reference value in scanned reports.
+# - For long date windows, some reports split profile extraction into multiple date ranges and UNION the results to keep profile joins smaller.
+
+
+# 6. CUSTMSRP profile stores line-level customer/list MSRP
+# CUSTMSRP appears in multiple reports and is usually line-level profile data.
+#
+# Rule:
+# - Join by cpo_id and cpo_line_seq.
+# - Filter profile_cat = 'CPOL' and profile_type = 'CUSTMSRP'.
+# - Use profile_f as the list/customer MSRP value when following scanned report behavior.
+# - Extended list price is calculated as sum(profile_f * quoted_qty), where quoted_qty can be cpo_line_qty - cpo_del_qty.
+# - Keep this as a CPO-specific price/list metric; do not substitute product base price or unit price.
+
+
+# 7. LASTREQID and QUOTREQID are workflow/request identifiers, not order numbers
+# LASTREQID appears under PRIC profile logic; QUOTREQID appears under WFL profile logic.
+#
+# Rule:
+# - LASTREQID: filter profile_cat = 'PRIC' and profile_type = 'LASTREQID'.
+# - QUOTREQID: filter profile_cat = 'WFL' and profile_type = 'QUOTREQID', usually active = 'Y' and a recent entry_datetime window.
+# - Treat these profile values as request/workflow identifiers. Do not join them to order_no or cpo_id unless the source report explicitly does so.
+
+
+# 8. EMAILQUOTE identifies email/web quote CPOs
+# EMAILQUOTE is uncommon and appears as a header-level CPO profile filter.
+#
+# Rule:
+# - Join ods_xx.ods_cis_corp_cpo_profile_rt by cpo_id.
+# - Filter profile_cat = 'CPOH' and profile_type = 'EMAILQUOTE'.
+# - Use it only when the request asks for email quote, web quote, or similar quote-source logic.
+
+
+# 9. CEDM EU custom mapping is used to resolve named CPO custom fields
+# Quote Expire Date is resolved through EU custom map and list-box metadata, not by hardcoded eu_map_id alone.
+#
+# Rule:
+# - Join ods_xx.ods_cis_corp_cpo_eu_custom_rt to ods_xx.ods_cis_corp_eu_custom_map_rt by eu_map_id and eu_map_line_no.
+# - Join map_data_desc to ods_xx.ods_cis_corp_list_box_detail_rt.code_value.
+# - Filter list_box_code = 'CEDM' and code_desc such as 'Quote Expire Date'.
+# - For date custom fields, scanned reports use eu.data_d and require eu.data_d is not null and eu.delete_date is null.
+# - Prefer this map/list-box pattern when the business field name is known; avoid hardcoding eu_map_id/eu_map_line_no unless the source report does so.
+
+
+# 10. EU common fields may need current/history fallback
+# End-user fields frequently come from cpo_eu_common_rt and history_cpo_eu_common_rt.
+#
+# Rule:
+# - Join by cpo_id; use cpo_line_seq = 0 when the report needs header-level end-user fields and the source table has line sequence.
+# - Use current EU common first, then history EU common as fallback when both are joined.
+# - Some reports use header fields such as cpo_ship_loc_type = 'EU' and ship_name1 for end-user name instead of EU common tables. Preserve the source-specific behavior.
+
+
+# 11. CONTRNO profile links CPO lines to OT125/service contract billing
+# CONTRNO appears in CPOL profile logic and is used to find service contract or OT125 billing rows.
+#
+# Rule:
+# - Join current and history CPO profile by cpo_id and cpo_line_seq.
+# - Filter profile_cat = 'CPOL' and profile_type = 'CONTRNO'.
+# - Use profile_i as contract_no when joining to ods_xx.ods_cis_corp_ot125_billing_entry.
+# - Join cpo_line_seq to contract_line_no when line-level OT125 billing values are required.
+# - When contract_no exists, reports calculate amounts from OT125 bill_cost/bill_price/bill_qty instead of order detail unit_cost/unit_price/order_qty.
+# - Use ods_xx.ods_cis_corp_service_contract_header and ods_xx.ods_cis_corp_service_contract_line_sum for contract-type 125/service-contract extracts; these may use sentinel values such as -888888 for non-order CPO fields.
+
+
+# 12. RESERVEVPO profile marks reservation/VPO logic
+# RESERVEVPO appears in order profile rows, not CPO profile rows.
+#
+# Rule:
+# - Join order profile by order_no and order_type.
+# - Filter profile_cat = 'ORDR' and profile_type = 'RESERVEVPO'; active = 'Y' when present in the source report.
+# - Use the presence of this profile to set Reservation_Flag-like output fields.
+# - Check both order_profile_rt and history_profile_rt when the base order branch includes current and history rows.
+
+
+# 13. HIDEAMPL controls whether AMPL expense is included
+# One report includes AMPL expense only when a matching profile explicitly says to hide/include AMPL behavior.
+#
+# Rule:
+# - Build expense amounts from both order_exp_rt and history_exp_rt when current and history orders are present.
+# - Always include DP expense rows with order_exp_type = 'DP' when matching that report pattern.
+# - Include AMPL expense rows with exp_code = 'AMPL' only when a matching profile exists:
+#   profile_cat = 'AMPL', profile_type = 'HIDEAMPL', profile_c = 'Y'.
+# - Sum unit_exp by order_no, order_type, order_line_no before updating line price.
+# - Net sales/unit price can be recalculated as order_line_price + unit_usum.
+
+
+# 14. Quote/order status labels are derived from date precedence
+# Some order-backed CPO reports derive readable status from multiple order dates.
+#
+# Rule:
+# - Preserve the precedence used in the source report. A common order is:
+#   delete_date -> Cancelled
+#   order_type = 8 -> Back Order
+#   closed_date -> Closed
+#   schedule_date -> Expired
+#   invoice_date -> Invoiced
+#   ship_date -> Shipped
+#   qc_date -> QCDate
+#   pick_date -> Picked
+#   credit_rel_date -> Credit Released
+#   sales_rel_date -> Sales Released
+#   issue_date -> Queued
+#   otherwise Open Order
+# - Do not simplify this to only shipped/open/cancelled if the report exposes detailed operational status.
+
+
+# 15. ETA can be max ETA instead of min ETA depending on the report
+# Some CPO/order reports aggregate UniETA as min(eta); others use max(eta).
+#
+# Rule:
+# - Aggregate dm_xx.dm_pur_unieta_boso_detail_rt before joining to report rows.
+# - Join by order_no, order_type, order_line_no, sku_no.
+# - Use min(eta) for earliest expected arrival patterns.
+# - Use max(eta) when matching reports that display latest ETA for order line status.
+# - Preserve the output date format from the report, commonly '%m/%d/%Y'.
+
+
+# 16. Master customer logic uses MASTER_SUB xref fallback
+# MASTER_SUB customer xref appears in multiple reports.
+#
+# Rule:
+# - Join ods_xx.ods_cis_corp_cust_xref_rt by cust_no.
+# - Filter xref_type = 'MASTER_SUB' and active = 'Y' or ifnull(active,'Y') = 'Y'.
+# - Use ifnull(xref_no, cust_no) as master customer number when no master mapping exists.
+# - Apply this to customer/reseller identity only when the output asks for master customer or master account fields.
+
+
+# 17. Address/contact enrichment is role-based and one-to-many
+# Address/contact joins are common but should not be blindly joined into line-level CPO output.
+#
+# Rule:
+# - Customer address joins usually use xref_type = 'ADDR_CUST', xref_seq = 1, active = 'Y', then join addr_no to address.
+# - Contact joins usually use xref_type = 'CONT_ADDR' and contact_no.
+# - Some reports filter contact title, for example a specific manager/contact role.
+# - Reduce contacts to one row per address/customer before joining back when the output grain must remain one row per CPO or CPO line.
+
+
+# 18. Territory, manager, and location enrichment can use local and global employee sources
+# Some reports derive user/rep location from dim manager plus global employee/location tables.
+#
+# Rule:
+# - Join dim_xx.dim_pub_manager.global_id to ods_gbl.ods_cis_mygbl_global_employee.globalemployeeid when global employee attributes are needed.
+# - Join employee user location to ods_gbl.ods_cis_mygbl_global_location_rt for normalized/local location fields.
+# - Exclude buyers with ifnull(title,'') <> 'Buyer' when following rep/office-location logic from scanned reports.
+# - Some report-specific rep groups use job title, company_no, cost_center, deptid, or hardcoded userid overrides. Treat these as report criteria, not universal CPO rules.
+
+
+# 19. Service contract and order extracts may use sentinel placeholders
+# Contract-type extracts are not always true CPO/order rows.
+#
+# Rule:
+# - Service contract branches can insert contract rows into the same staging table as order rows.
+# - For non-order fields, scanned reports use sentinel values such as -888888 for cpo_id, cpo_type, from_loc_no, or from_ref_type.
+# - Keep sentinel values only when matching an existing report shape; otherwise prefer NULL placeholders.
+# - Join contract header to line sum by contract_no and contract_type, and filter line delete_datetime is null when calculating total_order.
+
+
+# 20. CPO amount logic has several non-standard formulas
+#
+# Rule:
+# - Quoted quantity can be cpo_line_qty - cpo_del_qty when deleted quantity must be excluded.
+# - Extended quoted cost can use cpo_unit_cost * cpo_so_qty in quote reports.
+# - Extended list price can use CUSTMSRP profile_f * quoted_qty.
+# - Order line GM can be calculated as (unit_price - unit_cost) / unit_price * 100, guarded with unit_price = 0.
+# - Contract/OT125 lines can use bill_cost * bill_qty and bill_price * bill_qty instead of order detail unit amounts.
+# - Do not mix these formulas; choose the one tied to the requested source branch and metric.
+
+
+# 21. Large CPO profile pulls may be split by date window
+# One scanned report splits a 12-month CPO set into two profile pulls: older 6 months and latest 6 months.
+#
+# Rule:
+# - Use date-window split when joining high-volume profile tables such as CUSTMSRP or SPAREF# over a long CPO period.
+# - Build a distinct cpo_id staging set first, split by cpo_entry_datetime, then join profile tables per segment.
+# - UNION the profile result segments before final aggregation.
+# - This is a performance pattern, not a business requirement; use it only for large historical windows or when following the source report.
+
+
+# 22. VPL/VPC filters are report-specific product scoping
+# Some reports filter VPL code, VPC group, vendor number, or staging SKU status as part of the business request.
+#
+# Rule:
+# - Treat vend_no, vpl_code, vpc_group, staging SKU status, and sales_terr filters as report criteria.
+# - Keep these filters in the earliest product/CPO staging step to reduce downstream joins.
+# - Do not copy hardcoded vendor, VPL, VPC, customer, or territory values into new CPO SQL unless the user request or source report explicitly requires them.
+
+
+# 23. StarRocks CPO output usually uses tempdb.rds_tmp and tempdb.rds_tmp_body
+#
+# Rule:
+# - New StarRocks CPO scripts should create tempdb.rds_tmp and tempdb.rds_tmp_body.
+# - Large update-heavy reports often create a staging table with an auto_increment or uuid_numeric id, primary key, and distributed by hash(id).
+# - Some converted scripts still create unqualified rds_tmp; prefer tempdb.rds_tmp for new work unless preserving an existing converted script exactly.
+# - rds_tmp_body usually contains flag/body_type/count; preserve existing multi-step body logic if the source report uses it.
+
+
+# 24. Time zone settings can affect current_date windows
+# Some US StarRocks CPO reports explicitly set time_zone = 'America/Los_Angeles'.
+#
+# Rule:
+# - Preserve explicit time_zone settings from source reports.
+# - Use the same current_date/date_add/date_format style as the source report when reproducing rolling windows.
+# - Do not remove time_zone from reports whose filters depend on US business-day boundaries.

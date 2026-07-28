@@ -122,9 +122,12 @@ def get_builtin_tools(
     if enabled.get("web_search", True):
         tools.append(web_search)
     if include_harness_tools and backend is not None:
+        from app.agent.harness.clarification import make_ask_user_tool
         from app.agent.harness.tools import make_search_knowledge_tool
 
         tools.append(make_search_knowledge_tool(backend))
+        if enabled.get("ask_user", True):
+            tools.append(make_ask_user_tool())
     return tools
 
 
@@ -133,6 +136,11 @@ BUILTIN_TOOL_CATALOG = [
     {"name": "web_search", "description": "Search the web (DuckDuckGo HTML).", "source": "builtin"},
     {"name": "search_knowledge", "description": "Search org/workspace knowledge by pattern.", "source": "builtin"},
     {"name": "wkb_query", "description": "WKB index retrieval for contract data analysis.", "source": "builtin"},
+    {
+        "name": "ask_user",
+        "description": "Ask the user a focused clarification (single/multi select or free text).",
+        "source": "builtin",
+    },
     {"name": "ls", "description": "List directory contents.", "source": "deepagents"},
     {"name": "read_file", "description": "Read a file from the agent filesystem.", "source": "deepagents"},
     {"name": "write_file", "description": "Write a file to the agent filesystem.", "source": "deepagents"},

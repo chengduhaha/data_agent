@@ -1,0 +1,40 @@
+# StarRocks POS physical source table list
+
+# Scope
+# - Generated from rds_xxx_rtv.sp scripts whose matching rds_xxx_gen.sp contains tempdb.rds_tmp.
+# - POS scripts are identified by dwd_disty_pub_dw_orders_extend_di or dwd_disty_common_dw_orders_pl_extend_di usage.
+# - Country-specific schemas are normalized to *_xx.
+# - Temporary/output tables are excluded.
+# - Scan result: 4 scripts; reports: CA 6525, CA 7522, US 17797, US 18529; physical source tables: 26.
+
+# Core POS fact/order tables
+dw_xx.dwd_disty_pub_dw_orders_extend_di
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di
+dw_xx.dwd_disty_brpt_bo_detail_df
+
+# Data mart tables
+dm_xx.dm_pur_unieta_sku_detail_rt
+
+# ODS physical source tables
+ods_xx.ods_cis_corp_carton_header_rt
+ods_xx.ods_cis_corp_customer_header_rt
+ods_xx.ods_cis_corp_history_eta_code_rt
+ods_xx.ods_cis_corp_history_exp_rt
+ods_xx.ods_cis_corp_history_header_rt
+ods_xx.ods_cis_corp_history_profile
+ods_xx.ods_cis_corp_history_profile_rt
+ods_xx.ods_cis_corp_history_serial_nbr_rt
+ods_xx.ods_cis_corp_inv_qty_rt
+ods_xx.ods_cis_corp_location_info_rt
+ods_xx.ods_cis_corp_order_eta_code_rt
+ods_xx.ods_cis_corp_order_exp_rt
+ods_xx.ods_cis_corp_order_header_rt
+ods_xx.ods_cis_corp_order_profile
+ods_xx.ods_cis_corp_order_profile_rt
+ods_xx.ods_cis_corp_order_type_rt
+ods_xx.ods_cis_corp_part_master_rt
+ods_xx.ods_cis_corp_serial_nbr_rt
+ods_xx.ods_cis_corp_ship_method
+ods_xx.ods_cis_corp_spa_header_rt
+ods_xx.ods_cis_corp_uni_eta_log_rt
+ods_xx.ods_his_corp_history_spa_header

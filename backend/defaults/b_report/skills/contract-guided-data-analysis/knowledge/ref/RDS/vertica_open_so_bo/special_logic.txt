@@ -1,0 +1,108 @@
+# Vertica OPEN_SO_BO special logic reference
+#
+# Scope
+# - Derived from 56 existing Vertica OPEN_SO_BO rds_xxx_rtv.sp scripts.
+# - Vertica scripts are identified by matching rds_xxx_gen.sp files that contain rdsetl.rds_tmp.
+# - OPEN_SO_BO scripts are identified by SELECT/FROM usage of dw_xx.dwd_disty_sales_open_order_detail.
+# - Use xx as the region placeholder, matching table list.txt and table relationship.txt.
+# - The rules below focus on uncommon, non-default, but reusable OPEN_SO_BO patterns. Do not apply hardcoded report filters unless the request or source report requires them.
+
+
+1. Vertica OPEN_SO_BO reports use `rdsetl.rds_tmp` and usually `rdsetl.rds_tmp_body` as final output objects. Use `CREATE LOCAL TEMPORARY TABLE ... ON COMMIT PRESERVE ROWS AS` for intermediate staging tables, then recreate `rdsetl.rds_tmp`; create `rdsetl.rds_tmp_body` when the report needs email body, tab/sheet metadata, or attachment configuration.
+
+2. Use `dw_xx.dwd_disty_sales_open_order_detail` as the main open sales order / backorder detail source. The common output grain is one row per `order_no`, `order_type`, `order_line_no`, often with `sku_no`. Preserve this grain unless the source report intentionally aggregates by SKU, customer, vendor, location, or week.
+
+3. Active open-order logic is stricter than reading the open order detail table. Existing reports commonly require:
+   - `order_delete_date is null`
+   - `order_line_delete_date is null`
+   - optional `order_line_type <> 'Comp'` or `order_line_type not in ('Comp')`
+   Use these filters for active open SO/BO reporting. Do not apply the component-line filter if the report explicitly needs kit/component detail.
+
+4. `order_type` is report-specific in OPEN_SO_BO. Scanned reports use patterns such as:
+   - `order_type = 8` for many backorder/dropship-style outputs
+   - `order_type in (1,8)` for mixed SO and BO outputs
+   - `order_type = 1` for regular sales order context
+   - `order_type in (1,10,11)` or `order_type in (1,8,87)` for specialized vendor/customer logic
+   - `order_type = 2` only when the open SO/BO report bridges to VPO/PO context
+   Treat `order_type` as a business filter, not a universal OPEN_SO_BO condition.
+
+5. `from_loc_no = 98` is a recurring dropship marker. Existing reports use it to classify lines as DROP versus STOCKING, to calculate dropship quantity separately, or to choose different quantity formulas. Preserve report-specific handling of location 98 instead of treating it as a normal warehouse.
+
+6. Open amount and open quantity formulas vary by order state. Some reports calculate amount with open quantity for unshipped dropship lines, but with order quantity or shipped quantity in other cases. A reusable pattern is:
+   - if `from_loc_no = 98` and `ship_date is null`, use `open_qty`
+   - otherwise use `order_qty` or `ship_qty` according to the report's shipped/open context
+   - multiply by unit price plus expense fields such as `u_sum_expense`, `unit_sum_exp`, or `extend_net_price`
+   Keep the source report's quantity precedence when calculating backlog amount.
+
+7. Daily snapshot tables need current snapshot filters. Existing reports use `date_flag = current_date() - 1` for tables such as `dw_xx.dwd_disty_inv_qty_df`, `dw_xx.dwd_disty_scm_open_order_spa_df`, `dw_xx.dwd_disty_brpt_bo_detail_df`, and inventory aging facts. Do not join snapshot tables without a date filter unless the request explicitly asks for history.
+
+8. Rolling POS/runrate logic is not simple current-day filtering. Some reports build weekly buckets from `dw_xx.dwd_disty_common_pos_di`, using date windows such as last week, two weeks ago, four weeks, ten weeks, MTD, previous month, quarter-to-date, or year-to-date. Keep each runrate bucket at SKU/customer/vendor/location grain before joining to open backlog rows.
+
+9. Inventory shortage/availability reports combine open order demand with multiple supply-side facts:
+   - current inventory from `dw_xx.dwd_disty_inv_qty_df`
+   - inventory aging from `dw_xx.dwd_disty_inv_aging_df` or `dw_xx.dwd_disty_inv_aging_rollover_rtv2_df`
+   - runrate from `dw_xx.dws_disty_pur_ips_runrate_1w`
+   - RIO request data from `dw_xx.dwd_disty_inv_rio_req_header`, `dw_xx.dwd_disty_inv_rio_req_detail`, and `dw_xx.dwd_disty_inv_rio_req_consumed`
+   Preserve the original aggregation grain before joining these measures to open SO/BO detail.
+
+10. ETA enrichment often comes from `dm_xx.dm_pur_unieta_boso_detail_rt` by `order_no`, `order_type`, and `sku_no`. Use it for ETA, vendor SO, expected date, or BO/SO ETA output, but keep it optional with `LEFT JOIN` because many open order lines do not have ETA records.
+
+11. Vendor SO / SAP ID frequently comes from `ods_xx.ods_cis_corp_order_profile` with `profile_type = 'SAPID'`. Join by `order_no`, `order_type`, and sometimes `sku_no`; filter to the SAPID profile before joining back to avoid duplicating open-order lines.
+
+12. Expected ship day and street date are profile-driven fields in some reports. Existing profile filters include `profile_type = 'EXPSHIPDAY'` and `profile_type = 'STREETDATE'`. Treat these as semantic attributes from `ods_xx.ods_cis_corp_order_profile`, not normal date columns on the open order detail table.
+
+13. Customer SKU and application enterprise attributes can also be profile-based. Existing reports use profile types such as `CUST_SKU` and `APPENTERP`. Filter `ods_xx.ods_cis_corp_order_profile` by the requested profile type and de-duplicate before joining if multiple profile rows are possible.
+
+14. CPO-backed open order lines bridge through `int_ref_no` to CPO identifiers. Common joins are:
+   - `dw_xx.dwd_disty_sales_open_order_detail.int_ref_no = dw_xx.dwd_disty_sales_open_cpo_detail_extend.cpo_id`
+   - `sku_no = cpo_sku_no`
+   - `dm_xx.dm_disty_sales_open_cpo` by `cpo_id` when curated CPO open attributes are needed
+   Use this only for CPO-backed order lines; do not require CPO joins for generic OPEN_SO_BO reports.
+
+15. CPO EU custom values can require current/history union logic. Some reports gather CPO IDs from open and shipped/order contexts, then union current `ods_xx.ods_cis_corp_cpo_eu_custom` with `ods_xx.ods_cis_corp_history_cpo_eu_custom`. Use this when the requested CPO custom value may exist in either current or historical CPO records.
+
+16. Order EU custom and CPO EU custom fields should be resolved through semantic CEDM mapping when possible:
+   - join EU custom rows to `dim_xx.dim_pub_eu_custom_map_view` by `eu_map_id` and `eu_map_line_no`
+   - join map `map_data_desc` to list-box `code_value`
+   - filter `list_box_code = 'CEDM'`
+   - filter `code_desc` to the requested business field
+   Existing fields include `DEAL ID`, `Vendor Quote ID`, `Project`, `OPE/REG#`, `DQM`, `NEW/RENEW`, `Billing Frequency`, `Term Length`, and `Incumbency`.
+
+17. SCM/SPA enrichment is one-to-many per order line. Existing reports join `dw_xx.dwd_disty_scm_open_order_spa_df`, `dw_xx.dwd_disty_scm_shipped_order_spa_di`, or `dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di` by `order_no`, `order_type`, `order_line_no`. Pre-aggregate, rank, or filter SCM/SPA rows before final output if the result must stay one row per open SO/BO line.
+
+18. `dw_xx.dwd_disty_brpt_bo_detail_df` is used as a backorder snapshot/detail supplement. Join by `order_no`, `order_type`, `order_line_no`, and filter `date_flag` to the current snapshot. Do not use it as a replacement for `dw_xx.dwd_disty_sales_open_order_detail` unless the source report is explicitly BRPT-driven.
+
+19. Some reports combine open order rows with shipped POS rows using `UNION`. Keep open and shipped populations separate until after each side has applied its own filters:
+   - open side normally uses `dw_xx.dwd_disty_sales_open_order_detail`
+   - shipped side uses `dw_xx.dwd_disty_common_pos_di` with date windows and component-line exclusion
+   - final union standardizes column names and flags source/status
+
+20. Order status can be derived from header/history date precedence rather than a single status column. Preserve the source report's precedence when present, commonly:
+   - `delete_date` -> Deleted/Cancelled
+   - `schedule_date` -> Expired
+   - `invoice_date` -> Invoiced
+   - `ship_date` -> Shipped
+   - `qc_date` -> QCDate
+   - `pick_date` -> Picked
+   - `credit_rel_date` -> CreditRel
+   - `sales_rel_date` -> SalesRel
+   - `issue_date` -> Queued/Issued
+   - otherwise Open/Entered.
+
+21. Carton, tracking, serial, and asset-tag fields are optional and often shipment-dependent. Existing reports use `ods_xx.ods_cis_corp_carton_header` and `dw_xx.dwd_disty_common_order_serial_no_di` after the open/shipped population is built. Join them with `LEFT JOIN` and avoid multiplying rows when multiple cartons or serials exist per order line.
+
+22. Customer address/contact enrichment is one-to-many. Existing reports use `row_number() over(partition by cust_no order by entry_datetime_contact desc)` from `dim_xx.dim_pub_customer_address_contacts_info` and filter `rn = 1`. Use this pattern when the output requires a single contact/address row per customer.
+
+23. CPO comments need sequence de-duplication. Existing logic ranks comments with `row_number() over(partition by cpo_id, cpo_comment_type, cpo_comment_loc order by cpo_comment_no)` before joining them back. Use this when extracting the first/ordered CPO comment from `ods_xx.ods_cis_corp_cpo_comments` or `ods_xx.ods_cis_corp_history_cpo_comments`.
+
+24. Customer hierarchy expansion can use `dim_xx.dim_pub_cust_xref_all` with `xref_type = 'MASTER_SUB'` and `active = 'Y'`. Some reports start from a small customer list, expand to master/sub customers, then union the original customer list back in. Preserve this when the request is master-customer based.
+
+25. Vendor, customer, PM manager, product, ship method, and part-list filters are highly report-specific. Scanned reports contain many hardcoded filters such as `vend_no`, `cust_no`, `master_cust_no`, `pm_manager_name`, `prod_code`, `ship_method`, and SKU lists. Keep those filters in the earliest staging table, but do not copy them into new SQL unless the user request or source report explicitly requires them.
+
+26. BTO/QC reports use WMS lab tables and user enrichment. Existing logic joins `ods_xx.ods_wms_mywms_bto_lab_qc_log`, `ods_xx.ods_wms_mywms_cws_bto_lab`, and `ods_xx.ods_wms_mywms_cws_bto_lab_ext`, then joins `dim_xx.dim_pub_manager` for technician or QC user names. This is only needed for BTO/lab/QC reporting, not standard open backlog.
+
+27. Text output sometimes strips control characters from product or description fields using nested `replace` calls for tab, line-feed, carriage-return, non-breaking space, and quotes. Preserve this cleaning when generating CSV/email-ready fields from product descriptions or action text.
+
+28. Vertica OPEN_SO_BO scripts may include regional schemas such as `dw_wcla` and `dim_wcla`. Normalize metadata to `dw_xx` and `dim_xx`, but keep concrete region schemas in generated SQL when reproducing a specific regional report.
+
+29. Date display formatting is separate from filter logic. Existing reports use formats such as `to_char(date_col, 'YYYY-MM-DD')`, `to_char(date_col, 'mm/dd/yyyy')`, and `to_char(date_col, 'MM/DD/YYYY HH24:MI:SS')`. Keep output formatting from the source report, but do not use display-formatted dates for joins or filters.

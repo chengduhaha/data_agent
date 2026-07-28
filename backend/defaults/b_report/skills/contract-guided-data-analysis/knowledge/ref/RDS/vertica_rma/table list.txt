@@ -1,0 +1,14 @@
+# Fact table
+dw_xx.dwd_disty_ap_freight_none_order_view
+dw_xx.dwd_disty_cs_rma_info
+dw_xx.dwd_disty_sales_open_order_detail
+dw_xx.dwd_gfs_pur_mt_detail
+dw_xx.dwd_pub_common_order_profile_lightweight
+
+# Dimension table
+dim_xx.dim_gfs_location_info
+dim_xx.dim_pub_location_info
+dim_xx.dim_pub_part_info
+
+# ODS table
+ods_xx.ods_cis_corp_order_header

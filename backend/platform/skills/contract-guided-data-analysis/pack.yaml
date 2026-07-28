@@ -1,0 +1,32 @@
+name: contract-guided-data-analysis
+version: "1.0.0"
+description: >
+  Portable contract-guided business data analysis skill with bundled B Report / POS
+  knowledge, WKB retrieval indexes, and Vertica execution policy.
+
+requires:
+  python: ">=3.9"
+  mcp_servers:
+  - name: vertica-prod
+    tools:
+    - run_query_safely
+    optional_tools:
+    - execute_query_paginated
+
+knowledge:
+  root: knowledge
+  domains:
+  - b-report-us
+  - pos
+
+scripts:
+  wkb_query: scripts/wkb_query.py
+  wkb_index_builder: scripts/wkb_index_builder.py
+
+output:
+  default_dir: output
+
+forbidden_paths:
+- knowledge/contracts/**/golden-questions.md
+- knowledge/contracts/b-report-us/tables/**
+- knowledge/contracts/pos/tables/**

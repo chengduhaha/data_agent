@@ -11,6 +11,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from app.agent.extensions.manifest import SkillManifest, parse_skill_manifest
+from app.agent.extensions.default_skills import is_default_builtin_skill
 from app.agent.extensions.subagent_routing import (
     SubagentRoutingPlan,
     manifests_by_name,
@@ -74,6 +75,7 @@ class CapabilityRegistry:
         from app.store.io import list_skills
 
         disabled_skills = set(cfg.disabled_skills or [])
+        disabled_skills -= {n for n in disabled_skills if is_default_builtin_skill(n)}
         disabled_mcp = set(cfg.disabled_mcp_servers or [])
         restrict_to = set(active_skills) if active_skills else None
 

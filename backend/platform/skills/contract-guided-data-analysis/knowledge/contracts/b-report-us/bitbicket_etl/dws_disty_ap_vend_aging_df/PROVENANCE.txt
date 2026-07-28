@@ -1,0 +1,7 @@
+﻿workspace: BAF
+repo: data_service_b_report
+path: disty_common/ap/python/load_ap_vend_aging.py
+commit: refs/heads/master
+discovered_via: Data Compass lineage on dw_us.dws_disty_ap_vend_aging_df (guid 65070335-d003-418c-972f-1bca204d34db) -> AzkabanProcess load_ap_vend_aging (ap_aging_load_us)
+fetched_at: 2026-07-20
+notes: Full script ~74KB; key extract in EXTRACT.md. Upstream line source dwd_disty_ap_vdah_lines_di; also joins ods_cis_corp_part_master.

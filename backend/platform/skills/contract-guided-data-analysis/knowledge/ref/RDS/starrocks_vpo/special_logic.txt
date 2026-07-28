@@ -1,0 +1,79 @@
+# StarRocks VPO special logic reference
+#
+# Scope
+# - Derived from 18 existing StarRocks VPO rds_xxx_rtv.sp scripts.
+# - StarRocks scripts are identified by matching rds_xxx_gen.sp files that contain tempdb.rds_tmp.
+# - VPO scripts are identified by SELECT/FROM usage of order/header/detail sources with order_type = 2 or order_type in (2,87).
+# - Use xx as the region placeholder, matching table list.txt and table relationship.txt.
+# - The rules below focus on uncommon, non-default, but reusable VPO patterns. Do not apply hardcoded report filters unless the request or source report requires them.
+
+
+1. StarRocks VPO scripts usually create `tempdb.rds_tmp` and `tempdb.rds_tmp_body`. Larger update-heavy scripts often create working tables with `PRIMARY KEY(id) DISTRIBUTED BY HASH(id)` and `uuid_numeric() as id`. Use that pattern when later updates need stable row identity or when matching existing StarRocks RDS style.
+
+2. Core VPO rows come from order header/detail sources with `order_type = 2`, or less commonly `order_type in (2,87)`. Use `order_type = 2` for standard VPO/PO rows unless the source report explicitly includes 87.
+
+3. Open VPO line quantity is usually calculated from order detail as `order_qty - ifnull(rec_qty,0)`. For open VPO rows, preserve filters such as:
+   - header `delete_date is null`
+   - detail `delete_date is null`
+   - `order_qty > ifnull(rec_qty,0)`
+   The calculated open quantity is not always stored as `open_qty`; many reports derive it.
+
+4. Current and history VPO sources may be unioned. When a report needs both active/current and historical VPO rows, union current order header/detail tables with history header/detail tables at the same line grain: `order_no`, `order_type`, `order_line_no`, and `sku_no`. Keep delete/date filters branch-specific.
+
+5. Regional/non-RT VPO reports can use non-RT order detail, history detail, order ETA detail, history ETA detail, part master, and manager tables. Preserve the selected report's concrete regional source style when reproducing an existing report, but keep metadata normalized to `ods_xx`.
+
+6. CPO-to-VPO chain reports use a multi-step relationship:
+   - CPO detail -> MSO: order_type = 1, `int_ref_no = cpo_id`, `int_ref_line_no = cpo_line_seq`.
+   - MSO -> VPO: VPO `order_type = 2`, `int_ref_type = 1`, `int_ref_no = MSO order_no`, `int_ref_line_no = MSO order_line_no`.
+   - VPO -> SSO: SSO `order_type = 1`, `int_ref_type = 2`, `int_ref_no = VPO order_no`, `int_ref_line_no = VPO order_line_no`.
+   Use current and history branches when the report includes both.
+
+7. Drop-ship flags in CPO/VPO chain reports can be true when either an MSO/VPO order exists or a contract profile exists. Do not infer drop ship only from `from_loc_no = 98` if the source report uses order/profile existence as the flag.
+
+8. `RESERVEVPO` is an order profile marker. Join order or history profile by order_no/order_type and filter `profile_cat = 'ORDR'`, `profile_type = 'RESERVEVPO'`, and `active = 'Y'` when available. Use profile presence to set reservation flag fields.
+
+9. `CONTRNO` is a CPO line profile used for contract/OT125 billing. Join current and history CPO profile by `cpo_id` and `cpo_line_seq`, filter `profile_cat = 'CPOL'` and `profile_type = 'CONTRNO'`, then use `profile_i` as `contract_no`.
+
+10. OT125 billing rows use the contract number and CPO line sequence: join `profile_i` to `contract_no` and `cpo_line_seq` to `contract_line_no`. When a contract is present, reports may calculate cost/resale/gross margin from `bill_cost`, `bill_price`, and `bill_qty` instead of order detail unit amounts.
+
+11. Service contract/type-125 branches are not normal VPO order rows. They can use service contract headers and sentinel placeholders for non-order fields. Preserve this shape only when matching service-contract or OT125 report behavior.
+
+12. Vendor SO has fallback logic. Existing StarRocks VPO reports derive it from:
+    - `SAPID` profile on MSO rows from current and history profile tables
+    - `vend_so_no` from current and history ETA code tables for VPO order_type = 2
+    Final output may use `ifnull(profile_sapid, eta_code_vend_so_no)`. Do not rely on only one source when the request asks for Vendor SO.
+
+13. Vendor Quote ID is resolved through CEDM EU custom mapping:
+    - join order EU custom to EU custom map by `eu_map_id` and `eu_map_line_no`
+    - join map `map_data_desc` to list box `code_value`
+    - filter `list_box_code = 'CEDM'` and `code_desc = 'Vendor Quote ID'`
+    - usually filter EU custom `delete_date is null`
+    Use this semantic mapping rather than hardcoded map ids when the business field is Vendor Quote ID.
+
+14. ETA source can come from order profile `ETASRC`, not only ETA code. Join order profile by PO order_no, filter `order_type = 2` and `profile_type = 'ETASRC'`, then join `profile_i` to list box `code_value` where `list_box_code = 'SRC'` to get the source description.
+
+15. Open PO ETA monthly buckets use order header/detail plus order ETA detail. Join by `order_no`, `order_type`, `order_line_no`, filter `order_type = 2`, delete filters, and target locations such as `to_loc_no = 310` or `to_loc_no = 312`. Bucket ETA quantities by month with `date_trunc('month', date_add(curdate(), interval n month))`.
+
+16. Order ETA detail and history ETA detail can be unioned for regional ETA reports. Preserve fields such as `source`, `eta_qty`, `eta_code`, `eta_date`, `ship_date`, `entry_id`, `tracking_no`, and `entry_datetime`.
+
+17. RIO allocation logic uses request header/detail. Join by `rio_req_no`, aggregate hold/request quantity by SKU and location, then subtract RIO quantity from total allocation when calculating available allocation metrics.
+
+18. Inventory/VPO reports can mix inventory quantity, aging, runrate, RIO, and open PO ETA buckets. Keep each measure at SKU grain before updating or joining to the final output. Delete rows where all major quantities are zero only when following an inventory-style VPO example.
+
+19. Inventory aging should filter `view_level = 'IT_PART'` and prior-day `date_flag` when aging buckets such as 61-90, 90+, or 180+ are needed.
+
+20. Inventory quantity reports often filter `inv_type in (1,300)` when combining standard and special/on-order stock. Do not apply this inventory type set to pure VPO order reports unless the request includes inventory context.
+
+21. Runrate logic should first reduce `dw_xx.dws_disty_pur_ips_runrate_1w` to the needed max week and sum_type, then join or update SKU-level output. Do not join raw runrate rows directly to line-grain VPO output.
+
+22. Vendor buyer enrichment uses `ods_xx.ods_cis_corp_vend_user_matrix_rt` with `profile_type = 'BUYR'`. Join by vendor and either exact VPL or fallback `vpl_no = -1`, then join `primary_id` to manager userid.
+
+23. CPO/customer PO fallback for VPO lines may use the VPO header's `int_ref_no` and `int_ref_type` to join back to an order_type = 1 header with `from_loc_no = 98`, then read `ext_ref` as customer PO. Preserve this if the requested output asks for customer PO tied to the VPO.
+
+24. Master customer fallback uses customer xref. Filter `xref_type = 'MASTER_SUB'` and active rows, then use `ifnull(xref_no, cust_no)` as master customer number when the report asks for master customer.
+
+25. VPC/VPG enrichment joins product/VPL context to VPC group xref and group tables. This is report-specific vendor/product hierarchy logic; do not add it to all VPO reports unless requested.
+
+26. Date handling is report-specific. Existing scripts use rolling windows such as one month back, current-month windows, fixed date lower bounds, and prior-day snapshot dates. Preserve the selected example's date-window style and output date formatting.
+
+27. Hardcoded vendor, VPL, customer, location, sales territory, product, or date filters are report criteria. Keep them in the earliest staging table for performance, but do not copy them into a new report unless the user request or source report explicitly requires them.

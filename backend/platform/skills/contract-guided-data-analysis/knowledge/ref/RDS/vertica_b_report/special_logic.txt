@@ -1,0 +1,123 @@
+# Vertica B REPORT special logic reference
+#
+# Scope
+# - Derived from 54 existing Vertica B REPORT rds_xxx_rtv.sp scripts.
+# - Vertica scripts are identified by matching rds_xxx_gen.sp files that contain rdsetl.rds_tmp.
+# - B REPORT scripts are identified by SELECT/FROM usage of
+#   dw_xx.dwd_disty_common_dw_orders_pl_extend_di,
+#   dw_xx.dws_disty_brpt_pl_extend_mtd, or
+#   dw_xx.dwd_disty_pub_dw_orders_extend_di.
+# - Use xx as the region placeholder, matching table list.txt and table relationship.txt.
+# - The rules below focus on uncommon, non-default, but reusable B REPORT patterns. Do not apply hardcoded report filters unless the request or source report requires them.
+
+
+1. Vertica B REPORT reports use `rdsetl.rds_tmp` and usually `rdsetl.rds_tmp_body` as final output objects. Use `CREATE LOCAL TEMPORARY TABLE ... ON COMMIT PRESERVE ROWS AS` for intermediate staging tables, then recreate `rdsetl.rds_tmp` and the matching body/count table.
+
+2. B REPORT detection in historical Vertica logic should be based on `SELECT ... FROM` or `SELECT ... JOIN` usage of the B REPORT core tables listed in the Scope section. Ignore update-only references when deciding whether a report belongs to B REPORT.
+
+3. Use `dw_xx.dwd_disty_common_dw_orders_pl_extend_di` as the main source for order-line PL sales, customer/product/vendor/VPL profitability, NGM/OPLGM/TGM/GM, territory performance, and B REPORT detail extracts. Use `dw_xx.dws_disty_brpt_pl_extend_mtd` only when the report is explicitly monthly or MTD summarized. Use `dw_xx.dwd_disty_pub_dw_orders_extend_di` for lightweight order-extension logic that does not require full PL/margin detail.
+
+4. B REPORT PL fact grain is usually order line:
+   - `order_no`
+   - `order_type`
+   - `order_line_no`
+   - `date_flag`
+   Aggregate to customer, SKU, vendor, VPL, PM, sales territory, month, or division only after all row-level filters are applied.
+
+5. Shippable-sales reports often require `dim_xx.dim_pub_order_type.ship_tran_no is not null` and `order_type >= 0` or `order_type > 0`. Do not remove this as a cosmetic filter; it defines shipped/valid sales populations in several B REPORT scripts.
+
+6. Net sales may be taken from `net_sales` or manually calculated as `ship_qty * (u_price + COALESCE(u_sum_expense, 0))`. Preserve the source report's formula, especially when the report also compares `u_cost`, `sales_cost`, `u_sum_expense`, gross cost, or extended net price.
+
+7. Percentage metrics must be calculated after aggregation. Existing reports calculate percentages such as GM%, TGM%, NGM%, OPL%, and OPLGM% as aggregated numerator divided by aggregated `net_sales` or `extend_net_price`, using `NULLIF` to avoid divide-by-zero. Do not average row-level percentages unless the requested report explicitly asks for that.
+
+8. NGM0 is a special derived margin, not the same as NGM. Existing logic subtracts selected adjustment components from `ngm_amt`, such as:
+   - infrastructure
+   - hc_sales
+   - hc_pm
+   - hc_bd
+   - order_overhead
+   - marketing
+   - scm_profit_adj
+   - others
+   - corporate
+   Preserve the exact adjustment list from the source report when producing NGM0 or NGM0%.
+
+9. VPC/VPL report populations can be a union of multiple business-maintained rules. Existing logic builds VPL sets from:
+   - VPC group ids and descriptions
+   - `dim_xx.dim_pub_vpc_group_xref_view`
+   - explicit `vpl_no` lists
+   - explicit `vpl_code` lists
+   - vendor number plus included/excluded VPL codes
+   - `COALESCE(alt_vend_no, vend_no)`
+   Treat these as curated product-line populations, not generic product filters.
+
+10. `BRPT` VPC group filtering is special. Existing reports join `dim_xx.dim_pub_vpc_group_xref_view` to `dim_xx.dim_pub_vpc_group_view`, filter `active = 'Y'`, and can require `group_code = 'BRPT'`. Preserve this logic when the request asks for B REPORT/VPC group reporting.
+
+11. PM hierarchy can be driven by either PL fact columns or product dimensions. Existing reports use `pm_code`, `dim_vpl_no`, `vpl_no`, `vend_no`, and part/VPL hierarchy tables. Choose the join path that matches the source report's grain and do not mix PM hierarchy from product and order rows without checking which one drives the output.
+
+12. Customer and master-customer logic is not interchangeable. Existing B REPORT reports use both:
+   - `cust_no` for bill-to/customer reporting
+   - `mcust_no` joined to customer `cust_no` for master customer reporting
+   Preserve the requested customer level before applying customer filters or joining customer attributes.
+
+13. Sales territory can come from the order fact or the customer dimension. Existing reports use fields such as `cust_terr`, order sales territory, and customer `sales_terr`. When both exist, preserve the report-specific source because sales hierarchy and territory exclusions can differ.
+
+14. Territory/user-role hierarchy can be one-to-many. Existing logic filters role attributes such as `member_role = 'primary'` and `primary_flag = 'Y'` before joining manager/user data. Always narrow role rows before joining to PL facts.
+
+15. Some B REPORT scripts intentionally exclude broad internal/test/special sales territories. Existing recommendation reports exclude a long list of `sales_terr` values before final attribution. Treat those territory lists as report-specific, not global B REPORT defaults.
+
+16. Recommendation/e-catalog attribution reports use a pre/post email window. Existing logic:
+   - builds a SKU/customer recommendation list
+   - excludes customer/SKU combinations that had sales between `pre_date` and `email_date`
+   - includes sales between `email_date` and `post_date`
+   - filters positive shipped sales only
+   This is not a normal sales window; use it only for recommendation lift/attribution reports.
+
+17. Recommendation attribution de-duplicates at order-line grain. Existing logic ranks rows by `order_no, order_line_no`, ordering by latest `email_date` and giving `recommend_source = 'BY AI'` priority, then keeps `rn = 1`. Preserve this row-number rule to avoid double-counting a sale attributed to multiple recommendations.
+
+18. Recommendation source parsing can keep both full and initial source values. Existing output uses `REGEXP_SUBSTR(..., '^[^,]+')` to derive initial recommend source/detail from comma-separated strings. Use this only when the request asks for first-source attribution.
+
+19. QTD new-product reports use fiscal-quarter logic, not a simple last-90-days window. Existing logic derives quarter start from current month, sets `qtd_end` to the prior month end, and joins `dim_xx.dim_pub_date` for date flags in the quarter. Preserve that fiscal QTD calendar logic for new part or QTD product reports.
+
+20. New part create date can be conditionally shown only if `part.entry_datetime` falls within the fiscal quarter. Existing reports output the date only when `entry_datetime >= qtd_start` and `< fq_end_exclusive`; otherwise it is null. Do not blindly output part create date as a filter.
+
+21. Hardware-only B REPORT product reports can filter `global_cat_type in ('HW')` and exclude SYNNEX vendors except `SYNNEX WW VENDOR GROUP`. Preserve both parts of that logic when reproducing the hardware new-product report.
+
+22. ASC606 and renewal flags are product attributes in scanned B REPORT scripts. Existing reports take `asc606` and `renewal_flag` from part info while aggregating PL fact sales/cost. Use product dimension grain carefully when reporting those attributes.
+
+23. Store-number extraction is a special text-cleaning rule. Existing logic extracts store number from `ship_to_name` using regex patterns around `#`, removes spaces, rejects non-numeric values, and then filters stores with three or more digits and values above a threshold. Use this only for store-based customer order reports.
+
+24. Drop-ship exception logic can add rows even when store number is blank. Existing logic inserts rows where `drop_ship = 'D'` and `store_no = ''` after the store-number filter. Keep this as a separate population, not as part of generic store parsing.
+
+25. Order-level OPLGM/GM metrics can be backfilled onto line-level rows. Existing logic calculates order-level OPLGM, OPL%, GM, and GM% by grouping filtered rows by `order_no, order_type`, then updates each line row. Use this when output needs both line-level and order-level profitability.
+
+26. ACQ cloud and legacy invoice logic is profile-driven. Existing logic reads `ods_xx.ods_cis_corp_history_profile`:
+   - `profile_type = 'ACQCLOUD'` to classify Cloud unless `order_type = 125` already does so
+   - `profile_type = 'ACQINVNO'` to override invoice number
+   Default invoice number can fall back to `order_type || '-' || order_no`. Apply only for acquisition/cloud/legacy invoice reports.
+
+27. ODS history profiles are one-to-many. Filter `profile_type`, `profile_cat` when applicable, and `active = 'Y'` before joining to B REPORT facts. Pre-aggregate or choose one row if multiple profile rows can exist per order or line.
+
+28. CPO profile lead-time reports use `EXPSHIPDAY` and `EXPDELDAY` from current or history CPO profile tables with `profile_cat = 'SHIP'` and `active = 'Y'`. Join by CPO id or `int_ref_no`, not by order number alone.
+
+29. EU custom context can be header-level or line-level. Existing logic joins `ods_xx.ods_cis_corp_history_eu_common` with `order_line_no = 0` for header-level EU fields and filters `delete_date is null` when present. Do not join it as a normal order-line fact unless the source report does so.
+
+30. SCM/SPA and PM claim enrichment should not drive sales totals. Existing reports join SCM/SPA detail and PM claim tables to PL facts for context such as `claim_type` or project/SCM metadata. Pre-aggregate or de-duplicate claim detail before final PL aggregation.
+
+31. `dw_xx.dwd_disty_pub_dw_orders_extend_di` appears in B REPORT inventory/runrate style reports as a lightweight recent order source. Existing logic uses recent date windows, then updates order rows with header location (`from_loc_no`) before aggregating SKU runrate. Use this source when the report asks for lightweight sales/order movement rather than full PL margin.
+
+32. Runrate reports can split stocking versus drop-ship using `from_loc_no = 98`. Existing logic calculates 4-week and 10-week quantities separately for stocking and DDS/drop-ship. Preserve this location split when reproducing Dell/RIO/runrate style reports.
+
+33. Inventory aging used with B REPORT sales is cross-domain context. Existing logic filters inventory aging by `date_flag = current_date() - 1`, `view_level = 'IT_PART'`, and `inv_type = 1`, then joins back by SKU. Do not treat inventory aging as a PL sales source.
+
+34. RIO request context uses request header/detail/consumed tables by `rio_req_no`. Existing reports compare RIO demand or consumed quantities to inventory and recent sales. Stage RIO data separately by SKU/request before joining to PL or inventory output.
+
+35. Date exclusions can be explicit data-quality exceptions. Recommendation reports exclude specific `report_date` values from the SMB recommendation source. Preserve source-report date exclusions only when reproducing that recommendation report.
+
+36. Some B REPORT scripts intentionally use current/prior-year month-end comparisons. Existing logic derives current month-end as `DATE_TRUNC('MONTH', current_date()) - 1` and prior comparison periods with `ADD_MONTHS(..., -12)`. Keep current and prior period staging separate until final output.
+
+37. Month/date windows in B REPORT scripts vary widely: rolling 70 days, 3 months, 12 months, current fiscal quarter, prior month, YTD, and current month-to-date all appear. Do not substitute a generic date window without matching the requested report scenario.
+
+38. Customer, territory, SKU, vendor, VPL, VPC, order type, country, company, and hardcoded report-date filters are highly report-specific. Keep these filters in the earliest staging table when reproducing a known report, but do not copy them into new B REPORT SQL unless the user request names the same population.
+
+39. Use temporary tables to isolate B REPORT populations. For non-trivial B REPORT logic, stage date windows, VPL/VPC population, customer/SKU population, PL base rows, exclusions, one-to-many enrichment, aggregated metrics, and final output separately. This prevents mixing order-line, customer, product, monthly, and recommendation-attribution grains.

@@ -3,14 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserMenu } from "@/components/UserMenu";
+import { useAuth } from "@/context/AuthContext";
+import { isAdminUser } from "@/lib/roles";
 
 const NAV = [
-  { href: "/", label: "Chat" },
-  { href: "/settings/account", label: "Settings" },
-];
+  { href: "/", label: "Chat", adminOnly: false },
+  { href: "/settings/account", label: "Settings", adminOnly: true },
+] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { user, oauthEnabled } = useAuth();
+  const showSettings = isAdminUser(user, oauthEnabled);
+  const navItems = NAV.filter((item) => !item.adminOnly || showSettings);
+
   return (
     <div className="mx-auto flex h-dvh max-h-dvh max-w-[1400px] flex-col overflow-hidden px-4 py-3 md:px-6">
       <header className="mb-3 flex shrink-0 items-center justify-between gap-3 border-b border-ink-200/50 pb-3">
@@ -24,7 +30,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <nav className="flex items-center gap-1 rounded-2xl border border-ink-200/70 bg-white/60 p-1 backdrop-blur">
-            {NAV.map((item) => {
+            {navItems.map((item) => {
               const active =
                 item.href === "/"
                   ? pathname === "/"

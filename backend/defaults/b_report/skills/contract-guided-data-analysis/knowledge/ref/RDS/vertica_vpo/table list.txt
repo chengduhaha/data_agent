@@ -1,0 +1,28 @@
+# Fact table
+dw_xx.dwd_disty_ap_hold_df
+dw_xx.dwd_disty_common_order_serial_no_di
+dw_xx.dwd_disty_common_po_basic
+dw_xx.dwd_disty_common_pos_di
+dw_xx.dwd_disty_inv_qty_df
+dw_xx.dwd_disty_sales_eu_custom_di
+dw_xx.dwd_disty_sales_open_order_detail
+dw_xx.dwd_pub_common_history_header_extend
+dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di
+
+# Dimension table
+dim_xx.dim_pub_customer_address_contacts_info
+dim_xx.dim_pub_eu_custom_map_view
+dim_xx.dim_pub_list_box_detail
+dim_xx.dim_pub_manager
+dim_xx.dim_pub_part_info
+dim_xx.dim_pub_part_info_rt
+dim_xx.dim_pub_project_info
+
+# ODS table
+ods_xx.ods_cis_corp_carton_header
+ods_xx.ods_cis_corp_cust_part_no
+ods_xx.ods_cis_corp_order_header
+ods_xx.ods_cis_corp_vend_doc
+
+# DM table
+dm_xx.dm_ap_aging_header_df

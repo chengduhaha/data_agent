@@ -12,6 +12,12 @@ APP_ROOT = BACKEND_ROOT / "app"
 WORKSPACE_ROOT = REPO_ROOT / "workspace"
 BUILTIN_SKILLS_DIR = BACKEND_ROOT / "skills_builtin"
 
+# Platform-published catalog (skills zip publish target + MCP manifests + registry).
+PLATFORM_ROOT = BACKEND_ROOT / "platform"
+PLATFORM_SKILLS_DIR = PLATFORM_ROOT / "skills"
+PLATFORM_MCP_DIR = PLATFORM_ROOT / "mcp"
+PLATFORM_REGISTRY_PATH = PLATFORM_ROOT / "registry.json"
+
 # The "org bundle" (a.k.a. Org Pack) is an optional, swappable extension directory.
 # Core code must not assume any particular bundle (e.g. b_report/Vertica) exists.
 # DATA_AGENT_ORG_BUNDLE selects the bundle name under backend/defaults/; set it to

@@ -1,0 +1,90 @@
+# Vertica AR special logic reference
+#
+# Scope
+# - Derived from 12 existing Vertica AR rds_xxx_rtv.sp scripts.
+# - Vertica scripts are identified by matching rds_xxx_gen.sp files that contain rdsetl.rds_tmp.
+# - AR scripts are identified by SELECT/FROM usage of dw_xx.dwd_disty_ar_cust_doc_df or dw_xx.dws_disty_ar_cust_sum_age_df.
+# - Use xx as the region placeholder, matching table list.txt and table relationship.txt.
+# - The rules below focus on uncommon, non-default, but reusable AR patterns. Do not apply hardcoded report filters unless the request or source report requires them.
+
+
+1. Vertica AR reports use `rdsetl.rds_tmp` and usually `rdsetl.rds_tmp_body` as final output objects. Use `CREATE LOCAL TEMPORARY TABLE ... ON COMMIT PRESERVE ROWS AS` for intermediate staging tables, then recreate `rdsetl.rds_tmp` and the matching body/count table.
+
+2. Use `dw_xx.dwd_disty_ar_cust_doc_df` as the main source for open AR, customer document, document aging, collector, due-date aging, and document-level AR reports. Use `dw_xx.dws_disty_ar_cust_sum_age_df` when the request asks for customer AR balance from daily aging summary rather than document detail.
+
+3. AR report detection in historical Vertica logic should be based on `SELECT ... FROM dw_xx.dwd_disty_ar_cust_doc_df` or `SELECT ... FROM dw_xx.dws_disty_ar_cust_sum_age_df`. Ignore update-only references when deciding whether a report belongs to AR.
+
+4. Open AR amount is not simply `amount`. Existing AR document reports calculate open AR as:
+   - `amount - ifnull(applied, 0)`
+   Standard open AR reports also filter:
+   - `amount - ifnull(applied, 0) <> 0`
+   - `close_date is null`
+   - current document snapshot, commonly `date_flag = current_date() - 1`
+   Preserve all three when reproducing open AR exposure.
+
+5. The AR document snapshot date varies by report. Existing patterns include:
+   - `date_flag = current_date() - 1`
+   - `date_flag in (select max(date_flag) from dw_xx.dwd_disty_ar_cust_doc_df)`
+   - month-end snapshot dates derived by `timestampadd(dd, -day(getdate()), getdate())`
+   Do not mix these without matching the report scenario.
+
+6. AR aging bucket logic is driven by `due_date_agedays`. Existing customer aging reports use buckets such as:
+   - `< 1`
+   - `1-30`
+   - `31-60`
+   - `61-90`
+   - `91-120`
+   - `120+`
+   - `91-180`
+   - `180+`
+   Keep bucket formulas consistent with the output labels requested.
+
+7. Long-aged AR reports are a separate pattern from standard open AR. Existing reports filter `due_date_agedays >= 365`, then output a second sheet or section for stronger thresholds such as `>= 450` or `>= 500`. Preserve the threshold and collector/territory exclusions from the source report when recreating these collector aging outputs.
+
+8. Collector and sales territory filters are report-specific. Historical reports exclude or include specific `collector_id` and `sales_terr` lists, for example excluding internal/test collectors or selected territories. Do not apply these filters globally.
+
+9. Customer activity AR reports combine AR document customers with sales activity customers. Existing logic builds a customer list from:
+   - customer monthly sales from `dw_xx.dws_disty_brpt_cust_mtd`
+   - recent POS sales from `dw_xx.dwd_disty_common_pos_di`
+   - open AR documents from `dw_xx.dwd_disty_ar_cust_doc_df`
+   Then joins customer, terms, territory, and contact data. Keep each population distinct until after aggregation.
+
+10. Monthly customer sales windows use calendar month-end dates, not arbitrary transaction dates. Existing logic derives month-end dates from `dim_xx.dim_pub_date`, joins `dws_disty_brpt_cust_mtd.date_flag` to those month-end dates, and aggregates sales by `cust_no`.
+
+11. Recent sales activity windows can use POS by bill-to customer. Existing logic uses `dw_xx.dwd_disty_common_pos_di` grouped by `bill_to_cust_no`, commonly over the last 60 days. Treat this as an activity indicator, not as an AR balance source.
+
+12. Default customer terms and document terms are different contexts. Existing AR customer reports join customer default terms from `dim_xx.dim_pub_customer_info.default_terms` to `dim_xx.dim_pub_terms_file_view.doc_terms`, while document-level reports join `dwd_disty_ar_cust_doc_df.terms` to `doc_terms`. Use the correct term source for the requested output.
+
+13. Customer address/contact rows can be one-to-many. Historical AR reports read `dim_xx.dim_pub_customer_address_contacts_info` by `cust_no` / `xref_no` for billing or contact fields. De-duplicate or select the intended contact row before joining to customer-level AR output.
+
+14. Finance master and credit-limit logic is special. Existing US AR customer logic can use `ifnull(finance_master, cust_no)` as the finance master, join finance master customer rows back to customer info, and use profile/control tables to calculate or exclude credit limit aggregation. Apply this only for credit-limit or finance-master AR requests.
+
+15. Terms-group exclusion can be control-table driven. Existing logic joins `dim_xx.dim_pub_terms_file_view.terms_group` to `ods_xx.ods_cis_corp_no_ctrl.doc_char` and filters `kind` such as `AUTOCRED_CREDIT_LIMIT_AGGREGATE_EXCLUDE_TERMS_GROUP`. Prefer this configured control-table logic over hardcoded terms groups when matching that report.
+
+16. AR customer summary reports can average AR balance over a date range. Existing logic sums `dw_xx.dws_disty_ar_cust_sum_age_df.total` by customer over a month window and divides by the number of days in the month. Use this only when the metric is average AR balance, not current open AR.
+
+17. `dws_disty_ar_cust_sum_age_df` reports may require `view_level = 'CUST_COM'` and `data_period = 'D'`. Treat these as semantic filters for customer/company daily AR summary, not optional decoration.
+
+18. ODS customer document reports are a separate AR source pattern. Existing logic can aggregate `ods_xx.ods_cis_corp_cust_doc` by `cust_no` and join `ods_xx.ods_cis_corp_customer_header` for customer name. Use this only when the requested report follows ODS/customer-doc history rather than curated DW AR facts.
+
+19. POS/RMA credit context can bridge into AR. Existing logic can start from POS rows, recover RMA context through `int_ref_type = 9` and `ods_xx.ods_cis_corp_rma_details`, then join AR customer documents by `order_no` and `order_type` to retrieve credit reason or AR document fields. Preserve the order of this trace when the request asks for credit/RMA/order lineage.
+
+20. Payment discount reports use payment/application tables and AR documents together. Existing logic joins:
+   - customer population to `dw_xx.dwd_disty_ar_payment_cust_payment` by `cust_no`
+   - payment to `dw_xx.dwd_disty_ar_payment_cust_application` by `pay_no`
+   - application to `dw_xx.dwd_disty_ar_cust_doc_df` by `order_no`, `order_type`, and a selected month-end `date_flag`
+   Keep payment batch date windows and AR document snapshot dates aligned.
+
+21. Discount eligibility depends on terms and grace period, not only payment date. Existing logic joins AR documents to terms, compares document age to `disc_days + grace_period`, and calculates discount amount using `disc_percent`. Preserve the report-specific grace period source and terms filter.
+
+22. Discount timing reports compare payment month to document month. Existing logic excludes cases where document month equals payment month for certain discount metrics. Keep this month comparison when the request asks for early-pay/discount behavior.
+
+23. Some AR reports create multiple output sheets using `rdsetl.rds_tmp` and `rdsetl.rds_tmp_2`, with additional body-count rows. Use this pattern for long-aged AR split outputs or threshold detail sheets only when the requested deliverable needs multiple tabs.
+
+24. AR reports may include AP or inventory context, but those facts are not AR balance sources. `dw_xx.dws_disty_ap_vend_aging_df` and `dw_xx.dwd_disty_inv_aging_df` appear in AR-adjacent reports; keep their grain separate and only join or compare them when the historical report or user request explicitly needs AP/vendor or inventory context.
+
+25. Date formatting is separate from filter logic. Existing AR outputs use formatted report dates such as `to_char(getdate(), 'YYYY-MM-DD')` or month strings like `to_char(date_col, 'YYYYMM')`. Filter on date/timestamp columns before formatting output labels.
+
+26. Customer, collector, territory, terms, finance master, SKU/vendor, and threshold filters are highly report-specific. Keep these filters in the earliest staging table when reproducing a known report, but do not copy them into new AR SQL unless the user request names the same population.
+
+27. Use temporary tables to isolate AR populations. For non-trivial AR logic, stage date windows, sales activity, AR document aging, customer list, customer/terms enrichment, credit-limit logic, payment/application logic, and final output separately. This prevents mixing customer-level, document-level, and payment-level grains.

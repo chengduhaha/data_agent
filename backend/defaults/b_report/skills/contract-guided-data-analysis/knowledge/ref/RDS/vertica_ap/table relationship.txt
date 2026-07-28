@@ -1,0 +1,118 @@
+# Vertica AP table relationships
+#
+# Country schemas are normalized with xx in this file.
+#
+# Scope
+#   Generated from Vertica AP rds_xxx_rtv.sp scripts identified by matching
+#   Vertica *_gen.sp files that contain rdsetl.rds_tmp.
+#   AP scripts are identified by SELECT/FROM usage of dws_disty_ap_vend_aging_df,
+#   dwd_disty_ap_vdah_lines_di, dwd_disty_ap_vend_doc_df,
+#   dwd_disty_ap_hold_df, dm_ap_aging_header_df, or dm_ap_aging_detail_df.
+#   Ignore UPDATE-only usage of those AP tables when choosing AP examples.
+#
+# Common grain
+#   AP aging summary grain: vend_no, date_flag, sum_level, and optional company/order/profile dimensions.
+#   AP aging detail grain: vend_no, doc_no/order_no/order_type/order_line_no, date_flag, and AP claim/document attributes.
+#   Vendor document grain: vend_no, doc_no, date_flag.
+#   AP hold grain: vend_no, order_no, order_type, order_line_no, sku_no, date_flag.
+#   VDAH line grain: vend_no, doc_no, rec_no, rec_line_no, order_type, date_flag.
+#   Vendor dimension grain: vend_no.
+#   Product dimension grain: sku_no.
+
+
+# AP Aging Snapshot Relationships
+
+dw_xx.dws_disty_ap_vend_aging_df (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no.
+dw_xx.dws_disty_ap_vend_aging_df (many to one) dim_xx.dim_pub_manager by using vendor manager fields such as ap_clerk, analyst_id, pm_id, primary_id, or related vendor assignment userid.
+dw_xx.dws_disty_ap_vend_aging_df (many to one) dim_xx.dim_pub_date by using join columns date_flag when reports align AP snapshots to calendar periods.
+dw_xx.dws_disty_ap_vend_aging_df should usually filter date_flag to the current AP snapshot, commonly date_flag = CURRENT_DATE() - 1, or to a prior month-end/max snapshot when the report is month based.
+dw_xx.dws_disty_ap_vend_aging_df commonly filters sum_level such as 'V', 'VP', or other report-specific levels before grouping by vend_no.
+dw_xx.dws_disty_ap_vend_aging_df is commonly aggregated by vend_no before joining to vendor dimensions or temporary vendor lists.
+dw_xx.dws_disty_ap_vend_aging_df AP exposure measures commonly use total, usd_total, inv_cost, usd_inv_cost, cinv_cost, usd_cinv_cost, unvouched_amt, and related USD/native amount columns.
+
+
+# DM AP Aging Header and Detail Relationships
+
+dm_xx.dm_ap_aging_header_df (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no.
+dm_xx.dm_ap_aging_header_df (many to one) dim_xx.dim_pub_manager by using analyst_id, ap_clerk, pm_id, primary_id, cn_analyst_loginid, or analyst_loginid when AP analyst ownership is required.
+dm_xx.dm_ap_aging_header_df (many to one) dim_xx.dim_pub_terms_file_view by using terms_no or terms to doc_terms when payment terms are required.
+dm_xx.dm_ap_aging_header_df should usually filter date_flag first, then sum_level. Common sum_level values include 'V', 'VCD', 'OT', 'UOT', 'UOTC', and 'VVU'.
+dm_xx.dm_ap_aging_header_df is the preferred source for vendor-level AP balance, aging bucket, unvouched, vouched, payment term, PAS code, and analyst summary outputs.
+dm_xx.dm_ap_aging_detail_df (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no.
+dm_xx.dm_ap_aging_detail_df (many to one) dim_xx.dim_pub_manager by using ap_cnanalyst_id, analyst_id, ap_clerk, or other userid-based analyst fields.
+dm_xx.dm_ap_aging_detail_df (many to one) dim_xx.dim_pub_date by using join columns date_flag when details are restricted to a reporting calendar day or month.
+dm_xx.dm_ap_aging_detail_df should usually filter date_flag and order_type before final output. AP claim reports commonly use order_type = 27.
+dm_xx.dm_ap_aging_detail_df is the preferred source for document/order-level AP claim detail, claim type, PM claim type, original vendor, analyst, and document entry date outputs.
+Do not join dm_xx.dm_ap_aging_header_df directly to dm_xx.dm_ap_aging_detail_df unless the report explicitly aligns their grains. Header rows are vendor/summary level; detail rows are document/order level.
+
+
+# AP Hold, Vendor Document, and VDAH Relationships
+
+dw_xx.dwd_disty_ap_hold_df (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no.
+dw_xx.dwd_disty_ap_hold_df (many to one) dim_xx.dim_pub_part_info by using join columns sku_no.
+dw_xx.dwd_disty_ap_hold_df (many to one) dw_xx.dwd_disty_common_po_basic by using join columns synnex_po_no to order_no, order_type = 2, and order_line_no.
+dw_xx.dwd_disty_ap_hold_df (many to one) dw_xx.dwd_disty_common_pos_di by using join columns order_no, order_type, and order_line_no when POS/shipment context is required.
+dw_xx.dwd_disty_ap_hold_df should usually filter date_flag = CURRENT_DATE() - 1 for current AP hold reports.
+dw_xx.dwd_disty_ap_hold_df AP hold amount output commonly uses ext_cost, usd_ext_cost, inv_cost, usd_inv_cost, packing_list_no, reason_id, inv_type, and hold-related status columns.
+dw_xx.dwd_disty_ap_vend_doc_df (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no.
+dw_xx.dwd_disty_ap_vend_doc_df (many to one) ods_xx.ods_cis_corp_vend_doc by using join columns doc_no when ODS vendor document attributes are required.
+dw_xx.dwd_disty_ap_vend_doc_df (many to one) dim_xx.dim_pub_terms_file_view by using doc_terms or vend_terms to doc_terms when payment terms are required.
+dw_xx.dwd_disty_ap_vend_doc_df should usually filter date_flag = CURRENT_DATE() - 1 and doc_close_date IS NULL for open vendor document reports.
+dw_xx.dwd_disty_ap_vend_doc_df open AP document amount is commonly calculated as doc_amt - inv_disc_amt - doc_applied - disc_taken, or by USD columns such as usd_doc_amt - usd_doc_applied.
+dw_xx.dwd_disty_ap_vdah_lines_di (many to one) ods_xx.ods_cis_corp_ap_hold by using join columns rec_no and rec_line_no.
+dw_xx.dwd_disty_ap_vdah_lines_di (many to one) ods_xx.ods_cis_corp_vend_doc by using join columns doc_no.
+dw_xx.dwd_disty_ap_vdah_lines_di (many to one) dim_xx.dim_pub_vendor_info by using join columns vend_no.
+dw_xx.dwd_disty_ap_vdah_lines_di should usually filter date_flag for the current AP snapshot and order_type for the document scenario.
+dw_xx.dwd_disty_ap_vdah_lines_di is used when AP reports need line-level unvouched/vouched AP, receipt, order, or vendor document detail.
+
+
+# Vendor Dimension and Profile Relationships
+
+dim_xx.dim_pub_vendor_info (one to many) dim_xx.dim_pub_vendor_profile by using join columns vend_no and filtering profile_type, profile_cat, and active = 'Y'.
+dim_xx.dim_pub_vendor_info (one to many) dim_xx.dim_pub_vend_user_matrix by using join columns vend_no and profile_type = 'A/P' for AP user ownership.
+dim_xx.dim_pub_vendor_info (one to many) dim_xx.dim_pub_vend_location_view by using join columns vend_no and primary_loc to loc_no for vendor location context.
+dim_xx.dim_pub_vendor_info (many to one) dim_xx.dim_pub_manager by using ap_clerk, analyst_id, pm_id, primary_id, or other userid columns.
+dim_xx.dim_pub_vendor_info (many to one) dim_xx.dim_pub_terms_file_view by using terms or vend_terms to doc_terms for vendor payment terms.
+dim_xx.dim_pub_vendor_info (many to one) dim_xx.dim_pub_vendor_segment by using join columns vend_no when segment attributes are needed.
+dim_xx.dim_pub_vendor_info (many to one) dim_xx.dim_pub_vpl_info by using vpl_no when VPL attributes are required.
+dim_xx.dim_pub_vendor_info (one to many) dim_xx.dim_pub_vendor_xref by using vend_no to xref_no and filtering xref_type such as 'VEND_PURCH' and active = 'Y'.
+dim_xx.dim_pub_vendor_profile (many to one) ods_xx.ods_cis_corp_no_ctrl by using profile_type/profile_c/profile_i to control table attributes when decoding AP profile options.
+Common AP vendor profile filters include profile_cat = 'AP', active = 'Y', and profile_type values such as 'PAS CODE', 'OLD_COMP', 'M-F', 'PMT TYPE', 'DISCOUNT', and 'CSGN_VEND'.
+
+
+# PO, POS, SCM, and Product Context
+
+dw_xx.dwd_disty_common_po_basic (many to one) dim_xx.dim_pub_vendor_info by using vend_no when purchase order vendor context is required.
+dw_xx.dwd_disty_common_po_basic (many to one) dim_xx.dim_pub_part_info by using sku_no when PO product context is required.
+dw_xx.dwd_disty_common_pos_di (many to one) dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di by using join columns order_no, order_type, and order_line_no when SCM/SPA shipment context is required.
+dw_xx.dwd_pub_common_shipped_order_scm_spa_detail_di (many to one) dim_xx.dim_pub_project_info by using scm_no, scm_no_1, scm_no_2, or scm_no_3 to proj_no for project context.
+dw_xx.dwd_pub_common_history_header_extend and dw_xx.dwd_pub_common_order_header_extend provide order header context by order_no and order_type when AP reports need historical/current order attributes.
+ods_xx.ods_cis_corp_history_serial_nbr and ods_xx.ods_cis_corp_serial_nbr join to order/order line context by order_no, order_type, and order_line_no when serial number details are required.
+ods_xx.ods_cis_corp_history_soldto and ods_xx.ods_cis_corp_order_soldto provide sold-to context by order_no and order_type when customer/order sold-to attributes are required.
+ods_xx.ods_cis_corp_part_master can enrich AP hold or VDAH rows by sku_no when ODS product master attributes are required.
+dw_xx.dwd_disty_inv_aging_df and dw_xx.dwd_disty_inv_qty_df are inventory context tables. Join by sku_no and location/inventory attributes only after aggregating to the report grain.
+
+
+# Payment, Claim, and Cross-Domain Context
+
+ods_xx.ods_cis_corp_vend_payments (many to one) ods_xx.ods_cis_corp_ap_vend_applications by using pay_no when AP reports need payment/application detail.
+ods_xx.ods_cis_corp_ap_vend_applications (many to one) dw_xx.dwd_disty_ap_vend_doc_df or ods_xx.ods_cis_corp_vend_doc by using doc_no.
+ods_xx.ods_cis_corp_v_vend_currency (many to one) vendor context by using vend_no and vend_currency, commonly filtered to vend_currency = 'USD'.
+ods_xx.ods_cis_corp_pm_claim can enrich AP claim detail by claim/order/vendor attributes when PM claim fields are required.
+ods_xx.ods_cis_corp_scm_auto_claim_log can enrich SCM auto claim reports by SCM/order claim keys according to report-specific logic.
+dw_xx.dwd_disty_pm_report_goal is used as a PM/report target context table. Align it by vendor, month, or report-specific PM dimensions before joining to AP actuals.
+dw_xx.dws_disty_brpt_vend_comb_mtd (many to one) dim_xx.dim_pub_date by using month/month-end calendar fields when AP reports compare vendor monthly performance.
+dw_xx.dws_disty_brpt_vend_comb_mtd (many to one) dim_xx.dim_disty_brpt_vend_pl_param by using month and vendor/PL parameters in report-specific monthly PL logic.
+dw_xx.dws_disty_ar_cust_sum_age_df appears only as cross-domain AR context in AP reports. Aggregate by customer/date/report-specific level before joining to AP/vendor output.
+dw_xx.dwd_disty_ap_journal_entry appears in AP journal adjustment context. Preserve report-specific filters such as cur_flag and journal/document keys before joining to AP document rows.
+dw_xx.dwd_disty_ap_ap_hold appears as a legacy or alternate AP hold source. Use it only when the existing report explicitly drives from that table; otherwise prefer dw_xx.dwd_disty_ap_hold_df.
+
+
+# Output and Grain Notes
+
+Use AP aging header or dws vendor aging rows as the driving source when the report asks for vendor-level balance, aging buckets, unvouched/vouched totals, AP exposure, or analyst summaries.
+Use AP aging detail rows as the driving source when the report asks for claim/document/order level detail, PM claim type, original vendor, or document entry attributes.
+Use AP hold rows as the driving source when the report asks for hold, receiving, packing list, SKU, PO line, or unmatched AP hold detail.
+Use vendor document rows as the driving source when the report asks for open vendor invoices, payment due dates, document status, or document-level unapplied/open amounts.
+Always preserve report-specific date_flag, sum_level, order_type, company_no, profile_type, active flag, and doc_close_date filters before adding new joins.
+Pre-aggregate fact rows to the requested output grain before joining to one-to-many profile, location, serial number, or payment application tables.

@@ -9,6 +9,10 @@ from typing import Any
 
 from langgraph.errors import GraphRecursionError
 
+from app.agent.harness.clarification import (
+    extract_clarification_payload,
+    is_clarification_interrupt,
+)
 from app.agent.harness.context import get_harness_context
 from app.agent.harness.config import load_harness_config, step_limit
 from app.agent.harness.step_budget import get_segment_budget
@@ -16,12 +20,14 @@ from app.agent.harness.wrapup import (
     count_research_tool_calls,
     count_sql_evidence_in_messages,
     last_ai_text,
+    looks_like_substantial_answer,
+    looks_truncated,
     missing_answer_in_stream,
     needs_final_answer_wrapup,
     stream_wrapup_tokens,
     _has_synthesis_headings,
 )
-from app.agent.harness.task_output import humanize_task_tool_output
+from app.agent.harness.mcp_resilience import format_stream_error
 
 logger = logging.getLogger(__name__)
 
@@ -222,9 +228,14 @@ async def _try_synthesis_wrapup(
             query_count=cumulative_q,
             require_synthesis=require_synthesis,
             research_tool_count=research_count,
+            streamed_text=streamed_text,
         ):
             return None
-        if _has_synthesis_headings(streamed_text):
+        if looks_like_substantial_answer(streamed_text) and not looks_truncated(
+            streamed_text
+        ):
+            return None
+        if _has_synthesis_headings(streamed_text) and not looks_truncated(streamed_text):
             return None
     except Exception:
         logger.debug("wrap-up precheck failed", exc_info=True)
@@ -385,24 +396,54 @@ async def stream_agent_events(
             if state and getattr(state, "tasks", None):
                 for task in state.tasks:
                     for intr in getattr(task, "interrupts", None) or []:
+                        raw_value = getattr(intr, "value", intr)
+                        if is_clarification_interrupt(
+                            raw_value
+                        ) or extract_clarification_payload(raw_value):
+                            value: Any = raw_value
+                        else:
+                            value = _safe_preview(raw_value)
                         interrupts.append(
                             {
                                 "id": getattr(intr, "id", None),
-                                "value": _safe_preview(getattr(intr, "value", intr)),
+                                "value": value,
                             }
                         )
             values = getattr(state, "values", None) or {}
             if isinstance(values, dict) and values.get("__interrupt__"):
-                interrupts.append({"value": _safe_preview(values["__interrupt__"])})
+                raw_intr = values["__interrupt__"]
+                if is_clarification_interrupt(
+                    raw_intr
+                ) or extract_clarification_payload(raw_intr):
+                    interrupts.append({"value": raw_intr})
+                else:
+                    interrupts.append({"value": _safe_preview(raw_intr)})
 
             if interrupts:
-                yield sse(
-                    "interrupt",
-                    {
-                        "interrupts": interrupts,
-                        "thread_id": config.get("configurable", {}).get("thread_id"),
-                    },
-                )
+                clarification = None
+                for item in interrupts:
+                    clarification = extract_clarification_payload(
+                        item.get("value") if isinstance(item, dict) else item
+                    )
+                    if clarification is not None:
+                        break
+                payload: dict[str, Any] = {
+                    "interrupts": interrupts,
+                    "thread_id": config.get("configurable", {}).get("thread_id"),
+                }
+                if clarification is not None:
+                    payload["kind"] = "clarification"
+                    payload["clarification"] = clarification
+                elif any(
+                    is_clarification_interrupt(
+                        item.get("value") if isinstance(item, dict) else item
+                    )
+                    for item in interrupts
+                ):
+                    payload["kind"] = "clarification"
+                else:
+                    payload["kind"] = "hitl"
+                yield sse("interrupt", payload)
             else:
                 incomplete = False
                 async for chunk in _flush_checkpoint_answer_sse(agent, config, streamed_text):
@@ -504,4 +545,4 @@ async def stream_agent_events(
         )
     except Exception as exc:
         logger.exception("agent stream failed")
-        yield sse("error", {"message": str(exc)})
+        yield sse("error", {"message": format_stream_error(exc)})

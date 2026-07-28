@@ -1,0 +1,154 @@
+# StarRocks POS special logic reference
+
+# Scope
+# - Derived from existing StarRocks POS rds_xxx_rtv.sp scripts.
+# - StarRocks scripts are identified by matching rds_xxx_gen.sp files that read tempdb.rds_tmp.
+# - POS scripts are identified by dwd_disty_pub_dw_orders_extend_di or dwd_disty_common_dw_orders_pl_extend_di usage.
+# - Scan result used for this file: 4 scripts; reports: CA 6525, CA 7522, US 17797, US 18529.
+# - Use xx as the region placeholder, matching table list.txt and table relationship.txt.
+
+# 1. Current and history sources are often UNIONed for the same business field
+# Existing StarRocks scripts often read both current order tables and history tables:
+# - ods_xx.ods_cis_corp_order_profile / ods_xx.ods_cis_corp_history_profile
+# - ods_xx.ods_cis_corp_order_profile_rt / ods_xx.ods_cis_corp_history_profile_rt
+# - ods_xx.ods_cis_corp_order_exp_rt / ods_xx.ods_cis_corp_history_exp_rt
+# - ods_xx.ods_cis_corp_serial_nbr_rt / ods_xx.ods_cis_corp_history_serial_nbr_rt
+# - ods_xx.ods_cis_corp_order_eta_code_rt / ods_xx.ods_cis_corp_history_eta_code_rt
+#
+# Rule:
+# - When a requested field may exist before or after shipment, check both order and history sources.
+# - Use UNION when de-duplication is required; use UNION ALL only when duplicate rows are expected and acceptable.
+# - Keep both branches at the same grain before merging.
+
+# 2. Vendor SO can require multi-step fallback logic
+# Report 18529 derives Vendor SO from three sources:
+# - SAPID order profile for the original order_no
+# - SAPID order profile for mso_no
+# - vend_so_no from ETA code tables joined by synnex_po_no to order_no with order_type = 2
+#
+# Final output uses fallback precedence:
+#   COALESCE(order_sapid, mso_sapid, po_vend_so_no)
+#
+# Rule:
+# - For Vendor SO / SAP ID requests, do not rely on one table only.
+# - Search profile rows with profile_type = 'SAPID' and profile_cat = 'ORDR' across both current and history profile tables.
+# - If the order carries mso_no or synnex_po_no, inspect those references as alternate keys.
+
+# 3. SPA/rebate profile logic is tied to expense line numbers
+# Report 17797 gets SPA and rebate details by joining expense rows to profile rows:
+# - SYNPOPRICE profile gives special cost.
+# - REBATE_ADJ profile gives SPA number and SPA reference.
+# - order_expense_line_no joins to profile_no.
+#
+# Rule:
+# - For special cost, SPA, SPA reference, rebate adjustment, or claim-like fields, join profile rows by order_no, order_type, order_line_no and expense/profile line mapping.
+# - Filter profile rows by profile_type and active = 'Y' before joining when possible.
+# - Join SPA header by profile_i to spa_no for SPA description.
+
+# 4. BTL-SALES % uses signed absolute percentage logic
+# Report 17797 calculates BTL-SALES % as:
+#   SIGN(btl_sales) * ABS(IFNULL(btl_sales * 100 / IFNULL(NULLIF(net_sales, 0), 100), 0))
+#
+# Rule:
+# - Preserve the sign of btl_sales while reporting a percentage magnitude.
+# - Avoid divide-by-zero with NULLIF(net_sales, 0).
+# - Do not replace this with a plain btl_sales / net_sales percentage unless the user explicitly requests standard ratio logic.
+
+# 5. Shipment and backorder detail may be combined into one output
+# Reports 6525 and 7522 combine shipped order data with backorder detail:
+# - shipped lines from dw_xx.dwd_disty_pub_dw_orders_extend_di
+# - backorder lines from dw_xx.dwd_disty_brpt_bo_detail_df
+# - backorder branch filters order_type = 8
+#
+# Rule:
+# - When the report asks for order status, open/backorder, ETA, or combined shipped and pending lines, build a normalized temp table first.
+# - Use NULL casts for columns that exist only in one branch so both branches share the same output schema.
+# - Keep date filters aligned by branch; shipped rows may use a date range while BO rows may use date_flag = prior day.
+
+# 6. Unit net price and extended net price may include unit_sum_expense
+# Reports 6525 and 7522 calculate shipped amounts as:
+# - unit_net_price = unit_price + IFNULL(unit_sum_expense, 0)
+# - extend_net_price = ship_qty * (unit_price + IFNULL(unit_sum_expense, 0))
+#
+# Rule:
+# - Use source amount fields when the report asks for standard POS sales values.
+# - Recalculate price with unit_sum_expense only when matching an existing report pattern or when the request asks for expense-inclusive net price.
+# - Be careful not to apply unit_sum_expense to backorder rows unless the source branch has the same field and business meaning.
+
+# 7. Header enrichment may require update-after-create logic
+# Reports 6525 and 7522 first create a wide temp table with placeholder columns, then update header fields:
+# - invoice_date
+# - cust_po_no / ext_ref
+# - ship_to_name and ship_to_addr
+# - ship_method and ship_desc
+# - from_loc_no and from_loc_name
+# - exp_ship_date
+#
+# Rule:
+# - When shipped and BO branches have different available columns, normalize rows first, then enrich from order/header tables.
+# - Prefer current order header first, then history header when both are applicable.
+# - Keep header enrichment many-to-one by order_no and order_type.
+
+# 8. ETA logic has two different meanings
+# Existing scripts use ETA from both order-level and inventory-level sources:
+# - ods_xx.ods_cis_corp_uni_eta_log_rt gives order-level estimated ship date for order_type = 8.
+# - dm_xx.dm_pur_unieta_sku_detail_rt gives SKU/location inventory ETA and ETA code.
+#
+# Rule:
+# - Use order-level ETA to populate or override exp_ship_date for backorders.
+# - Use SKU/location inventory ETA for output columns named ETA and ETA_code.
+# - Aggregate ETA before joining: max(est_ship_date) by order_no, order_type for order ETA; min(eta) by sku_no, loc_no, inv_type/eta_code for inventory ETA.
+# - Filter inventory ETA to inv_type = 1 unless the request specifies another inventory type.
+
+# 9. Inventory availability is calculated from multiple quantity buckets
+# Reports 6525 and 7522 calculate availability from ods_xx.ods_cis_corp_inv_qty_rt:
+#   avail = on_hand_qty - bo_qty - alloc_qty - wip_qty - intran_out
+# and also output on_hand_qty and on_order_qty.
+#
+# Rule:
+# - Filter inventory rows to inv_type in (1, 300) for this pattern.
+# - Aggregate by sku_no and loc_no before joining back to the report.
+# - Join inventory location to the report's from_loc_no, not only to warehouse name.
+
+# 10. Serial and tracking numbers are one-to-many and usually aggregated
+# Reports 6525 and 7522 aggregate:
+# - serial numbers by order_no, order_type, sku_no using GROUP_CONCAT(..., ',')
+# - tracking numbers by order_no, order_type using GROUP_CONCAT(..., ',' or '/')
+#
+# Rule:
+# - For order-line output, aggregate serial and tracking values before the final join.
+# - Use current and history serial sources when both shipped and historical rows may appear.
+# - Delete or filter blank/null tracking numbers before aggregation.
+# - Separator can be report-specific; do not change ',' to '/' unless matching the requested output.
+
+# 11. Long numeric tracking and serial values may need Excel-safe formatting
+# Reports 6525 and 7522 wrap tracking_no and serial_no like:
+#   concat('"','=',ifnull(tracking_no,''),'=','"')
+# or:
+#   ifnull(concat('"','=',tracking_no,'=','"'),'"=="')
+#
+# Rule:
+# - Use Excel-safe wrapping when long numeric identifiers must not be converted to scientific notation.
+# - Apply this only to final output columns, not intermediate join keys.
+# - Preserve blank output behavior from the source report when migrating an existing report.
+
+# 12. Customer/vendor filters in historical scripts are report-specific
+# Existing StarRocks POS samples include hardcoded customer and vendor filters:
+# - cust_no = 657888, 1009095, or cust_no in (1057431, 1240353)
+# - vend_no = 64956 or vend_no in (81051, 83561)
+#
+# Rule:
+# - Treat these as report criteria, not universal POS filters.
+# - Do not copy hardcoded cust_no or vend_no values into a new report unless the user request or source report explicitly requires them.
+# - Keep these filters in the base temp table so downstream enrichment tables stay smaller.
+
+# 13. Date formatting is output- and source-sensitive
+# Existing scripts use both source filters and display formatting:
+# - date_flag filtered with date_format(date_add(current_date(), interval -1 day), '%Y-%m-%d')
+# - output dates formatted as '%m/%d/%Y' or '%Y/%m/%d'
+# - shipped report windows may use current_date() with a 7-day or 7-month lookback.
+#
+# Rule:
+# - Preserve the report's requested display date format separately from filter format.
+# - Do not infer one standard output date format for all StarRocks POS reports.
+# - Use half-open date ranges for rolling windows when the historical report does so: >= start_date and < current_date().

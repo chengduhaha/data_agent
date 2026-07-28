@@ -4,9 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/context/AuthContext";
 import { getUserDisplayName, getUserInitials } from "@/lib/authTypes";
+import { isAdminUser } from "@/lib/roles";
 
 export function UserMenu() {
   const { user, oauthEnabled, logout } = useAuth();
+  const showSettings = isAdminUser(user, oauthEnabled);
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -85,14 +87,16 @@ export function UserMenu() {
             </dl>
           </div>
           <div className="border-t border-ink-100" />
-          <Link
-            href="/settings/account"
-            role="menuitem"
-            className="block px-4 py-2.5 text-sm text-ink-700 transition hover:bg-ink-50"
-            onClick={() => setIsOpen(false)}
-          >
-            Account & settings
-          </Link>
+          {showSettings && (
+            <Link
+              href="/settings/account"
+              role="menuitem"
+              className="block px-4 py-2.5 text-sm text-ink-700 transition hover:bg-ink-50"
+              onClick={() => setIsOpen(false)}
+            >
+              Account & settings
+            </Link>
+          )}
           <button
             type="button"
             className="w-full px-4 py-2.5 text-left text-sm text-ink-700 transition hover:bg-ink-50"

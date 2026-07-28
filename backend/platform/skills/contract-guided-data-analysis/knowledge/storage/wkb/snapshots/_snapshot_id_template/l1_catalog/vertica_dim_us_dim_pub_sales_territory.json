@@ -1,0 +1,225 @@
+{
+  "entity_id": "dim_us.dim_pub_sales_territory",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "b-report-us",
+  "qualified_name": "dim_us.dim_pub_sales_territory",
+  "schema_name": "dim_us",
+  "table_name": "dim_pub_sales_territory",
+  "columns": [
+    {
+      "name": "sales_terr",
+      "type": "int",
+      "semantic_role": "technical",
+      "dimension_reference": "dim_us.dim_pub_sales_territory",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "terr_name",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "region",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "start_date",
+      "type": "timestamp",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "end_date",
+      "type": "timestamp",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "reviewer",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "entry_datetime",
+      "type": "timestamp",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "entry_id",
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "cust_type",
+      "type": "int",
+      "semantic_role": "technical",
+      "dimension_reference": "dim_us.dim_pub_sales_cust_type",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "group_id",
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "primary_id",
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "backup_id1",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "backup_id2",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "backup_id3",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "primary_pcnt",
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "backup_pcnt1",
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "backup_pcnt2",
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "backup_pcnt3",
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "sub_group_id",
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "cred_analyst",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "backup_id4",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "backup_id5",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "backup_id6",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "backup_id7",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "backup_pcnt4",
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "backup_pcnt5",
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "backup_pcnt6",
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "backup_pcnt7",
+      "type": "numeric(20,8)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "house",
+      "type": "varchar(100)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "sub_group_desc",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "group_desc",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "date_flag",
+      "type": "date",
+      "semantic_role": "partition",
+      "dimension_reference": "dim_us.dim_pub_date",
+      "business_definition": "Daily business date partition"
+    }
+  ],
+  "column_count": 33,
+  "partition_keys": [
+    "date_flag"
+  ],
+  "grain": null,
+  "ddl_source": {
+    "repo": "BREPORT-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "C:\\Users\\T154858D.TDSNX\\Desktop\\git_repo_backup\\bigdata_wiki_llm_1\\source\\contracts\\b-report-us\\tables\\dim_pub_sales_territory.md",
+    "commit": "b-report-contract-v2",
+    "fetched_at": "2026-07-16T04:07:39.605179+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_sales_territory.md",
+  "semantic_enriched": true
+}

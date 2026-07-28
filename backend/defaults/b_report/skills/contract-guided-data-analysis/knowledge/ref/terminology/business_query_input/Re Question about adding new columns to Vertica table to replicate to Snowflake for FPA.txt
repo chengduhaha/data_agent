@@ -1,0 +1,731 @@
+From:	Minor, Kirt
+Sent:	Friday, June 19, 2026 12:04 AM
+To:	Patel, Manish (c); He, Dave
+Cc:	Wang, Rick; Zhang, Keven; Liu, Bruce; Hu, Klay; Charaya, Shilpa (c)
+Subject:	Re: Question about adding new columns to Vertica table to replicate to Snowflake for 
+FP&A
+
+Hi Team,
+
+We have found a problem with the data in the dwd_disty_common_sales_detail_di table on 
+Vertica. This table has a column for cpo_id and that was part of this table prior to the new 
+columns we recently added by the backlog that started this email thread. We have found 
+that many orders are missing the cpo_id when there really is a CPO Id available.
+
+Here are some examples and evidence:
+
+/*** These are recent orders that are missing cpo_id values in the target table. ***/
+select cpo_id, sd.* from dw_us.dwd_disty_common_sales_detail_di sd
+where order_type = 1 and order_no in (175290988,
+175290987,
+175290986);
+
+/*** Here are the orders from the main source table ***/
+select int_ref_no as cpo_id, doe.* from dw_us.dwd_disty_pub_dw_orders_extend_di doe
+where order_type = 1 and order_no in (175290988,
+175290987,
+175290986);
+
+/*** Here is a confirmation that the cpo_id from the source table are quotes. ***/
+select * from dw_us.dwd_disty_sales_open_cpo_header_extend ddsoche
+where cpo_id in (161572307,
+160375324,
+162601818);
+
+Can someone take a look at the logic used to generate the 
+dwd_disty_common_sales_detail_di table to see why the cpo_id isn't always included 
+when there is valid data available?
+
+Thanks,
+Kirt
+ Kirt Minor 
+Associate VP, Information Systems 
+ 
+ 
+ 
+TD SYNNEX
+Robert T. Huang Center
+44201 Nobel Dr.
+Fremont, CA 94536
+(510) 668-3547   
+Kirt.Minor@tdsynnex.com 
+
+ 
+From: Minor, Kirt <Kirt.Minor@tdsynnex.com> 
+Sent: Thursday, May 7, 2026 3:48 PM 
+To: Patel, Manish (c) <Manish.Patel@tdsynnex.com> 
+Cc: He, Dave <Dave.He@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com>; Charaya, Shilpa (c) 
+<Shilpa.Charaya@tdsynnex.com> 
+Subject: Re: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A 
+ 
+Thanks Manish.
+I have reviewed the data for US and WCLA and it all looks fine now. I have notified the FP&A 
+team that requested this.
+
+Kirt
+
+ Kirt Minor 
+Associate VP, Information Systems 
+ 
+ 
+ 
+TD SYNNEX
+Robert T. Huang Center
+44201 Nobel Dr.
+Fremont, CA 94536
+(510) 668-3547   
+Kirt.Minor@tdsynnex.com 
+
+ 
+From: Patel, Manish (c) <Manish.Patel@tdsynnex.com> 
+Sent: Wednesday, May 6, 2026 7:44 AM 
+To: Minor, Kirt <Kirt.Minor@tdsynnex.com> 
+Cc: He, Dave <Dave.He@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com>; Charaya, Shilpa (c) 
+<Shilpa.Charaya@tdsynnex.com> 
+Subject: RE: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A 
+ 
+Hi @Minor, Kirt,
+ 
+Historical data load for the newly added columns for the respective tables is completed 
+now for all the regions.
+ 
+Please check and let us know if you have any concerns.
+ 
+Regards,
+Manish Patel
+Data Engineer, Bigdata Platform Team
+ 
+ 
+TD SYNNEX
+IND Bangalore – Divyasree
+Bangalore, Karnataka
+Manish.Patel@tdsynnex.com
+ 
+From: Patel, Manish (c)  
+Sent: Friday, April 24, 2026 4:13 PM 
+To: Minor, Kirt <Kirt.Minor@tdsynnex.com> 
+Cc: He, Dave <Dave.He@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com>; Charaya, Shilpa (c) 
+<Shilpa.Charaya@tdsynnex.com> 
+Subject: RE: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A
+ 
+Hi @Minor, Kirt,
+The request to add the new column to the respective table in Hive/Vertica/Snowflake has 
+been successfully deployed in PROD.
+ 
+In addition, we have completed the historical data load for the new column from 2023-12-
+01 up to the current date for all disty region tables, except for the last six months of data 
+for the US and WCLA regions. Due to the current blackout period, the remaining historical 
+load for these two regions is scheduled to be completed on 05/05/2026.
+ 
+Please review and let us know if you have any concerns.
+ 
+Regards,
+Manish Patel
+Data Engineer, Bigdata Platform Team
+ 
+ 
+TD SYNNEX
+IND Bangalore – Divyasree
+Bangalore, Karnataka
+Manish.Patel@tdsynnex.com
+ 
+From: Minor, Kirt <Kirt.Minor@tdsynnex.com>  
+Sent: Monday, April 20, 2026 7:21 PM 
+To: Patel, Manish (c) <Manish.Patel@tdsynnex.com> 
+Cc: He, Dave <Dave.He@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Subject: Re: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A
+ 
+Hi Manish,
+ 
+No concerns. Two thumbs up. We look forward to the results.
+ 
+Thanks,
+Kirt
+ 
+ Kirt Minor 
+Associate VP, Information Systems 
+ 
+ 
+ 
+TD SYNNEX
+Robert T. Huang Center
+44201 Nobel Dr.
+Fremont, CA 94536
+(510) 668-3547   
+Kirt.Minor@tdsynnex.com 
+ 
+ 
+From: Patel, Manish (c) <Manish.Patel@tdsynnex.com> 
+Sent: Monday, April 20, 2026 3:27 AM 
+To: Minor, Kirt <Kirt.Minor@tdsynnex.com> 
+Cc: He, Dave <Dave.He@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Subject: RE: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A 
+ 
+Hi @Minor, Kirt,
+ 
+The request to add the new column to the respective table has been approved by IT Exec 
+and is ready for production deployment. 
+ 
+We have planned to deploy this change to PROD in the next deployment window on 22/04 
+(Wednesday). Please let us know if you have any concerns.
+Regards,
+Manish Patel
+Data Engineer, Bigdata Platform Team
+ 
+ 
+TD SYNNEX
+IND Bangalore – Divyasree
+Bangalore, Karnataka
+Manish.Patel@tdsynnex.com
+ 
+From: Minor, Kirt <Kirt.Minor@tdsynnex.com>  
+Sent: Sunday, April 19, 2026 10:18 AM 
+To: He, Dave <Dave.He@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Cc: Patel, Manish (c) <Manish.Patel@tdsynnex.com> 
+Subject: Re: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A
+ 
+Hi Dave,
+ 
+I have created the following backlog to load history data for the new columns. See backlog 
+https://jira.synnex.com/browse/DRA-122
+ 
+Thanks,
+Kirt
+ 
+ Kirt Minor 
+Associate VP, Information Systems 
+ 
+ 
+ 
+TD SYNNEX
+Robert T. Huang Center
+44201 Nobel Dr.
+Fremont, CA 94536
+(510) 668-3547   
+Kirt.Minor@tdsynnex.com 
+ 
+ 
+From: He, Dave <Dave.He@tdsynnex.com> 
+Sent: Friday, April 17, 2026 8:38 AM 
+To: Minor, Kirt <Kirt.Minor@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Cc: Patel, Manish (c) <Manish.Patel@tdsynnex.com> 
+Subject: RE: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A 
+ 
+@Minor, Kirt,
+Currently, The NDP-5516 already get the IIC Reviewed, will get the IT Exec Reviewed and deploy to 
+PROD next week. 
+[NDP-5516] Add TGM, OPL, and OPL+ columns to common_sales_detail table on Vertica and 
+Snowflake. - IT JIRA
+ 
+Also, could you please help create another backlog for historic data reloading? Budget is 20 hours. 
+Thank you.
+ 
+Best Regards,
+Dave He
+ 
+From: He, Dave  
+Sent: Thursday, April 16, 2026 2:06 PM 
+To: Minor, Kirt <Kirt.Minor@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Cc: Patel, Manish (c) <Manish.Patel@tdsynnex.com> 
+Subject: RE: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A
+ 
+Thanks, Kirt, we will reload the oplgm_amt, tgm_amt, and oplgm_plus_amt  from 2023-12-01. 
+Thank you.
+ 
+ 
+Dave He
+ 
+From: Minor, Kirt <Kirt.Minor@tdsynnex.com>  
+Sent: Thursday, April 16, 2026 12:14 
+To: He, Dave <Dave.He@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Cc: Patel, Manish (c) <Manish.Patel@tdsynnex.com> 
+Subject: Re: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A
+ 
+Hi Dave,
+ 
+You are right. I misread the email from Harrison Wang. The data has been set since 2023-
+12-01 for all four disty CIS instances.
+ 
+Thanks,
+Kirt
+ 
+ Kirt Minor 
+Associate VP, Information Systems 
+ 
+ 
+ 
+TD SYNNEX
+Robert T. Huang Center
+44201 Nobel Dr.
+Fremont, CA 94536
+(510) 668-3547   
+Kirt.Minor@tdsynnex.com 
+ 
+ 
+From: He, Dave <Dave.He@tdsynnex.com> 
+Sent: Wednesday, April 15, 2026 8:47 PM 
+To: Minor, Kirt <Kirt.Minor@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Cc: Patel, Manish (c) <Manish.Patel@tdsynnex.com> 
+Subject: RE: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A 
+ 
+Thanks, Kirt, in last time ngm_amt updating, we only reload from 2023-12-01 to current, not 2023-01-
+01. Thank you.
+ 
+Best Regards,
+Dave He
+From: Minor, Kirt <Kirt.Minor@tdsynnex.com>  
+Sent: Thursday, April 16, 2026 7:16 
+To: He, Dave <Dave.He@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Cc: Patel, Manish (c) <Manish.Patel@tdsynnex.com> 
+Subject: Re: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A
+ 
+Hi Dave,
+ 
+Yes, In the last update to this table, we just refresh historical data from 1/1/2023 to 
+current. That is sufficient time. You can leave older records blank.
+ 
+Kirt
+ 
+ Kirt Minor 
+Associate VP, Information Systems 
+ 
+ 
+ 
+TD SYNNEX
+Robert T. Huang Center
+44201 Nobel Dr.
+Fremont, CA 94536
+(510) 668-3547   
+Kirt.Minor@tdsynnex.com 
+ 
+ 
+From: He, Dave <Dave.He@tdsynnex.com> 
+Sent: Wednesday, April 15, 2026 9:06 AM 
+To: Minor, Kirt <Kirt.Minor@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Cc: Patel, Manish (c) <Manish.Patel@tdsynnex.com> 
+Subject: RE: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A 
+ 
+Thanks, Kirt. Could you please advise whether a historical data reload is required for the new 
+columns? Thank you. 
+ 
+Best Regards,
+Dave He
+ 
+ 
+From: Minor, Kirt <Kirt.Minor@tdsynnex.com>  
+Sent: Wednesday, April 15, 2026 3:13 
+To: He, Dave <Dave.He@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Subject: Re: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A
+ 
+Qtr plan approved.
+ 
+Kirt
+ 
+ Kirt Minor 
+Associate VP, Information Systems 
+ 
+ 
+ 
+TD SYNNEX
+Robert T. Huang Center
+44201 Nobel Dr.
+Fremont, CA 94536
+(510) 668-3547   
+Kirt.Minor@tdsynnex.com 
+ 
+ 
+From: He, Dave <Dave.He@tdsynnex.com> 
+Sent: Tuesday, April 14, 2026 9:48 AM 
+To: Minor, Kirt <Kirt.Minor@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Subject: RE: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A 
+ 
+Thanks for your backlog, @Minor, Kirt. 
+ 
+ 
+@Furtado, Ann, @Minor, Kirt,
+Coud you please help do the qtr plan review for this backlog? Thank you.
+[DRA-121] Add TGM, OPL, and OPL+ columns to common_sales_detail table on Vertica and Snowflake. - 
+IT JIRA
+ 
+ 
+Best Regards,
+Dave He
+ 
+From: Minor, Kirt <Kirt.Minor@tdsynnex.com>  
+Sent: Tuesday, April 14, 2026 12:04 
+To: Wang, Rick <Rick.Wang@tdsynnex.com>; He, Dave <Dave.He@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Subject: Re: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A
+ 
+I have created a copy of the backlog as https://jira.synnex.com/browse/DRA-121
+ 
+Thanks,
+Kirt
+ 
+ Kirt Minor 
+Associate VP, Information Systems 
+ 
+ 
+ 
+TD SYNNEX
+Robert T. Huang Center
+44201 Nobel Dr.
+Fremont, CA 94536
+(510) 668-3547   
+Kirt.Minor@tdsynnex.com 
+ 
+ 
+From: Wang, Rick <Rick.Wang@tdsynnex.com> 
+Sent: Monday, April 13, 2026 7:43 PM 
+To: He, Dave <Dave.He@tdsynnex.com>; Minor, Kirt <Kirt.Minor@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Subject: RE: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A 
+ 
+I think Data / Reporting Analytics is fine . 
+ 
+ 
+Rick Wang
+Senior Manager, BigData Platform
+ 
+Direct: 86-10-82012588, ext 782094 
+Address: B-6 China International Science and Technology Convention Center,
+No.12 Yumin Rd., Chaoyang District, Beijing 100029, China
+ 
+From: He, Dave <Dave.He@tdsynnex.com>  
+Sent: Tuesday, April 14, 2026 10:28 AM 
+To: Minor, Kirt <Kirt.Minor@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Subject: RE: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A
+ 
+@Wang, Rick,
+Could you please advise if the backlog can be created in Data / Reporting Analytics? Or B report and 
+other project? Thank you.
+ 
+Best Regards,
+Dave He
+From: Minor, Kirt <Kirt.Minor@tdsynnex.com>  
+Sent: Tuesday, April 14, 2026 9:08 
+To: He, Dave <Dave.He@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Subject: Re: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A
+ 
+Hi Dave,
+ 
+This doesn't need to be on PBIR project. Do you have another project I can use? I can 
+create it elsewhere. I have never used PBIR, but it sounded like the best spot. I did not want 
+to place it in PRM or PACE.
+ 
+Kirt
+ 
+ Kirt Minor 
+Associate VP, Information Systems 
+ 
+ 
+ 
+TD SYNNEX
+Robert T. Huang Center
+44201 Nobel Dr.
+Fremont, CA 94536
+(510) 668-3547   
+Kirt.Minor@tdsynnex.com 
+ 
+ 
+From: He, Dave <Dave.He@tdsynnex.com> 
+Sent: Monday, April 13, 2026 6:05 PM 
+To: Wang, Rick <Rick.Wang@tdsynnex.com>; Minor, Kirt <Kirt.Minor@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Subject: RE: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A 
+ 
+@Minor, Kirt,
+ 
+We cannot access the backlog  https://jira.synnex.com/browse/PBIR-102. Also, could you 
+please let us know whether a historical data reload is required as below email? Thank you. 
+ 
+Best Regards,
+Dave He
+ 
+From: Wang, Rick <Rick.Wang@tdsynnex.com>  
+Sent: Friday, April 10, 2026 17:20 
+To: He, Dave <Dave.He@tdsynnex.com>; Minor, Kirt <Kirt.Minor@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Subject: RE: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A
+ 
+I don’t have access to 
+either.
+ 
+ 
+ 
+Rick Wang
+Senior Manager, BigData Platform
+ 
+Direct: 86-10-82012588, ext 782094 
+Address: B-6 China International Science and Technology Convention Center,
+No.12 Yumin Rd., Chaoyang District, Beijing 100029, China
+ 
+From: He, Dave <Dave.He@tdsynnex.com>  
+Sent: Friday, April 10, 2026 4:45 PM 
+To: Minor, Kirt <Kirt.Minor@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven 
+<Keven.Zhang@tdsynnex.com>; Liu, Bruce <Bruce.Liu@tdsynnex.com>; Hu, Klay 
+<Klay.Hu@tdsynnex.com>; Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Subject: RE: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A
+ 
+@Minor, Kirt,
+ 
+Thank you for your clarification.
+ 
+We can add oplgm_amt, tgm_amt, and oplgm_plus_amt to 
+dw_xx.dwd_disty_common_sales_detail_di, which is derived from 
+dw_xx.dwd_disty_pub_dw_orders_extend_di.
+ 
+At the moment, dw_xx.dwd_disty_pub_dw_orders_extend_di does not yet contain tgm_amt or 
+oplgm_plus_amt. To support this request, we plan to first add these two columns to 
+dw_xx.dwd_disty_pub_dw_orders_extend_di from 
+dw_xx.dwd_disty_common_dw_orders_pl_extend_di, and then propagate the updates to 
+dw_xx.dwd_disty_common_sales_detail_di and synchronize the data to Vertica and Snowflake.
+ 
+The new columns will be added for Disty US, CA, WCLA, and BR.
+ 
+Could you please let us know whether a historical data reload is required? If so, we can reload the 
+data for both dw_us.dwd_disty_common_sales_detail_di and 
+dw_us.dwd_disty_pub_dw_orders_extend_di. Also, could you please help create a separate 
+backlog for the historical data reload and advise how far back the data needs to be refreshed?
+ 
+Additionally, if there are any other columns that may need to be included, please let us know. 
+Updating logic, deploying processing, and reloading historical data can take some time, and 
+grouping these changes into a single release would help minimize overall effort and turnaround 
+time.
+ 
+Regarding the ETA you mentioned for Thursday night, 4/16, the development timeline is currently 
+fairly tight. It seems a bit urgent — may we ask if there is any particular reason driving this timeline? 
+We will make our best effort to complete adding the new columns to Vertica and Snowflake 
+within one week, with an estimated completion by 2026-04-16 night or 2026-04-17 morning. If a 
+historical data reload is needed, we estimate that an additional week would be required, with 
+completion by 2026-04-24.
+ 
+Please let us know if you have any questions or if we can clarify anything further.
+ 
+ 
+By the way, I cannot access the backlog  https://jira.synnex.com/browse/PBIR-102, not sure if 
+@Wang, Rick can access it. Thank you.
+ 
+ 
+ 
+ 
+Best Regards,
+Dave He
+ 
+From: Minor, Kirt <Kirt.Minor@tdsynnex.com>  
+Sent: Friday, April 10, 2026 2:31 PM 
+To: Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven <Keven.Zhang@tdsynnex.com>; Liu, Bruce 
+<Bruce.Liu@tdsynnex.com>; Hu, Klay <Klay.Hu@tdsynnex.com>; He, Dave <Dave.He@tdsynnex.com>; 
+Furtado, Ann <Ann.Furtado@tdsynnex.com> 
+Subject: Re: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A
+ 
+Rick,
+ 
+I have submitted a backlog for this request as https://jira.synnex.com/browse/PBIR-102
+ 
+I wasn't sure which project to use for this, so I used the PBI Report project. I normally use 
+PACEA or PRM/CRM projects for backlogs, but this request fit neither of them.
+ 
+@Furtado, Ann, I set you as the IIC on this one. It was requested by Global Finance, Matt 
+Shifrin.
+ 
+Thanks,
+Kirt
+ Kirt Minor 
+Associate VP, Information Systems 
+ 
+ 
+ 
+TD SYNNEX
+Robert T. Huang Center
+44201 Nobel Dr.
+Fremont, CA 94536
+(510) 668-3547   
+Kirt.Minor@tdsynnex.com 
+ 
+ 
+From: Minor, Kirt <Kirt.Minor@tdsynnex.com> 
+Sent: Thursday, April 9, 2026 6:28 PM 
+To: Wang, Rick <Rick.Wang@tdsynnex.com>; Zhang, Keven <Keven.Zhang@tdsynnex.com>; Liu, Bruce 
+<Bruce.Liu@tdsynnex.com>; Hu, Klay <Klay.Hu@tdsynnex.com>; He, Dave <Dave.He@tdsynnex.com> 
+Subject: Re: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A 
+ 
+Rick,
+ 
+This request isn't from Jeff Newman. It's coming from another group in the finance 
+department under David Jordan. Most directly it is coming from Matt Shifrin   SVP, 
+Corporate Finance & Treasurer. They are requesting US and CA now, but expect this 
+request to someday repeat for BR and WCLA. Don't worry about LATAM right now, however, 
+or anytime in the next few months.
+ 
+Thanks,
+Kirt
+ 
+ Kirt Minor 
+Associate VP, Information Systems 
+ 
+ 
+ 
+TD SYNNEX
+Robert T. Huang Center
+44201 Nobel Dr.
+Fremont, CA 94536
+(510) 668-3547   
+Kirt.Minor@tdsynnex.com 
+ 
+ 
+From: Wang, Rick <Rick.Wang@tdsynnex.com> 
+Sent: Thursday, April 9, 2026 6:10 PM 
+To: Zhang, Keven <Keven.Zhang@tdsynnex.com>; Minor, Kirt <Kirt.Minor@tdsynnex.com>; Liu, Bruce 
+<Bruce.Liu@tdsynnex.com>; Hu, Klay <Klay.Hu@tdsynnex.com>; He, Dave <Dave.He@tdsynnex.com> 
+Subject: RE: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A 
+ 
+@Hu, Klay , @He, Dave
+Can you please review below request , and let’s talk detail later today . 
+ 
+@Minor, Kirt
+Is this request from Jeff Newman’s team ?
+ 
+ 
+Rick Wang
+Senior Manager, BigData Platform
+ 
+Direct: 86-10-82012588, ext 782094 
+Address: B-6 China International Science and Technology Convention Center,
+No.12 Yumin Rd., Chaoyang District, Beijing 100029, China
+ 
+From: Zhang, Keven <Keven.Zhang@tdsynnex.com>  
+Sent: Friday, April 10, 2026 8:34 AM 
+To: Minor, Kirt <Kirt.Minor@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Liu, Bruce 
+<Bruce.Liu@tdsynnex.com> 
+Subject: Re: Question about adding new columns to Vertica table to replicate to Snowflake for FP&A
+ 
+The snowflake tables are pushed from the Hive view(instead of Vertica) on top of 
+dwd_disty_pub_dw_orders_extend_di, etc., not sure if we could change view logic to add TGM 
+quickly.
+ 
+https://datacompass.synnex.org/catalog/assetDetail?tab=lineage&guid=2fae0b7a-8ff2-4707-
+bd10-f41d557ba68e
+ 
+I think we can submit only one backlog for the changes, @Wang, Rick, pls advise.
+ 
+Keven Zhang
+Senior Manager, Data Governance ,TRDC
+Data Catalog(Data Compass)
+Big Data Team SharePoint Site 
+ 
+ 
+ 
+ 
+ 
+From: Minor, Kirt <Kirt.Minor@tdsynnex.com> 
+Sent: Thursday, April 9, 2026 11:05 PM 
+To: Zhang, Keven <Keven.Zhang@tdsynnex.com>; Wang, Rick <Rick.Wang@tdsynnex.com>; Liu, 
+Bruce <Bruce.Liu@tdsynnex.com> 
+Subject: Question about adding new columns to Vertica table to replicate to Snowflake for 
+FP&A 
+ 
+Hey guys,
+ 
+You may recall that at the end of February there was a rush job to add a column and fix 
+some existing columns in a sales table on Vertica and the update the replication to 
+Snowflake. The table was dw_us.dwd_disty_common_sales_detail_di and we did it in CA 
+as well. This was to support Marketing and PACE work on Snowflake.
+ 
+FP&A also uses this table on Snowflake and wants another column added. they are 
+anxious to get it and have contacted Bo about this. Bo asked me to add @Liu, Bruce into 
+this discussion. They need this change completed by next Thursday night, 4/16.
+ 
+I'll explain it to you here, but my question is if this is just one backlog to make this happen 
+or if you need more than one backlog.
+ 
+FP&A is asking for the TGM amount, and I'm going to also ask to include the OPL amt and 
+OPL Plus Amt while we are doing this so that we don't run into this issue again in a couple 
+of months. I created some simple SQL to show how to add three new columns to the 
+existing table. It's a model that can be used however it helps.
+ 
+/*** Add TGM, OPL, and OPL+ to common_sales_detail table to replicate to Snowflake. 
+***/
+with get_tgm as (select order_type, order_no, ifnull(kit_line_no, order_line_no) as 
+order_line_no, sum(oplgm_amt) as opl_amt, sum(ngm_amt) as ngm_amt, sum(net_sales) 
+as net_sales,
+sum(tgm_amt) as tgm_amt, sum(oplgm_plus_amt) as opl_plus_amt
+from dw_us.dwd_disty_common_dw_orders_pl_extend_di ddcdoped
+where order_type = 1
+and order_no = 168769226
+group by order_type, order_no, ifnull(kit_line_no, order_line_no)
+)
+/*---*/
+/*---*/
+select sdd.*, gt.tgm_amt, gt.opl_amt, gt.opl_plus_amt
+from dw_us.dwd_disty_common_sales_detail_di sdd
+inner join get_tgm gt
+on sdd.order_type = gt.order_type
+and sdd.order_no = gt.order_no
+and sdd.order_line_no = gt.order_line_no
+order by sdd.order_line_no;
+ 
+ 
+ 
+ 
+So you need to:
+1.	change the table structure on Vertica and Snowflake, 
+2.	Add the logic shown above to summarize the three columns from the kit 
+components to the top kit SKU and load into the new columns of the table.
+3.	replicate dwd_disty_common_sales_detail_di from US and CA to Snowflake.
+ 
+Please advise if all of this can be submitted on one backlog or how to split this into multiple 
+backlogs. I'll submit ASAP when you let me know.
+ 
+Thanks,
+Kirt
+ 
+ 
+ Kirt Minor 
+Associate VP, Information Systems 
+ 
+ 
+ 
+TD SYNNEX
+Robert T. Huang Center
+44201 Nobel Dr.
+Fremont, CA 94536
+(510) 668-3547   
+Kirt.Minor@tdsynnex.com 
+ 

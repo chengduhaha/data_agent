@@ -1,0 +1,93 @@
+# Vertica RMA special logic reference
+#
+# Scope
+# - Derived from 3 existing Vertica RMA rds_xxx_rtv.sp scripts.
+# - Vertica scripts are identified by matching rds_xxx_gen.sp files that contain rdsetl.rds_tmp.
+# - RMA scripts are identified by SELECT/FROM usage of dw_xx.dwd_disty_cs_rma_info.
+# - Use xx as the region placeholder, matching table list.txt and table relationship.txt.
+# - The rules below focus on uncommon, non-default, but reusable RMA patterns. Do not apply hardcoded report filters unless the request or source report requires them.
+
+
+1. Vertica RMA reports use `rdsetl.rds_tmp` and `rdsetl.rds_tmp_body` as final output objects. Use `CREATE LOCAL TEMPORARY TABLE ... ON COMMIT PRESERVE ROWS AS` for intermediate staging tables, then recreate `rdsetl.rds_tmp` and the matching body/count table.
+
+2. Use `dw_xx.dwd_disty_cs_rma_info` as the main source only when the requested report is about RMA authorization, receipt, status, original SO linkage, RMA tracking, or RMA line attributes. Do not treat every report that mentions RMA as an RMA-base report if the RMA table is only used for a lookup or filter.
+
+3. RMA detection in historical Vertica logic should be based on `SELECT ... FROM dw_xx.dwd_disty_cs_rma_info`. Ignore update-only references when deciding whether a report belongs to RMA.
+
+4. RMA line output can use either RMA identifiers or source order identifiers depending on the question. Existing RMA fields include:
+   - `rma_no`, `rma_line_no`
+   - `part_no` or `sku_no`
+   - `original_so_no`, `original_so_line_no`, `original_so_cpo_no`
+   - `auth_qty`, `rec_qty`, `so_price`, `price_adj`
+   Preserve the distinction between RMA number and original SO number when tracing returns back to sales orders.
+
+5. Do not apply universal RMA filters without a business reason. Existing reports use highly scenario-specific filters such as:
+   - `rma_status = 'Received'`
+   - `rma_type = 'A'`
+   - `delete_id is null`
+   - `vend_segment in ('GFS', 'SHF')`
+   - hardcoded SKU lists
+   Use these only when the request matches the historical scenario.
+
+6. GFS / Prophet SITETRAN reporting is not a standard RMA line extract. It builds inventory transaction history for defective returns and repairs with output grain:
+   - material / SKU
+   - region code
+   - site code
+   - transaction code
+   - month
+   - quantity
+   Use this pattern only when the report asks for site transaction, Prophet, defective inventory movement, repair yield, or defective-to-repair history.
+
+7. GFS site code logic is special and should be staged before transaction calculations. Existing logic builds a site table from `dim_xx.dim_pub_location_info` joined to `dim_xx.dim_gfs_location_info`, filters active GFS locations, and derives `Region_Code` using server and company:
+   - `server_ip = 'CSL'` maps to DC
+   - other in-scope field locations map to FLD
+   - `company_no = 2203` maps to US, otherwise CA for this source pattern
+   Do not reuse this label logic for ordinary RMA extracts.
+
+8. Some repair-center locations are force-added to the site list even if they do not come from the active GFS site join. Historical logic explicitly adds PRISM / 8WIP style repair locations such as `loc_no in (5079, 3301)`. Treat these as report-specific repair-center exceptions, not general location filters.
+
+9. RMA CAP returns can represent defective return movement. Existing logic uses RMA rows with:
+   - `vend_segment = 'GFS'`
+   - `rma_status = 'Received'`
+   - `rma_type = 'A'`
+   - `delete_id is null`
+   - product vendor filter from `dim_xx.dim_pub_part_info`
+   - location constrained to CSL
+   This produces transaction code `DEF_RETURN`. Preserve all source filters when recreating this Prophet/GFS return movement.
+
+10. Defective return movement can also come from material transaction detail, not only the RMA table. Existing logic uses `dw_xx.dwd_gfs_pur_mt_detail` for SP07 field returns with `order_type = 4`, `gfs_order_type in ('SP07')`, and `to_loc_type in ('CSL', 'FSL')`. Combine these with the RMA-derived CAP returns only when the report asks for total defective return transaction history.
+
+11. Repair yield logic links material transactions through order profile data. Historical logic joins `dw_xx.dwd_gfs_pur_mt_detail` to `dw_xx.dwd_pub_common_order_profile_lightweight` by `order_no` and `order_type`, then filters `profile_type = 'SF_ORD_NO'` and `active = 'Y'`. The profile value is cast to an integer order number. Use this only for repair workflow linkage, not for generic RMA order enrichment.
+
+12. Defective-to-repair logic self-links material transactions through the profile-derived source order. Existing logic matches:
+   - profile-derived order number to `dwd_gfs_pur_mt_detail.order_no`
+   - same `order_type`
+   - same `sku_no`
+   It then shifts the defective-to-repair transaction date to the corresponding repair return date. Preserve this date-shift behavior when reproducing the Prophet SITETRAN repair movement.
+
+13. Some repair logic intentionally excludes CA because the required profile linkage does not exist. Existing comments keep only `company_no in (2203)` and location 5079 for parts of repair yield / defective-to-repair logic. Do not generalize these steps to all countries unless metadata confirms the same profile relationship exists.
+
+14. Inventory type filters are part of repair semantics. Existing repair logic uses combinations such as `from_inv_type = 2`, `to_inv_type = 1`, and defective movement filters. Do not remove these as cosmetic filters; they define whether the transaction is defective inventory, good inventory, or repair yield.
+
+15. RMA freight tracking logic can require fuzzy matching rather than an equality join. Existing logic pulls distinct `rma_track_no` from RMA, creates `track_no_like = substr(track_no, 2)` from freight tracking, then joins with:
+   - `rma_track_no like '%' || track_no_like || '%'`
+   Use this only for carrier tracking reconciliation, and be aware it can be many-to-many if tracking strings are not unique.
+
+16. Weekly freight tracking snapshots use a report-week offset. Existing logic filters `dw_xx.dwd_disty_ap_freight_none_order_view` with `report_week = current_date() - 8`. Treat this as a weekly snapshot convention from the source report, not a general RMA date filter.
+
+17. Shipment-status tabs can accompany an RMA report without joining directly to RMA. Existing logic builds one output sheet from RMA rows and a second sheet from open order detail joined to order header for operational dates and CPO reference. Keep the tabs independent unless a requested report asks to join them at a shared grain.
+
+18. Multi-sheet RMA output uses multiple RDS temp tables and sheet config. Existing logic writes:
+   - `rdsetl.rds_tmp` for the RMA sheet
+   - `rdsetl.rds_tmp_2` for the shipment status sheet
+   - multiple rows in `rdsetl.rds_tmp_body` with flags 1 and 2
+   - `rdsetl.rds_tmp_sheet_config` with sheet names such as `RMA` and `Shipment Status`
+   Use this only when the requested deliverable needs multiple workbook tabs.
+
+19. Date formatting is separate from filter logic. Existing RMA reports output dates as `to_char(..., 'mm/dd/yyyy')` for user-facing RMA/shipment fields and `TO_CHAR(DATE_TRUNC('month', date_col), 'YYYYMMDD')` for Prophet monthly transaction feeds. Preserve the required output format, but filter on date/timestamp columns before formatting.
+
+20. Product/vendor filters in scanned RMA reports are highly specific, including vendor numbers and explicit SKU lists. Keep these filters in the earliest staging table when reproducing a known report, but do not copy them into new RMA SQL unless the user request names the same product/vendor population.
+
+21. RMA reports may use regional schemas such as `dw_gfs`, `dim_gfs`, or `dim_wcla`. Normalize metadata to `dw_xx` and `dim_xx`, but keep concrete region schemas in generated SQL when reproducing a specific regional report.
+
+22. Use temporary tables to isolate each unusual RMA step. For non-trivial RMA logic, stage site lists, RMA base rows, material transaction movements, profile-linked repair rows, and final output separately. This avoids mixing RMA-line grain with material-transaction or freight-tracking grain.

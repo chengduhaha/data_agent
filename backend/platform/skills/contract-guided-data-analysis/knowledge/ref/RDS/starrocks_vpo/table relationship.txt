@@ -1,0 +1,138 @@
+# StarRocks VPO table relationships
+#
+# Country schemas are normalized with xx in this file.
+#
+# Scope
+#   Generated from StarRocks VPO rds_xxx_rtv.sp scripts identified by matching
+#   StarRocks *_gen.sp files that contain tempdb.rds_tmp.
+#   VPO scripts are identified by SELECT/FROM usage of order/header/detail sources
+#   with order_type = 2 or order_type in (2,87).
+#
+# Common grain
+#   VPO/order header grain: order_no, order_type
+#   VPO/order line grain: order_no, order_type, order_line_no
+#   PO/SKU grain: order_no, order_type, order_line_no, sku_no
+#   Product grain: sku_no
+#   Vendor grain: vend_no
+
+
+# Core VPO / Order Type 2 Relationships
+
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_detail_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_header_rt should filter order_type = 2 for current VPO/PO rows unless the report explicitly uses order_type in (2,87).
+ods_xx.ods_cis_corp_history_header_rt should filter order_type = 2 for historical VPO/PO rows unless the report explicitly uses order_type in (2,87).
+ods_xx.ods_cis_corp_order_header_rt should filter delete_date is null for active current PO headers.
+ods_xx.ods_cis_corp_order_detail_rt should filter delete_date is null and order_qty > ifnull(rec_qty,0) for open PO lines when open quantity is required.
+ods_xx.ods_cis_corp_history_detail_rt should filter delete_date is null and order_qty > ifnull(rec_qty,0) for historical open PO line logic when current/history branches are unioned.
+Open quantity is usually calculated as order_qty - ifnull(rec_qty,0).
+
+ods_xx.ods_cis_corp_order_detail_rt (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_history_detail_rt (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+ods_xx.ods_cis_corp_order_detail_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+ods_xx.ods_cis_corp_history_detail_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+ods_xx.ods_cis_corp_order_detail (many to one) ods_xx.ods_cis_corp_part_master by using join columns sku_no when non-RT regional sources are used.
+ods_xx.ods_cis_corp_history_detail (many to one) ods_xx.ods_cis_corp_part_master by using join columns sku_no when non-RT regional sources are used.
+
+
+# Current and History Union Patterns
+
+ods_xx.ods_cis_corp_order_header_rt and ods_xx.ods_cis_corp_history_header_rt are commonly unioned when the report must cover both current and historical VPO rows.
+ods_xx.ods_cis_corp_order_detail_rt and ods_xx.ods_cis_corp_history_detail_rt are commonly unioned at aligned line grain: order_no, order_type, order_line_no, sku_no.
+When current/history branches are unioned, align output columns with explicit null placeholders and keep branch-specific filters in each branch.
+For regional non-RT scripts, ods_xx.ods_cis_corp_order_detail and ods_xx.ods_cis_corp_history_detail may be unioned with matching ETA/detail sources.
+
+
+# CPO, MSO, VPO, SSO, Contract, and OT125 Chain
+
+ods_xx.ods_cis_corp_cpo_header_rt (one to many) ods_xx.ods_cis_corp_cpo_detail_rt by using join columns cpo_id
+ods_xx.ods_cis_corp_history_cpo_header_rt (one to many) ods_xx.ods_cis_corp_history_cpo_detail_rt by using join columns cpo_id
+ods_xx.ods_cis_corp_cpo_detail_rt (many to one) dim_xx.dim_pub_part_info by using join columns cpo_sku_no to sku_no
+ods_xx.ods_cis_corp_history_cpo_detail_rt (many to one) dim_xx.dim_pub_part_info by using join columns cpo_sku_no to sku_no
+
+ods_xx.ods_cis_corp_order_detail_rt (many to one) ods_xx.ods_cis_corp_cpo_detail_rt by using join columns int_ref_no to cpo_id and int_ref_line_no to cpo_line_seq when order_type = 1 rows are MSO rows created from CPO.
+ods_xx.ods_cis_corp_history_detail_rt (many to one) ods_xx.ods_cis_corp_history_cpo_detail_rt by using join columns int_ref_no to cpo_id and int_ref_line_no to cpo_line_seq when historical order_type = 1 rows are CPO-backed.
+ods_xx.ods_cis_corp_order_detail_rt can self-link MSO to VPO by VPO order_type = 2, int_ref_type = 1, int_ref_no = MSO order_no, and int_ref_line_no = MSO order_line_no.
+ods_xx.ods_cis_corp_history_detail_rt can self-link historical MSO to VPO by VPO order_type = 2, int_ref_type = 1, int_ref_no = MSO order_no, and int_ref_line_no = MSO order_line_no.
+ods_xx.ods_cis_corp_order_detail_rt can self-link VPO to SSO by SSO order_type = 1, int_ref_type = 2, int_ref_no = VPO order_no, and int_ref_line_no = VPO order_line_no.
+ods_xx.ods_cis_corp_history_detail_rt can self-link historical VPO to SSO by the same int_ref_type/int_ref_no/int_ref_line_no pattern.
+
+ods_xx.ods_cis_corp_cpo_profile_rt (many to one) ods_xx.ods_cis_corp_ot125_billing_entry by using join columns profile_i to contract_no and cpo_line_seq to contract_line_no when profile_type = 'CONTRNO' and profile_cat = 'CPOL'.
+ods_xx.ods_cis_corp_history_cpo_profile_rt (many to one) ods_xx.ods_cis_corp_ot125_billing_entry by using join columns profile_i to contract_no and cpo_line_seq to contract_line_no when historical CONTRNO profile is used.
+ods_xx.ods_cis_corp_service_contract_header is used for service-contract/type-125 branches; join to order-derived contract context by contract_no and contract_type when present.
+
+
+# Customer, Address, Territory, Manager, and Location
+
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_customer_header_rt by using join columns to_acct_no to cust_no
+ods_xx.ods_cis_corp_history_header_rt (many to one) ods_xx.ods_cis_corp_customer_header_rt by using join columns to_acct_no to cust_no
+ods_xx.ods_cis_corp_cpo_header_rt (many to one) ods_xx.ods_cis_corp_customer_header by using join columns reseller_cust_no or cpo_cust_no to cust_no
+ods_xx.ods_cis_corp_history_cpo_header_rt (many to one) ods_xx.ods_cis_corp_customer_header by using join columns reseller_cust_no or cpo_cust_no to cust_no
+ods_xx.ods_cis_corp_customer_header_rt (one to many) ods_xx.ods_cis_corp_cust_xref_rt by using join columns cust_no when master customer fallback is required.
+ods_xx.ods_cis_corp_cust_xref_rt should filter xref_type = 'MASTER_SUB' and active = 'Y' when deriving master customer number.
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_territory_rt by using join columns sales_terr
+ods_xx.ods_cis_corp_history_header_rt (many to one) ods_xx.ods_cis_corp_territory_rt by using join columns sales_terr
+ods_xx.ods_cis_corp_order_header_rt (many to one) ods_xx.ods_cis_corp_manager_rt by using join columns entry_id to userid
+ods_xx.ods_cis_corp_history_header_rt (many to one) ods_xx.ods_cis_corp_manager_rt by using join columns entry_id to userid
+ods_xx.ods_cis_corp_manager_rt (many to one) ods_xx.ods_cis_corp_location_info_rt by using join columns def_loc or user_loc to loc_no when user location is required.
+ods_xx.ods_cis_corp_addr_xref_rt (many to one) ods_xx.ods_cis_corp_address_rt by using join columns addr_no when reseller/customer address fields are required.
+
+
+# Vendor, VPL, Buyer, and VPC Relationships
+
+ods_xx.ods_cis_corp_part_master_rt (many to one) ods_xx.ods_cis_corp_vend_master_rt by using join columns vend_no
+ods_xx.ods_cis_corp_part_master (many to one) ods_xx.ods_cis_corp_vend_master by using join columns vend_no
+dim_xx.dim_pub_part_info is often used as a curated product/vendor/VPL source and joins to order detail by sku_no.
+ods_xx.ods_cis_corp_vend_user_matrix_rt (many to one) ods_xx.ods_cis_corp_manager_rt by using join columns primary_id to userid when profile_type = 'BUYR' and vendor buyer is needed.
+ods_xx.ods_cis_corp_vend_user_matrix_rt should join by vend_no and either matching vpl_no or vpl_no = -1 for buyer fallback logic.
+ods_xx.ods_cis_corp_vpc_group_xref_rt (many to one) ods_xx.ods_cis_corp_vpc_group_rt by using join columns vpc_group_id when VPG/VPC group descriptions are required.
+ods_xx.ods_cis_corp_vpc_group_xref_rt usually joins product/VPL context by vpl_no.
+
+
+# ETA, Vendor SO, and Profile Relationships
+
+ods_xx.ods_cis_corp_order_detail_rt (one to many) ods_xx.ods_cis_corp_order_eta_code_rt by using join columns order_no, order_type, order_line_no
+ods_xx.ods_cis_corp_history_detail_rt (one to many) ods_xx.ods_cis_corp_history_eta_code_rt by using join columns order_no, order_type, order_line_no
+ods_xx.ods_cis_corp_order_header_rt (one to many) ods_xx.ods_cis_corp_order_eta_detail_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_history_header_rt (one to many) ods_xx.ods_cis_corp_history_eta_detail_rt by using join columns order_no, order_type
+ods_xx.ods_cis_corp_order_eta_detail_rt (many to one) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type, order_line_no
+ods_xx.ods_cis_corp_history_eta_detail_rt (many to one) ods_xx.ods_cis_corp_history_detail_rt by using join columns order_no, order_type, order_line_no
+ods_xx.ods_cis_corp_order_eta_code_rt and ods_xx.ods_cis_corp_history_eta_code_rt can provide vend_so_no for VPO/vendor SO fallback; filter order_type = 2 and non-null vend_so_no.
+ods_xx.ods_cis_corp_order_profile_rt and ods_xx.ods_cis_corp_history_profile_rt can provide SAPID/Vendor SO from MSO rows; join by mso order_no and order_type = 1, filter profile_cat = 'ORDR' and profile_type = 'SAPID'.
+ods_xx.ods_cis_corp_order_profile_rt can provide ETA source mapping for VPO rows; filter order_type = 2 and profile_type = 'ETASRC', then join profile_i to dim_xx.dim_pub_list_box_detail.code_value where list_box_code = 'SRC'.
+
+dm_xx.dm_pur_unieta_boso_detail_rt (many to one) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type, order_line_no, sku_no when UniETA details are required.
+dm_xx.dm_pur_unieta_boso_detail_rt should be aggregated before joining when a single ETA per VPO line is required.
+
+
+# EU Custom and Vendor Quote ID
+
+ods_xx.ods_cis_corp_order_eu_custom_rt (many to one) ods_xx.ods_cis_corp_eu_custom_map_rt by using join columns eu_map_id, eu_map_line_no
+ods_xx.ods_cis_corp_history_eu_custom_rt (many to one) ods_xx.ods_cis_corp_eu_custom_map_rt by using join columns eu_map_id, eu_map_line_no
+ods_xx.ods_cis_corp_eu_custom_map_rt (many to one) dim_xx.dim_pub_list_box_detail by using join columns map_data_desc to code_value when resolving CEDM fields such as Vendor Quote ID.
+ods_xx.ods_cis_corp_order_eu_custom_rt should filter delete_date is null and the target order_type/order_no before aggregation.
+Vendor Quote ID is commonly resolved from CEDM where list_box_code = 'CEDM' and code_desc = 'Vendor Quote ID'.
+
+
+# Inventory, Aging, Runrate, RIO, and Open PO ETA Buckets
+
+ods_xx.ods_cis_corp_inv_qty_rt (many to one) ods_xx.ods_cis_corp_part_master_rt by using join columns sku_no
+ods_xx.ods_cis_corp_inv_qty (many to one) ods_xx.ods_cis_corp_part_master by using join columns sku_no
+dw_xx.dwd_disty_inv_qty_df (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_inv_aging_df (many to one) dim_xx.dim_pub_part_info by using join columns sku_no
+dw_xx.dwd_disty_inv_aging_df should filter view_level = 'IT_PART' and date_flag = date_add(current_date(), interval -1 day) when aging buckets are required.
+ods_xx.ods_cis_corp_inv_qty_rt should filter inv_type in (1,300) when reports combine standard and special/on-order stock quantities.
+ods_xx.ods_cis_corp_order_eta_detail_rt is used for monthly open PO ETA buckets; join order header/detail by order_no, order_type, order_line_no and filter order_type = 2 plus target to_loc_no.
+ods_xx.ods_cis_corp_rio_request_header_rt (one to many) ods_xx.ods_cis_corp_rio_req_detail_rt by using join columns rio_req_no when RIO hold/allocated quantity is required.
+ods_xx.ods_cis_corp_rio_request_header_rt can join inventory/report SKU context by sku_no.
+dw_xx.dws_disty_pur_ips_runrate_1w (many to one) dim_xx.dim_pub_part_info by using join columns sku_no when runrate metrics are required.
+dw_xx.dws_disty_pur_ips_runrate_1w should be reduced to the required max week and sum_type before joining back to VPO/inventory output.
+
+
+# Miscellaneous Lookup and Output Notes
+
+ods_xx.ods_cis_corp_order_soldto_rt (many to one) ods_xx.ods_cis_corp_order_header_rt by using join columns order_no, order_type when sold-to/end-user PO fields are required.
+ods_xx.ods_cis_corp_mc_order_ref_rt (many to one) ods_xx.ods_cis_corp_order_detail_rt by using join columns order_no, order_type, order_line_no when manufacturer/customer reference order context is required.
+ods_xx.ods_cis_corp_inv_type_rt is an inventory type lookup; join by inv_type when descriptions are required.
+Use LEFT JOIN from VPO/order base rows to optional enrichment tables to preserve VPO rows.
+Pre-aggregate one-to-many tables such as ETA detail, EU custom, RIO detail, and profile rows before final joins when the output grain must remain one row per VPO line or SKU.

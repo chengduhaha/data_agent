@@ -1,0 +1,9 @@
+# Optional platform pack metadata (subagent routing, etc.)
+name: platform
+version: "1"
+
+subagent_routing:
+  contract-guided-data-analysis:
+    - customer
+    - vendor
+    - order

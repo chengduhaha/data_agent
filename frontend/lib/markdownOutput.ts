@@ -95,17 +95,68 @@ const BASED_ON_ANSWER_RE = /\bBased\s*on\s+the\s+(?:database|query|evidence|cont
 const PLANNING_BEFORE_ANSWER_RE =
   /\b(?:let me|now let me|i found the|good\.|the contract specifies|now i can see|i see \d+ rows|the columns are)\b/i;
 
+/** True when text looks like planning / tool narration rather than a delivered answer. */
+export function looksLikePlanningPreamble(text: string): boolean {
+  const t = (text ?? "").trim();
+  if (!t) return true;
+  if (t.length < 40) return PLANNING_BEFORE_ANSWER_RE.test(t) || /^(?:let me |now let me |i'll |i will )/im.test(t);
+  const letMeCount = (t.match(/\blet me\b/gi) || []).length;
+  if (letMeCount >= 2 && t.length < 600) return true;
+  if (/^(?:let me |now let me |i found the |good\.|the contract specifies:|now i can see)/im.test(t)) {
+    // Pure planning stub — no tables / sectioned analysis yet.
+    if (!/\|.+\|/.test(t) && !/(?:^|\n)\s*[A-D][\.、]\s+\S/.test(t) && !SYNTHESIS_HEADING_RE.test(t)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * Substantial user-facing answer already present (Chinese sectioned reports, tables, etc.).
+ * Used so a late wrap-up `## Summary` does not erase an earlier streamed answer.
+ */
+export function looksLikeSubstantialAnswer(text: string): boolean {
+  const t = (text ?? "").trim();
+  if (!t || t.length < 200) return false;
+  if (SYNTHESIS_HEADING_RE.test(t)) return true;
+  if (BASED_ON_ANSWER_RE.test(t) && t.length > 280) return true;
+  const tablePipes = (t.match(/\|/g) || []).length;
+  if (tablePipes >= 8 && t.length > 280) return true;
+  // Sectioned analysis: "A. …" / "C. 供应商" / "### …"
+  if (/(?:^|\n)\s*[A-D][\.、]\s+\S{2,}/m.test(t) && t.length > 280) return true;
+  if (/(?:^|\n)#{2,3}\s+\S+/m.test(t) && t.length > 280) return true;
+  // Long CJK analysis body
+  const cjk = (t.match(/[\u4e00-\u9fff]/g) || []).join("").length;
+  if (cjk >= 120 && t.length > 400) return true;
+  return false;
+}
+
 export function stripResearchPreamble(content: string): string {
   const text = (content ?? "").trim();
   if (!text) return text;
 
   const heading = text.search(SYNTHESIS_HEADING_RE);
-  if (heading > 0) return text.slice(heading).trimStart();
+  if (heading > 0) {
+    const before = text.slice(0, heading).trimEnd();
+    const after = text.slice(heading).trimStart();
+    // Wrap-up often appends `## Summary` AFTER a full streamed answer. Prefer the
+    // already-delivered answer so the UI does not "lose" it when steps finish.
+    if (looksLikeSubstantialAnswer(before)) {
+      if (!looksLikeSubstantialAnswer(after) || before.length >= after.length) {
+        return before;
+      }
+    }
+    if (looksLikePlanningPreamble(before) || before.length < 120) {
+      return after;
+    }
+    // Mixed: keep both, with the synthesis heading as the start of the final block.
+    return `${before}\n\n${after}`.trim();
+  }
 
   const based = text.search(BASED_ON_ANSWER_RE);
   if (based > 0) {
     const before = text.slice(0, based);
-    if (PLANNING_BEFORE_ANSWER_RE.test(before) || before.length > 80) {
+    if (looksLikePlanningPreamble(before) || (before.length > 80 && !looksLikeSubstantialAnswer(before))) {
       return text.slice(based).trimStart();
     }
   }
@@ -115,14 +166,19 @@ export function stripResearchPreamble(content: string): string {
     const answerStart = text.search(
       /(?:##\s+(?:Summary|Evidence)\b|Based on the (?:database|query|evidence|contract))/i
     );
-    if (answerStart > 0) return text.slice(answerStart).trimStart();
+    if (answerStart > 0) {
+      const before = text.slice(0, answerStart);
+      if (!looksLikeSubstantialAnswer(before)) {
+        return text.slice(answerStart).trimStart();
+      }
+    }
   }
 
   const planningOnly =
     /^(?:let me |now let me |i found the |good\.|the contract specifies:|now i can see)/im.test(
       text
     ) && text.length > 400;
-  if (planningOnly) {
+  if (planningOnly && !looksLikeSubstantialAnswer(text)) {
     const answerStart = text.search(
       /(?:##\s+(?:Summary|Evidence)\b|Based\s*on\s+the\s+(?:database|query|evidence|contract))/i
     );

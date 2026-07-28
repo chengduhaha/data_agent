@@ -1,0 +1,73 @@
+{
+  "entity_id": "dim_us.dim_disty_pm_authority_program_cust",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "pos",
+  "qualified_name": "dim_us.dim_disty_pm_authority_program_cust",
+  "schema_name": "dim_us",
+  "table_name": "dim_disty_pm_authority_program_cust",
+  "columns": [
+    {
+      "name": "program_id",
+      "type": "int"
+    },
+    {
+      "name": "program_descr",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "active",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "release_price_flag",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "validate",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "notes",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "entry_datetime",
+      "type": "timestamp"
+    },
+    {
+      "name": "cust_no",
+      "type": "int"
+    },
+    {
+      "name": "auth_no",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "hold_flag",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "quote_only_vendor",
+      "type": "varchar(100)"
+    },
+    {
+      "name": "etl_timestamp",
+      "type": "timestamp"
+    },
+    {
+      "name": "vend_level",
+      "type": "varchar(100)"
+    }
+  ],
+  "column_count": 13,
+  "partition_keys": [],
+  "grain": null,
+  "ddl_source": {
+    "repo": "POS-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "knowledge/POS/tables/dim_disty_pm_authority_program_cust.md",
+    "commit": "pos-contract-v2",
+    "fetched_at": "2026-06-29T08:25:44.917881+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/pos/dim_disty_pm_authority_program_cust.md"
+}

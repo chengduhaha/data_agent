@@ -1,0 +1,101 @@
+# StarRocks OPEN_SO_BO special logic reference
+#
+# Scope
+# - Derived from 99 existing StarRocks OPEN_SO_BO rds_xxx_rtv.sp scripts.
+# - StarRocks scripts are identified by matching rds_xxx_gen.sp files that contain tempdb.rds_tmp.
+# - OPEN_SO_BO scripts are identified by SELECT/FROM usage of dm_xx.dm_pur_unieta_boso_detail_rt, or order header sources with order_type = 1/8 and ship_date is null.
+# - Use xx as the region placeholder, matching table list.txt and table relationship.txt.
+# - The rules below focus on uncommon, non-default, but reusable OPEN_SO_BO patterns. Do not apply hardcoded report filters unless the request or source report requires them.
+
+
+1. StarRocks OPEN_SO_BO scripts usually create `tempdb.rds_tmp` and `tempdb.rds_tmp_body`. Multi-sheet reports also create `tempdb.rds_tmp_2` and `tempdb.rds_tmp_sheet_config`. Follow this output style instead of Vertica `rdsetl` output.
+
+2. Larger StarRocks OPEN_SO_BO scripts commonly build update-friendly staging tables with `PRIMARY KEY(id) DISTRIBUTED BY HASH(id)` and `uuid_numeric() AS id`. Use this pattern when later `UPDATE` statements enrich the same staging rows with customer, inventory, ETA, CPO, profile, or RIO fields.
+
+3. Core open SO/BO identification uses current order sources:
+   - open SO: `ods_xx.ods_cis_corp_order_header_rt` / detail rows with `order_type = 1`
+   - open BO: `ods_xx.ods_cis_corp_order_header_rt` / detail rows with `order_type = 8`
+   - open header condition: `ship_date is null`
+   - active rows usually also require header/detail `delete_date is null`
+   Preserve the source report's exact order_type set when it includes extra operational types such as 148, 18, or other region-specific values.
+
+4. Open quantity is often derived, not stored. Common formulas include:
+   - `order_qty - ifnull(ship_qty, 0)`
+   - `ifnull(order_qty, 0) - ifnull(ship_qty, 0)`
+   - report-specific aliases such as `open_qty`, `demand`, or `bo_qty`
+   Preserve the source formula, especially when the report separates order_type 8 BO quantity from order_type 1 open SO quantity.
+
+5. `dm_xx.dm_pur_unieta_boso_detail_rt` is a major driver for ETA/backorder reports. Join by `order_no`, `order_type`, `order_line_no`, and `sku_no`; aggregate first when the report needs one ETA per line. Existing reports often use `min(eta)` or formatted minimum ETA as the expected date.
+
+6. UniETA-driven reports may start from `dm_xx.dm_pur_unieta_boso_detail_rt` even when order header/detail tables are later used for enrichment. Do not discard UniETA rows before checking whether the report is ETA/backorder driven.
+
+7. Order header/detail and UniETA logic often combine with `ods_xx.ods_cis_corp_order_eta_detail_rt`. Use order ETA detail for extra ETA source, ETA quantity, tracking/source fields, or line-level ETA attributes. Rank or aggregate it before joining if there are multiple ETA rows per open order line.
+
+8. `ods_xx.ods_cis_corp_order_exp_rt` is used heavily for line extension and expense detail. It can be one-to-many per order line, and some reports join it to `ods_xx.ods_cis_corp_order_profile_rt` through `order_expense_line_no` / `profile_no`. Filter or aggregate expense rows before the final output when one row per order line is required.
+
+9. Order profile values are semantic fields and must be filtered before joining. Common profile patterns include:
+   - `SAPID` with `profile_cat = 'ORDR'` for Vendor SO / SAP ID
+   - `EXPSHIPDAY`, `EXPDELDAY`, or `EXPDELSTAR` for expected ship/delivery attributes
+   - `SPA_REF_NO` for SPA reference
+   - `REBATE_ADJ` for rebate/adjustment logic
+   - `SHIP_CPLE` for ship-complete or completion flags
+   - `HIDEAMPL` with `profile_cat = 'AMPL'` for AMPL hiding/expense behavior
+   - `CUST_SKU` for customer SKU output
+   Do not join all profile rows without `profile_type` and `profile_cat` filters.
+
+10. Status is often derived from operational dates, not a single status column. Existing reports use variants such as:
+    - `pick_date is null` -> OPENED, otherwise RELEASED
+    - `delete_date` -> Deleted
+    - `closed_date` or `qc_date` -> Completed / QC Date
+    - `credit_rel_date` -> Credit Released
+    - `sales_rel_date` -> Sales Released
+    - `issue_date` -> Queued
+    - otherwise entry/created date
+    Preserve the source report's precedence when deriving order status.
+
+11. Current and history branches can be combined. Some reports union or compare `ods_xx.ods_cis_corp_order_header_rt` / `ods_xx.ods_cis_corp_order_detail_rt` with `ods_xx.ods_cis_corp_history_header_rt` / `ods_xx.ods_cis_corp_history_detail_rt` for shipped/current-history fallback, status history, carton/tracking, or serial output. Keep branch-specific filters and align columns explicitly.
+
+12. CPO-backed open SO/BO rows bridge through `int_ref_no`, `int_ref_type`, and `int_ref_line_no`. Current order rows can join to `ods_xx.ods_cis_corp_cpo_header_rt` and `ods_xx.ods_cis_corp_cpo_detail_rt` by `cpo_id` and `cpo_line_seq`. Apply this only when the report needs CPO, customer PO, partner PO, quote, or CPO EU custom fields.
+
+13. MSO/BO/CPO/VPO chain logic is report-specific. Some open SO/BO reports interpret `order_type = 1` rows with `int_ref_type = 2` as tied to VPO/PO context, and use `int_ref_no` as PO/VPO number. Preserve this chain logic when the requested output asks for related PO, MSO, CPO, or source-reference fields.
+
+14. CEDM/EU custom resolution uses semantic mapping, not hardcoded map ids:
+    - join `ods_xx.ods_cis_corp_order_eu_custom_rt` to `ods_xx.ods_cis_corp_eu_custom_map_rt` by `eu_map_id` and `eu_map_line_no`
+    - join map `map_data_desc` to `ods_xx.ods_cis_corp_list_box_detail_rt.code_value`
+    - filter `list_box_code`, commonly `CEDM` for vendor quote or billing fields
+    Existing reports also use list boxes such as `SABC` and `RCT`; keep list-box filters report-specific.
+
+15. CPO EU custom can appear through `ods_xx.ods_cis_corp_cpo_eu_custom_rt` when the open order is CPO-backed. Use CPO EU custom only after resolving the CPO bridge, and preserve cpo_id / cpo_line_seq / EU map keys.
+
+16. Master customer fallback uses `ods_xx.ods_cis_corp_cust_xref_rt`. Filter `xref_type = 'MASTER_SUB'` and active rows, then use the mapped master/sub customer only for customer hierarchy reports. Do not apply master-customer expansion to every open SO/BO report.
+
+17. Address/contact enrichment is one-to-many. Use `ods_xx.ods_cis_corp_addr_xref_rt`, `ods_xx.ods_cis_corp_address_rt`, `ods_xx.ods_cis_corp_contact_xref_rt`, and `ods_xx.ods_cis_corp_contacts_rt` only after choosing the required address/contact role. Rank or filter contacts before joining to avoid duplicating open order lines.
+
+18. Inventory-backed OPEN_SO_BO reports combine open demand with inventory and stock measures. Common sources are:
+    - `ods_xx.ods_cis_corp_inv_qty_rt` for operational inventory by SKU/location/inv_type
+    - `dw_xx.dwd_disty_inv_qty_df` for daily inventory snapshots
+    - `dw_xx.dwd_disty_inv_aging_df` for aging
+    - `dw_xx.dws_disty_pur_ips_runrate_1w` for runrate
+    Keep each measure at SKU/location/inv_type grain before joining to order-line output.
+
+19. Daily inventory snapshots usually use prior-day filters such as `date_flag = date_format(date_add(current_date(), interval -1 day), ...)`, `date_flag = date_add(current_date(), interval -1 day)`, or `adddate(current_date(), -1)`. Preserve the exact date expression style from the selected example.
+
+20. RIO allocation logic uses `ods_xx.ods_cis_corp_rio_request_header_rt`, `ods_xx.ods_cis_corp_rio_req_detail_rt`, and `ods_xx.ods_cis_corp_rio_req_consumed_rt`. Join by `rio_req_no`, aggregate request/consumed/hold quantities by SKU/order/customer/location, and join manager approvals through `ods_xx.ods_cis_corp_manager_rt` when approval ownership is required.
+
+21. BRPT backorder snapshot supplements use `dw_xx.dwd_disty_brpt_bo_detail_df`. Join by `order_no`, `order_type`, and sometimes `order_line_no`; filter `date_flag` to the current snapshot before joining to order header/detail. Treat BRPT as a supplement unless the source report is explicitly BRPT-driven.
+
+22. SPA and rebate logic is profile/detail driven. Existing reports use `SPA_REF_NO`, `REBATE_ADJ`, `ods_xx.ods_cis_corp_spa_header_rt`, and `ods_xx.ods_cis_corp_spa_detail_rt`. SPA rows can be one-to-many; rank or pivot when the output needs fixed SPA columns.
+
+23. Product/vendor enrichment can use both order detail SKU and product master. Join `ods_xx.ods_cis_corp_part_master_rt` by `sku_no`, then join vendor and VPL context through `ods_xx.ods_cis_corp_vend_master_rt`, `ods_xx.ods_cis_corp_dw_vend_pl_rt`, and optional `ods_xx.ods_cis_corp_vend_user_matrix_rt` for buyer/PM ownership.
+
+24. BOM and kit/component logic uses `ods_xx.ods_cis_corp_bom_rt` and `ods_xx.ods_cis_corp_bom_cost_var_rt`. Join components back to `ods_xx.ods_cis_corp_part_master_rt` by component SKU, and use `ods_xx.ods_cis_corp_exp_codes_rt` only when BOM expense/cost variance fields are requested.
+
+25. Carton, tracking, and serial output can require current/history union. Use `ods_xx.ods_cis_corp_carton_header_rt` for current carton/tracking and `ods_xx.ods_cis_corp_history_carton_header` for history tracking; use current/history serial tables for serial rows. Pre-aggregate or rank when multiple cartons or serials exist per line.
+
+26. Queue and hold context is optional. `ods_xx.ods_cis_corp_sales_que_rt` and `ods_xx.ods_cis_corp_consignment_mt_que_rt` appear in operational queue reports. Use them only when the request asks for queue, hold, consignment, or operational workflow state.
+
+27. Some reports use non-RT regional tables such as `ods_xx.ods_cis_corp_order_header` alongside RT tables. Keep the concrete source style when reproducing an existing report, but normalize metadata to `ods_xx` and avoid mixing RT/non-RT sources unless the source report does.
+
+28. Date formatting is report-specific. Existing scripts use StarRocks functions such as `date_format`, `date_add`, `adddate`, and `current_date()` with different output formats. Keep display formatting separate from filter logic and preserve the selected example's date style.
+
+29. Hardcoded vendor, customer, account, SKU, sales territory, location, product, order type, and date filters are report criteria. Keep them in the earliest staging table for performance, but do not copy them into a new report unless the user request or selected example explicitly requires them.

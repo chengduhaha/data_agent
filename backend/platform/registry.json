@@ -1,0 +1,15 @@
+{
+  "skills": {
+    "contract-guided-data-analysis": {
+      "published_by": "fredyc",
+      "version": "1.0.0",
+      "published_at": "2026-07-27T10:10:31.769806+00:00"
+    }
+  },
+  "mcp": {
+    "vertica-prod": {
+      "published_by": "seed",
+      "published_at": "2026-07-23T00:00:00+00:00"
+    }
+  }
+}

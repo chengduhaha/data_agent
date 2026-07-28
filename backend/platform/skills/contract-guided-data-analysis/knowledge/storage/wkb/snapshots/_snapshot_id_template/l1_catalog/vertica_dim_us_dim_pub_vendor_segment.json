@@ -1,0 +1,126 @@
+{
+  "entity_id": "dim_us.dim_pub_vendor_segment",
+  "layer": "l1_catalog",
+  "engine": "vertica",
+  "domain": "b-report-us",
+  "qualified_name": "dim_us.dim_pub_vendor_segment",
+  "schema_name": "dim_us",
+  "table_name": "dim_pub_vendor_segment",
+  "columns": [
+    {
+      "name": "vend_no",
+      "type": "int",
+      "semantic_role": "dimension",
+      "dimension_reference": "dim_us.dim_pub_vendor_info",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "discontinued",
+      "type": "varchar(100)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "vend_name",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "dimension_reference": "dim_us.dim_pub_vendor_info",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "master_vend_no",
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "master_vend_name",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "mk_name",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "rank",
+      "type": "int",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "seg_code",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "seg_name",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "class_code",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "class_name",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "type_code",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "type_name",
+      "type": "varchar(100)",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "edi_flag",
+      "type": "varchar(100)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "ece_flag",
+      "type": "varchar(100)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "report_seq",
+      "type": "varchar(100)",
+      "semantic_role": "technical",
+      "business_definition": "Not documented in repository"
+    },
+    {
+      "name": "catalog_code",
+      "type": "int",
+      "semantic_role": "dimension",
+      "business_definition": "Not documented in repository"
+    }
+  ],
+  "column_count": 17,
+  "partition_keys": [],
+  "grain": null,
+  "ddl_source": {
+    "repo": "BREPORT-CONTRACT/data_analysis_agent_brpt",
+    "file_path": "C:\\Users\\T154858D.TDSNX\\Desktop\\git_repo_backup\\bigdata_wiki_llm_1\\source\\contracts\\b-report-us\\tables\\dim_pub_vendor_segment.md",
+    "commit": "b-report-contract-v2",
+    "fetched_at": "2026-07-16T04:07:40.149757+00:00"
+  },
+  "evidence_doc": "target/knowledgebase/b-report-us/dim_pub_vendor_segment.md",
+  "semantic_enriched": true
+}

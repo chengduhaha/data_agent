@@ -1,0 +1,51 @@
+1. When querying dw_xx.dwd_disty_inv_aging_df for part-level inventory aging, always filter view_level = 'IT_PART'. Also apply date_flag, normally date_flag = current_date() - 1 unless the user requests a specific historical date.
+
+2. Standard inventory reports usually use inv_type = 1. Some historical Inventory RTV scripts include special/extended standard stock together with standard stock by using inv_type in (1, 300). Use inv_type in (1, 300) only when the report asks for combined standard + extended/special stock, or when matching an existing historical report pattern.
+
+3. Do not assume all inventory types are interchangeable. RIO logic usually supports inv_type = 1 only. CWS/S&A aging often uses inv_type = 2 or inv_type in (2, 3). Vendor aging or broad inventory dashboards may use wider sets such as (1, 7, 32, 300) or (1, 2, 300); only use these wider sets when explicitly required by the business case or historical logic.
+
+4. Common available quantity formula in Inventory RTV scripts:
+   avail_qty = on_hand_qty - bo_qty + intran_in - intran_out - alloc_qty.
+   Total quantity is often calculated as on_hand_qty + intran_in. Use ifnull/coalesce around all quantity columns before arithmetic.
+
+5. SO allocated quantity is not always the same as alloc_qty from inventory. When a report asks for SO allocation/open SO allocation, calculate from open sales order detail as sum(order_qty - ship_qty), usually with ship_date is null and order_type in (1, 10, 11), plus the required inventory type filters.
+
+6. Runrate logic uses dw_xx.dws_disty_pur_ips_runrate_1w. First get max(week), then calculate:
+   WTD = max_week,
+   1W = max_week - 1,
+   2W = weeks max_week - 2 through max_week - 1,
+   4W = weeks max_week - 4 through max_week - 1,
+   10W = weeks max_week - 10 through max_week - 1.
+   The common sum_type is 'WITYPESTD'. Rare stock-unit/warehouse runrate logic may use sum_type = 'WITYPESTU' and add loc filters such as loc_no < 300 and loc_no <> 98.
+
+7. Aging bucket columns on dw_xx.dwd_disty_inv_aging_df are quantity buckets such as qty1_30, qty31_60, qty61_90, qty90_up, qty91_120, qty121_150, qty151_180, qty181_210, qty211_240, qty240_up, qty241_270, qty271_300, qty301_330, qty331_360, qty360_up. For 120+/180+/240+/270+/360+ totals, sum the corresponding detailed buckets instead of inventing new columns.
+
+8. For true aging requirements, use dw_xx.dwd_disty_inv_true_aging_df. Historical reports use true_age360 as true 360+ aging. Some vendor/VPL level metrics calculate all_true_240_up as normal aging 241-360 amount plus true_age360.
+
+9. For rollover aging, use dw_xx.dwd_disty_inv_aging_rollover_rtv2_df, not dw_xx.dwd_disty_inv_aging_df. It normally requires report_type, commonly report_type = 90 for 90+ rollover or report_type = 240 for 240+ rollover. date_flag may be current_date() - 1, but some reports use a separate rollover_date_flag. Do not replace rollover with normal aging buckets.
+
+10. In rollover logic, age90roll or age91roll is commonly calculated as rollover - age90p. For amount fields, multiply quantity by ave_cost when the rollover table does not already provide the amount required by the report.
+
+11. dw_xx.dwd_disty_inv_status_rtv2_df is used for supplemental status metrics, not base aging. Historical Inventory logic calculates MTD sales as mtd_reg + mtd_ds from this table.
+
+12. RIO/CWS committed quantity can come from ods_xx.ods_cis_corp_cws_cop_ship_progress. Filter order_type = 18 and sum order_qty by sku_no/inv_type/loc_no. When location does not map to the expected location list, historical logic groups it under loc_no = -99 and loc_char = 'Other RIO'.
+
+13. Classic open RIO logic uses RIO request header/detail style data. RIO supports inv_type = 1. Open RIO quantity is calculated as req_qty - hold_qty - consumed_qty after aggregating active RIO records.
+
+14. For WMS/CWS aging, use dw_xx.dwd_disty_wms_cws_inv2_age_di. Historical scripts map age361 to 360+ quantity and often filter inv_type = 2 or inv_type in (2, 3). For CWS bin/location quantity, use dw_xx.dwd_disty_wh_cws_inv_df, sometimes filtered by bin_loc patterns such as '%EPP%' or '%BOX%' or by specific CWS locations.
+
+15. For AP hold / blocked PO / vendor invoice hold style reports, use dw_xx.dwd_disty_ap_hold_df. Join to part/vendor dimensions for product/vendor attributes and to dw_xx.dwd_disty_inv_qty_df only when availability or current inventory is also required.
+
+16. For backorder line detail reports, use dw_xx.dwd_disty_brpt_bo_detail_df instead of only using inventory bo_qty. This table is needed when the output requires order_no, order_type, order_line_no, customer, ETA, unit price/cost, order entry date, or line-level backorder context. Use date_flag = current_date() - 1 when available.
+
+17. dim_xx.dim_pub_list_box_detail is a code lookup table. Always filter by list_box_code when joining by code_value. Examples from Inventory RTV logic include SSR for stock rotation, SEG for segment, FOB for ship terms, SRC for source code, CEDM for custom map descriptions, and GRAC for grace period.
+
+18. Profile tables are one-to-many and must be filtered. When using sku/order/CPO profile tables, always include the relevant profile_cat, profile_type, and active = 'Y' filters when applicable; otherwise joins can duplicate rows.
+
+19. Base cost normally comes from dim_xx.dim_pub_part_info.po_cost. Some exception reports compare po/base cost against landed_cost or ave_cost from cost/profile sources to identify cost anomalies. Amount calculations in aging reports commonly use quantity * ave_cost or quantity * po_cost depending on the report's requested cost basis.
+
+20. Location pivot reports often turn loc_no into separate OH/available/RIO columns. Use the location list and loc_no mapping from the historical report or requested country; do not reuse US location numbers for CA/MX unless explicitly requested.
+
+21. Customer part number reports can use ods_xx.ods_cis_corp_cust_part_no. Join synnex_sku_no to dim_xx.dim_pub_part_info.sku_no and cust_no to dim_xx.dim_pub_customer_info.cust_no.
+
+22. Country/company parameter logic is rare. ods_xx.ods_cis_corp_parameters can be used as a parameter lookup, for example parameter_name = 'COMPANY_NO', when a historical report needs country/company flags.

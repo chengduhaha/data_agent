@@ -1,0 +1,160 @@
+# -*- coding: utf-8 -*-
+# @Time : 12/14/2023 2:51 PM
+# @Author : Marvin Ma
+
+from synnex.bigdata import conf
+from synnex.bigdata.pyspark import run_sql
+
+
+def main():
+
+    run_sql("""
+    insert overwrite table dw_${country}.dws_disty_brpt_cross_svddc_wtd partition(dt_week)
+    select
+        table_dim.w as week_no,
+        table_dim.max_date_flag as date_flag,
+
+        cust_type       ,
+        cust_type_desc  ,
+        division        ,
+        division_desc   ,
+        pm_dir_id       ,
+        pm_director_name,
+        pm_vp_id        ,
+        pm_vp_name      ,
+        seg_code        ,
+        company_no      ,
+    
+        sum(gross_sales) as gross_sales,
+        sum(net_sales) as net_sales,
+        sum(gross_cost) as gross_cost,
+        sum(net_cost) as net_cost,
+        sum(scm_usage) as scm_usage,
+        sum(ds_sales) as ds_sales,
+        sum(stock_sales) as stock_sales,
+        sum(ds_cost) as ds_cost,
+        sum(stock_cost) as stock_cost,
+        sum(ds_scm_usage) as ds_scm_usage,
+        sum(stock_scm_usage) as stock_scm_usage,
+        sum(total_unit) as total_unit,
+        sum(total_weight) as total_weight,
+    
+        sum(cgp) as cgp,
+        sum(total_btl) as total_btl,
+        sum(tgm_amt) as tgm_amt,
+        sum(gm_amt) as gm_amt,
+        sum(ngm_amt) as ngm_amt,
+        sum(oplgm_amt) as oplgm_amt,
+        
+        SUM(case when table_left.date_flag = table_dim.max_date_flag then bo_gross_sales else 0 end) as bo_gross_sales,
+        SUM(case when table_left.date_flag = table_dim.max_date_flag then bo_gross_cost  else 0 end) as bo_gross_cost,
+        SUM(case when table_left.date_flag = table_dim.max_date_flag then bo_total_unit  else 0 end) as bo_total_unit,
+        SUM(case when table_left.date_flag = table_dim.max_date_flag then bo_gm_amt      else 0 end) as bo_gm_amt,
+        SUM(case when table_left.date_flag = table_dim.max_date_flag then so_gross_sales else 0 end) as so_gross_sales,
+        SUM(case when table_left.date_flag = table_dim.max_date_flag then so_gross_cost  else 0 end) as so_gross_cost,
+        SUM(case when table_left.date_flag = table_dim.max_date_flag then so_total_unit  else 0 end) as so_total_unit,
+        SUM(case when table_left.date_flag = table_dim.max_date_flag then so_gm_amt      else 0 end) as so_gm_amt,
+        SUM(case when table_left.date_flag = table_dim.max_date_flag then bo_age0_7      else 0 end) as bo_age0_7,
+        SUM(case when table_left.date_flag = table_dim.max_date_flag then bo_age8_14     else 0 end) as bo_age8_14,
+        SUM(case when table_left.date_flag = table_dim.max_date_flag then bo_age15_21    else 0 end) as bo_age15_21,
+        SUM(case when table_left.date_flag = table_dim.max_date_flag then bo_age21_up    else 0 end) as bo_age21_up,
+        SUM(case when table_left.date_flag = table_dim.max_date_flag then so_age0_7      else 0 end) as so_age0_7,
+        SUM(case when table_left.date_flag = table_dim.max_date_flag then so_age8_14     else 0 end) as so_age8_14,
+        SUM(case when table_left.date_flag = table_dim.max_date_flag then so_age15_21    else 0 end) as so_age15_21,
+        SUM(case when table_left.date_flag = table_dim.max_date_flag then so_age21_up    else 0 end) as so_age21_up,
+    
+        sum(ap_finance) as ap_finance,
+        sum(inv_cost) as inv_cost,
+        sum(inv_reserve) as inv_reserve,
+        sum(cr_risk_cterm) as cr_risk_cterm,
+        sum(flr_synnex) as flr_synnex,
+        sum(direct_credit) as direct_credit,
+        sum(csgn_edi_fee) as csgn_edi_fee,
+        sum(corporate) as corporate,
+        sum(sfs) as sfs,
+        sum(scm_risk) as scm_risk,
+        sum(flr_vendor) as flr_vendor,
+        sum(cust_finance_sales) as cust_finance_sales,
+        sum(cust_pmt_disc) as cust_pmt_disc,
+        sum(cvr_rm) as cvr_rm,
+        sum(ar_fin_recovery) as ar_fin_recovery,
+        sum(mfg_oh) as mfg_oh,
+        sum(cust_finance) as cust_finance,
+        sum(rma) as rma,
+        sum(hc_sales) as hc_sales,
+        sum(order_overhead) as order_overhead,
+        sum(margin_share) as margin_share,
+        sum(ap_adj) as ap_adj,
+        sum(pdt) as pdt,
+        sum(scm_cost) as scm_cost,
+        sum(infrastructure) as infrastructure,
+        sum(marketing) as marketing,
+        sum(coop) as coop,
+        sum(one_time_btl) as one_time_btl,
+        sum(hbtl) as hbtl,
+        sum(scm_profit_adj) as scm_profit_adj,
+        sum(hc_pm) as hc_pm,
+        sum(hc_bd) as hc_bd,
+        sum(btl) as btl,
+        sum(btl_sales) as btl_sales,
+        sum(btl_backout) as btl_backout,
+        sum(cust_rebate) as cust_rebate,
+        sum(mof) as mof,
+        sum(frt_out_load) as frt_out_load,
+        sum(frt_out_exp) as frt_out_exp,
+        sum(whoh_pack) as whoh_pack,
+        sum(frt_ob_recovery) as frt_ob_recovery,
+        sum(frt_ib_recovery) as frt_ib_recovery,
+        sum(others) as others,
+        sum(others_sales) as others_sales,
+        sum(scm_disc) as scm_disc,
+        sum(scm_ndisc) as scm_ndisc,
+        sum(frt_in) as frt_in,
+        sum(trans_btl) as trans_btl,
+        sum(trans_btl_sales) as trans_btl_sales,
+
+        '${etl_timestamp}',
+        sum(fx_cost) as fx_cost,
+        sum(btl_sales_for_opl) as  btl_sales_for_opl ,       
+		sum(trans_btl_sales_for_opl) as trans_btl_sales_for_opl,   
+		sum(pdt_for_opl) as pdt_for_opl,               
+		sum(cust_rebate_for_opl) as cust_rebate_for_opl,       
+		sum(cvr_rm_for_opl) as cvr_rm_for_opl,            
+		sum(btl_backout_for_opl) as btl_backout_for_opl,       
+		sum(cust_pmt_disc_for_opl) as cust_pmt_disc_for_opl,     
+		sum(cust_finance_sales_for_opl) as cust_finance_sales_for_opl,
+		sum(rma_for_opl) as rma_for_opl,               
+		sum(ar_fin_recovery_for_opl) as ar_fin_recovery_for_opl,   
+		sum(order_overhead_for_opl) as order_overhead_for_opl,    
+		sum(frt_out_exp_for_opl) as frt_out_exp_for_opl,       
+		sum(frt_ob_recovery_for_opl) as frt_ob_recovery_for_opl, 
+		sum(oplgm_plus_amt),
+        table_dim.week_flag
+    from (select * from dw_${country}.dws_disty_brpt_cross_svddc_1d
+          where date_flag between '${week_begin_of_firstday}' and '${date_flag}') as table_left
+    left join (select 
+               w,
+               week_flag,
+               date_flag,
+               max(date_flag) over(partition by w,week_flag) as max_date_flag
+               from dim_${country}.dim_pub_date
+               where date_flag between '${week_begin_of_firstday}' and '${date_flag}') as table_dim
+    on table_left.date_flag = table_dim.date_flag
+    group by
+        table_dim.w,
+        table_dim.week_flag,
+        table_dim.max_date_flag,
+        cust_type       ,
+        cust_type_desc  ,
+        division        ,
+        division_desc   ,
+        pm_dir_id       ,
+        pm_director_name,
+        pm_vp_id        ,
+        pm_vp_name      ,
+        seg_code        ,
+        company_no
+    """)
+
+
+main()
