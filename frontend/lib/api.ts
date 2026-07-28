@@ -296,9 +296,3 @@ export type BudgetPayload = {
   run_segment?: number;
   thread_id?: string;
 };
-
-export type TopicHintPayload = {
-  relation?: string;
-  suggest_new_thread?: boolean;
-  message?: string;
-};

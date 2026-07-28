@@ -7,7 +7,6 @@ import {
   type ChatMessage,
   type ContinuePromptPayload,
   type InterruptPayload,
-  type TopicHintPayload,
   type ToolCall,
   deleteThread,
   resumeChat,
@@ -67,7 +66,6 @@ export function ChatWindow() {
   const [interrupt, setInterrupt] = useState<InterruptPayload | null>(null);
   const [continuePrompt, setContinuePrompt] = useState<ContinuePromptPayload | null>(null);
   const [budget, setBudget] = useState<BudgetPayload | null>(null);
-  const [topicHint, setTopicHint] = useState<TopicHintPayload | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [skills, setSkills] = useState<SlashSkill[]>([]);
   const lastMsg = messages[messages.length - 1];
@@ -171,9 +169,6 @@ export function ChatWindow() {
       }
       if (event === "budget") {
         setBudget(data as unknown as BudgetPayload);
-      }
-      if (event === "topic_hint") {
-        setTopicHint(data as unknown as TopicHintPayload);
       }
       if (event === "status" && typeof data.text === "string") {
         setMessages((prev) =>
@@ -295,7 +290,6 @@ export function ChatWindow() {
     setError(null);
     setInterrupt(null);
     setContinuePrompt(null);
-    setTopicHint(null);
     setBudget(null);
     setInput("");
     const userMsg: ChatMessage = { id: uid(), role: "user", content: displayText };
@@ -462,7 +456,6 @@ export function ChatWindow() {
     setInterrupt(null);
     setContinuePrompt(null);
     setBudget(null);
-    setTopicHint(null);
     setError(null);
     try {
       const data = await apiGet<{
@@ -528,7 +521,6 @@ export function ChatWindow() {
     setInterrupt(null);
     setContinuePrompt(null);
     setBudget(null);
-    setTopicHint(null);
     setError(null);
   }
 
@@ -587,11 +579,6 @@ export function ChatWindow() {
               />
             );
           })}
-          {topicHint?.suggest_new_thread && topicHint.message && (
-            <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
-              {topicHint.message}
-            </div>
-          )}
           {continuePrompt && (
             <ContinuePanel
               payload={continuePrompt}

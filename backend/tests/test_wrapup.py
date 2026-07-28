@@ -557,20 +557,3 @@ def test_stream_wrapup_on_recursion_error() -> None:
     assert any("event: token" in e and "Final answer" in e for e in events)
     assert any("event: done" in e and '"incomplete": true' in e for e in events)
 
-
-def test_topic_detect_followup() -> None:
-    from app.agent.harness.topic_detect import detect_topic_relation as det
-
-    r = det("继续按区域拆分", "NVIDIA 收入是多少")
-    assert r["relation"] == "followup"
-    assert r["suggest_new_thread"] is False
-
-
-def test_topic_detect_new_topic() -> None:
-    from app.agent.harness.topic_detect import detect_topic_relation as det
-
-    r = det(
-        "帮我分析 Dell 服务器库存周转率和缺货风险",
-        "NVIDIA GPU 在 FY24 的 NGM 趋势",
-    )
-    assert r.get("suggest_new_thread") is True

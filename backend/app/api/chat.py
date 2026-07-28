@@ -18,7 +18,6 @@ from app.agent.harness.config import load_harness_config, recursion_limit
 from app.agent.harness.context import reset_harness_context, set_harness_context
 from app.agent.harness.middleware import reset_segment_state
 from app.agent.harness.evidence import reset_evidence_snapshot
-from app.agent.harness.topic_detect import detect_topic_relation
 from app.agent.harness.turn_summary import slice_messages_for_turn, summarize_turn
 from app.agent.models import build_model
 from app.agent.streaming import stream_agent_events
@@ -166,20 +165,6 @@ async def chat_stream(body: ChatStreamRequest, user_id: str = Depends(get_user_i
                 "turn_index": turn_index,
             },
         )
-
-        if not continue_run and body.message.strip():
-            prior_meta = await get_thread_meta_entry(uid, thread_id)
-            summaries = prior_meta.get("turn_summaries") or []
-            prev_q = None
-            if summaries:
-                prev_q = str(summaries[-1].get("summary", ""))[:500]
-            relation = detect_topic_relation(
-                body.message,
-                previous_question=prev_q,
-                previous_summary=prev_q,
-            )
-            if relation.get("suggest_new_thread"):
-                yield sse("topic_hint", relation)
 
         yield sse("status", {"text": "Initializing agent…", "phase": "init"})
         try:
