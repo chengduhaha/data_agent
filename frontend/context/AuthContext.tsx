@@ -47,11 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const bootstrap = await getAuthBootstrap();
         if (cancelled) return;
         setAuthConfig(bootstrap.config);
-        if (!bootstrap.config.enabled) {
-          setUser(null);
-        } else {
-          setUser(bootstrap.user);
-        }
+        setUser(bootstrap.user);
       } catch {
         // Bootstrap failed (backend down / proxy error). Still try /config so
         // the login button can appear; never treat as "SSO disabled".

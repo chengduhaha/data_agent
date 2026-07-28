@@ -17,16 +17,32 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-BACKEND_PORT="${DATA_AGENT_BACKEND_PORT:-8000}"
-FRONTEND_PORT="${DATA_AGENT_FRONTEND_PORT:-6641}"
-BACKEND_HOST="${DATA_AGENT_HOST:-0.0.0.0}"
-BACKEND_URL="${DATA_AGENT_BACKEND_URL:-http://127.0.0.1:${BACKEND_PORT}}"
-PID_DIR="${DATA_AGENT_PID_DIR:-/tmp/data_agent}"
-LOG_DIR="${DATA_AGENT_LOG_DIR:-/tmp/data_agent}"
-PUBLIC_URL="${DATA_AGENT_PUBLIC_URL:-http://bigdatauatgpu3.synnex.org:${FRONTEND_PORT}}"
-
 BACK_PID=""
 FRONT_PID=""
+
+load_dotenv_for_shell() {
+  if [[ -f "$ROOT/.env" ]]; then
+    set -a
+    # shellcheck disable=SC1091
+    source "$ROOT/.env"
+    set +a
+  fi
+}
+
+refresh_runtime_config() {
+  BACKEND_PORT="${DATA_AGENT_BACKEND_PORT:-8000}"
+  FRONTEND_PORT="${DATA_AGENT_FRONTEND_PORT:-6641}"
+  BACKEND_HOST="${DATA_AGENT_HOST:-0.0.0.0}"
+  BACKEND_URL="${DATA_AGENT_BACKEND_URL:-http://127.0.0.1:${BACKEND_PORT}}"
+  PID_DIR="${DATA_AGENT_PID_DIR:-/tmp/data_agent}"
+  LOG_DIR="${DATA_AGENT_LOG_DIR:-/tmp/data_agent}"
+  PUBLIC_URL="${DATA_AGENT_PUBLIC_URL:-http://bigdatauatgpu3.synnex.org:${FRONTEND_PORT}}"
+}
+
+ensure_runtime_config() {
+  load_dotenv_for_shell
+  refresh_runtime_config
+}
 
 usage() {
   cat <<EOF
@@ -69,15 +85,6 @@ init_runtime() {
   fi
 }
 
-load_dotenv_for_shell() {
-  if [[ -f "$ROOT/.env" ]]; then
-    set -a
-    # shellcheck disable=SC1091
-    source "$ROOT/.env"
-    set +a
-  fi
-}
-
 stop_pid_file() {
   local file="$1"
   if [[ -f "$file" ]]; then
@@ -93,6 +100,7 @@ stop_pid_file() {
 }
 
 cmd_stop() {
+  ensure_runtime_config
   init_runtime
   echo "Stopping data_agent services…"
   stop_pid_file "$PID_DIR/backend.pid"
@@ -147,6 +155,7 @@ print_component_status() {
 }
 
 cmd_status() {
+  ensure_runtime_config
   init_runtime
   mkdir -p "$PID_DIR" "$LOG_DIR"
 
@@ -186,6 +195,7 @@ start_frontend_daemon() {
 }
 
 cmd_start_daemon() {
+  ensure_runtime_config
   init_runtime
   mkdir -p "$PID_DIR" "$LOG_DIR"
 
@@ -227,8 +237,8 @@ foreground_cleanup() {
 }
 
 cmd_start_foreground() {
+  ensure_runtime_config
   init_runtime
-  load_dotenv_for_shell
   trap foreground_cleanup EXIT INT TERM
 
   echo "==> Backend  http://${BACKEND_HOST}:${BACKEND_PORT}  (docs: /docs)"

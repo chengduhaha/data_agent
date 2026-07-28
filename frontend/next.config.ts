@@ -1,7 +1,21 @@
 import type { NextConfig } from "next";
 
+function devAllowedOrigins(): string[] {
+  const raw =
+    process.env.DATA_AGENT_PUBLIC_URL || process.env.OAUTH2_FRONTEND_ORIGIN || "";
+  const origins = new Set<string>(["localhost", "127.0.0.1"]);
+  try {
+    if (raw) origins.add(new URL(raw).hostname);
+  } catch {
+    /* ignore invalid URL */
+  }
+  return [...origins];
+}
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Allow remote browser access to dev server via hostname (not just localhost).
+  allowedDevOrigins: devAllowedOrigins(),
   // Hide the Next.js Dev Tools badge/Preferences (Theme there only styles the
   // overlay, not Data Agent). App theming is separate if/when added.
   devIndicators: false,
