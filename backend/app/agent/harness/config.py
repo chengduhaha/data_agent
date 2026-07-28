@@ -43,6 +43,8 @@ class HarnessConfig:
     mcp_timeout: float = 60.0
     mcp_tool_max_retries: int = 2
     mcp_retry_backoff: float = 1.0
+    llm_max_retries: int = 4
+    llm_retry_backoff: float = 2.0
     summarization_trigger_fraction: float = 0.85
     summarization_keep_fraction: float = 0.15
     summarization_buffer_tokens: int = 13_000
@@ -72,6 +74,8 @@ def load_harness_config(*, extended_run: bool = False) -> HarnessConfig:
         mcp_timeout=_float_env("DATA_AGENT_MCP_TIMEOUT", 60.0),
         mcp_tool_max_retries=_int_env("DATA_AGENT_MCP_TOOL_MAX_RETRIES", 2),
         mcp_retry_backoff=_float_env("DATA_AGENT_MCP_RETRY_BACKOFF", 1.0),
+        llm_max_retries=_int_env("DATA_AGENT_LLM_MAX_RETRIES", 4),
+        llm_retry_backoff=_float_env("DATA_AGENT_LLM_RETRY_BACKOFF", 2.0),
         summarization_trigger_fraction=_float_env(
             "DATA_AGENT_SUMMARIZATION_TRIGGER_FRACTION", 0.85
         ),

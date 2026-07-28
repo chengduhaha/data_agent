@@ -16,6 +16,7 @@ from app.agent.model_catalog import (
     get_profile,
     list_profiles,
 )
+from app.agent.harness.config import load_harness_config
 from app.store.schemas import ModelConfig, ProviderInfo, UserConfig
 
 _meta = get_catalog_meta()
@@ -169,6 +170,9 @@ def _build_openai_compatible(model_cfg: ModelConfig) -> ChatOpenAI:
         kwargs["default_query"] = {"api-version": api_version}
     if max_tokens is not None:
         kwargs["max_tokens"] = max_tokens
+
+    harness = load_harness_config()
+    kwargs["max_retries"] = harness.llm_max_retries
 
     llm_cls = GeminiThoughtSignatureChatOpenAI if _is_gemini_model(name) else ChatOpenAI
     return llm_cls(**kwargs)

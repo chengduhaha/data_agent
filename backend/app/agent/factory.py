@@ -18,6 +18,8 @@ from app.agent.extensions.subagent_routing import (
     format_subagent_routing_prompt,
 )
 from app.agent.harness.config import load_harness_config
+from app.agent.harness.llm_resilience import LlmRateLimitMiddleware
+from app.agent.harness.mcp_resilience import McpToolResilienceMiddleware
 from app.agent.harness.middleware import ToolGovernanceMiddleware
 from app.agent.harness.phases import RunPhaseMiddleware
 from app.agent.harness.profiles import register_data_agent_harness_profiles
@@ -297,6 +299,8 @@ async def create_user_agent(
 
     tool_budgets = dict(capabilities.harness.tool_budgets)
     harness_middleware = [
+        LlmRateLimitMiddleware(harness_cfg),
+        McpToolResilienceMiddleware(harness_cfg),
         ToolGovernanceMiddleware(harness_cfg),
         ToolBudgetMiddleware(tool_budgets),
         RunPhaseMiddleware(harness_cfg, tool_budgets=tool_budgets),

@@ -117,7 +117,11 @@ def format_mcp_tool_error(tool: str, exc: BaseException) -> str:
 
 def format_stream_error(exc: BaseException) -> str:
     """User-facing message for fatal stream failures."""
+    from app.agent.harness.llm_resilience import format_rate_limit_error, is_rate_limit_error
+
     root = _unwrap_exception(exc)
+    if is_rate_limit_error(root):
+        return format_rate_limit_error(root)
     status = getattr(getattr(root, "response", None), "status_code", None)
     if status in (502, 503, 504):
         return (
