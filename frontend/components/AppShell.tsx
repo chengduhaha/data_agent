@@ -25,7 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             Data Agent
           </p>
           <p className="hidden text-xs text-ink-500 sm:block">
-            Your personal agent workspace
+            Developed and supported by the BigData Platform team
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
