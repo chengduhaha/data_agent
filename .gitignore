@@ -25,14 +25,8 @@ frontend/dist/
 !backend/defaults/
 !backend/defaults/**
 
-# Runtime per-user workspace (repo root)
-workspace/*/threads.sqlite
-workspace/*/threads.sqlite-*
-workspace/*/files/**
-!workspace/*/files/.gitkeep
-workspace/*/mcp.json
-workspace/*/config.json
-workspace/*/threads_meta.json
+# Runtime per-user workspace (repo root) — not versioned
+workspace/
 
 # Legacy runtime path (pre-migration)
 backend/app/users/*/threads.sqlite
