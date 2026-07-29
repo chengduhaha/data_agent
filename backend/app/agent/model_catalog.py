@@ -159,7 +159,9 @@ def apply_profile_to_model_config(cfg: Any) -> Any:
 
     profile = get_profile(model) if model else None
     if profile is None:
-        if provider == meta.provider_id:
+        if not provider and not model:
+            profile = get_profile(meta.default_model)
+        elif provider == meta.provider_id:
             profile = get_profile(meta.default_model)
         else:
             return cfg

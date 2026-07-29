@@ -43,6 +43,7 @@ const nextConfig: NextConfig = {
       { source: "/api/files", destination: `${backend}/api/files` },
       { source: "/api/providers", destination: `${backend}/api/providers` },
       { source: "/api/model-catalog", destination: `${backend}/api/model-catalog` },
+      { source: "/api/model", destination: `${backend}/api/model` },
       { source: "/health", destination: `${backend}/health` },
       { source: "/docs", destination: `${backend}/docs` },
       { source: "/openapi.json", destination: `${backend}/openapi.json` },

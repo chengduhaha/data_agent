@@ -53,6 +53,10 @@ async def load_user_config(user_id: str) -> UserConfig:
     ensure_user_layout(user_id)
     data = await _read_json(config_path(user_id), {})
     cfg = UserConfig.model_validate(data)
+    if not (cfg.model.provider or "").strip() and not (cfg.model.model or "").strip():
+        from app.agent.model_catalog import apply_profile_to_model_config
+
+        apply_profile_to_model_config(cfg.model)
     return _apply_org_runtime_config(cfg)
 
 

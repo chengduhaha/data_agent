@@ -5,7 +5,6 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 
 from app.agent.extensions.registry import capability_registry
-from app.agent.model_catalog import catalog_as_api
 from app.agent.models import list_providers
 from app.deps import get_user_id
 from app.store.io import load_effective_mcp_config, load_user_config, save_user_config
@@ -17,12 +16,6 @@ router = APIRouter(prefix="/api", tags=["config"])
 @router.get("/providers")
 async def providers():
     return {"providers": [p.model_dump() for p in list_providers()]}
-
-
-@router.get("/model-catalog")
-async def model_catalog():
-    """Synnex / Gateway preset profiles for Settings → Model."""
-    return catalog_as_api()
 
 
 @router.get("/config")

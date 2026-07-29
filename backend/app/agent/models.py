@@ -186,7 +186,7 @@ def build_model(cfg: ModelConfig | dict[str, Any] | UserConfig) -> BaseChatModel
     name = (model_cfg.model or "").strip()
     if not provider or not name:
         raise ValueError(
-            "No model configured. Open Settings → Model/Providers and set provider + model + API key."
+            "No model configured. Select a model from the chat toolbar or ask an admin to configure one."
         )
 
     temperature = model_cfg.temperature if model_cfg.temperature is not None else 0.0

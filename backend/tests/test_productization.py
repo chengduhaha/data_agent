@@ -16,6 +16,7 @@ from app.store.io import (
     list_skills,
     load_effective_mcp_config,
     load_mcp_config,
+    load_user_config,
     make_thread_title,
     save_mcp_config,
     upsert_thread_meta,
@@ -59,6 +60,16 @@ def test_user_config_isolation(workspace_tmp: Path) -> None:
     bob_cfg.write_text('{"model": {"provider": "bob"}}', encoding="utf-8")
     assert json.loads(alice_cfg.read_text())["model"]["provider"] == "alice"
     assert json.loads(bob_cfg.read_text())["model"]["provider"] == "bob"
+
+
+def test_load_user_config_applies_catalog_default_when_empty(workspace_tmp: Path) -> None:
+    paths.ensure_user_layout("klayh")
+    cfg = asyncio.run(load_user_config("klayh"))
+    meta = catalog_as_api()
+    assert cfg.model.provider == meta["provider_id"]
+    assert cfg.model.model == meta["default_model"]
+    assert cfg.model.base_url
+    assert cfg.model.api_key
 
 
 def test_list_skills_includes_org_bundle(workspace_tmp: Path) -> None:

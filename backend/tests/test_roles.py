@@ -89,5 +89,7 @@ def test_non_admin_forbidden_from_settings_apis(monkeypatch: pytest.MonkeyPatch)
         assert client.get("/api/skills?include_disabled=true").status_code == 403
         assert client.get("/api/skills").status_code == 200
         assert client.get("/api/chat/threads").status_code == 200
+        assert client.get("/api/model-catalog").status_code == 200
+        assert client.get("/api/model").status_code == 200
     finally:
         app.dependency_overrides.pop(get_current_user, None)

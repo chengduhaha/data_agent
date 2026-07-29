@@ -29,7 +29,6 @@ import {
   isClarificationInterrupt,
 } from "@/lib/clarification";
 import { useAuth } from "@/context/AuthContext";
-import { isAdminUser } from "@/lib/roles";
 import { useMessageScroll } from "@/hooks/useMessageScroll";
 import { ScrollToBottom } from "./ScrollToBottom";
 
@@ -90,7 +89,6 @@ export function ChatWindow() {
   const abortRef = useRef<AbortController | null>(null);
   const pendingTitleRef = useRef("");
   const { user, oauthEnabled } = useAuth();
-  const showModelSwitcher = isAdminUser(user, oauthEnabled);
   const workspaceSlug = user?.workspace_slug ?? "local";
 
   const refreshThreads = useCallback(async () => {
@@ -654,7 +652,7 @@ export function ChatWindow() {
               </button>
             )}
           </form>
-          {showModelSwitcher && <ModelSwitcher disabled={streaming} />}
+          <ModelSwitcher disabled={streaming} />
         </div>
       </section>
     </div>

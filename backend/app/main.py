@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.agent.factory import close_checkpointers
 from app.agent.mcp_manager import mcp_manager
-from app.api import auth, chat, config_routes, files, mcp, rules, skills, subagents, tools
+from app.api import auth, chat, config_routes, files, mcp, model_routes, rules, skills, subagents, tools
 from app.auth.settings import get_oauth_settings
 from app.deps import require_web_auth, require_admin
 from app.store.paths import DEFAULT_USER_ID, ensure_user_layout
@@ -81,6 +81,7 @@ protected = [Depends(require_web_auth)]
 admin_only = [Depends(require_web_auth), Depends(require_admin)]
 
 app.include_router(chat.router, dependencies=protected)
+app.include_router(model_routes.router, dependencies=protected)
 app.include_router(skills.router, dependencies=protected)
 app.include_router(config_routes.router, dependencies=admin_only)
 app.include_router(mcp.router, dependencies=admin_only)

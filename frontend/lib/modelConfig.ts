@@ -22,18 +22,20 @@ export type ModelCatalog = {
   models: CatalogModel[];
 };
 
+export type UserModelConfig = {
+  provider: string;
+  model: string;
+  api_key: string;
+  base_url: string;
+  temperature: number;
+  api_version?: string;
+  api_model?: string;
+  max_tokens?: number | null;
+  api_key_set?: boolean;
+};
+
 export type UserConfig = {
-  model: {
-    provider: string;
-    model: string;
-    api_key: string;
-    base_url: string;
-    temperature: number;
-    api_version?: string;
-    api_model?: string;
-    max_tokens?: number | null;
-    api_key_set?: boolean;
-  };
+  model: UserModelConfig;
   system_prompt: string;
   approve_writes: boolean;
   approve_execute: boolean;

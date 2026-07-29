@@ -3,10 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiGet, apiSend } from "@/lib/api";
 import {
-  applyCatalogModel,
   catalogLabel,
   type ModelCatalog,
-  type UserConfig,
+  type UserModelConfig,
 } from "@/lib/modelConfig";
 
 type Props = {
@@ -15,18 +14,18 @@ type Props = {
 
 export function ModelSwitcher({ disabled }: Props) {
   const [catalog, setCatalog] = useState<ModelCatalog | null>(null);
-  const [cfg, setCfg] = useState<UserConfig | null>(null);
+  const [modelCfg, setModelCfg] = useState<UserModelConfig | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const reload = useCallback(async () => {
     try {
-      const [cat, c] = await Promise.all([
+      const [cat, res] = await Promise.all([
         apiGet<ModelCatalog>("/api/model-catalog"),
-        apiGet<UserConfig>("/api/config"),
+        apiGet<{ model: UserModelConfig }>("/api/model"),
       ]);
       setCatalog(cat);
-      setCfg(c);
+      setModelCfg(res.model);
       setError(null);
     } catch (e) {
       setError((e as Error).message || "Failed to load models");
@@ -37,19 +36,20 @@ export function ModelSwitcher({ disabled }: Props) {
     void reload();
   }, [reload]);
 
-  const currentId = cfg?.model.model || "";
-  const isSynnex = Boolean(catalog && cfg?.model.provider === catalog.provider_id);
+  const currentId = modelCfg?.model || "";
+  const isSynnex = Boolean(catalog && modelCfg?.provider === catalog.provider_id);
   const inCatalog = Boolean(catalog?.models?.some((m) => m.id === currentId));
 
   async function onSelect(modelId: string) {
-    if (!cfg || !catalog || !modelId || (modelId === currentId && isSynnex)) return;
+    if (!modelCfg || !catalog || !modelId || (modelId === currentId && isSynnex)) return;
     setBusy(true);
     setError(null);
-    const next = applyCatalogModel(cfg, catalog, modelId);
-    setCfg(next);
+    setModelCfg({ ...modelCfg, model: modelId, provider: catalog.provider_id });
     try {
-      const saved = await apiSend<UserConfig>("/api/config", "PUT", next);
-      setCfg(saved);
+      const saved = await apiSend<{ model: UserModelConfig }>("/api/model", "PUT", {
+        model: modelId,
+      });
+      setModelCfg(saved.model);
     } catch (e) {
       setError((e as Error).message || "Failed to switch model");
       await reload();
@@ -58,7 +58,7 @@ export function ModelSwitcher({ disabled }: Props) {
     }
   }
 
-  if (!catalog || !cfg) {
+  if (!catalog || !modelCfg) {
     return (
       <div className="mt-2 flex items-center gap-2 text-[11px] text-ink-400">
         {error ? <span className="text-red-600">{error}</span> : <span>Loading models…</span>}
@@ -82,7 +82,7 @@ export function ModelSwitcher({ disabled }: Props) {
         >
           {!isSynnex && (
             <option value="">
-              {cfg.model.provider}:{currentId || "select model…"}
+              {modelCfg.provider}:{currentId || "select model…"}
             </option>
           )}
           {isSynnex && !inCatalog && currentId && (
