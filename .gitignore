@@ -25,7 +25,7 @@ frontend/dist/
 !backend/defaults/
 !backend/defaults/**
 
-# Runtime per-user workspace (repo root) — not versioned
+# Runtime per-user workspace (repo root) — never commit user data, chats, or secrets
 workspace/
 
 # Legacy runtime path (pre-migration)
