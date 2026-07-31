@@ -26,6 +26,23 @@ def _float_env(name: str, default: float) -> float:
         return default
 
 
+def _stream_chunk_timeout_env(name: str, default: float) -> float | None:
+    """Parse LLM stream chunk timeout seconds; 0/none/off disables the guard."""
+    raw = os.getenv(name)
+    if raw is None or not raw.strip():
+        return default
+    lowered = raw.strip().lower()
+    if lowered in ("0", "none", "off", "disable", "disabled"):
+        return None
+    try:
+        value = float(raw.strip())
+    except ValueError:
+        return default
+    if value <= 0:
+        return None
+    return value
+
+
 def _bool_env(name: str, default: bool) -> bool:
     raw = os.getenv(name)
     if raw is None or not raw.strip():
@@ -45,6 +62,9 @@ class HarnessConfig:
     mcp_retry_backoff: float = 1.0
     llm_max_retries: int = 4
     llm_retry_backoff: float = 2.0
+    # Gap between streamed LLM chunks before LangChain aborts (None = disabled).
+    # Default 600s — model-router / long tool-planning turns can pause >120s.
+    llm_stream_chunk_timeout_s: float | None = 600.0
     summarization_trigger_fraction: float = 0.85
     summarization_keep_fraction: float = 0.15
     summarization_buffer_tokens: int = 13_000
@@ -76,6 +96,9 @@ def load_harness_config(*, extended_run: bool = False) -> HarnessConfig:
         mcp_retry_backoff=_float_env("DATA_AGENT_MCP_RETRY_BACKOFF", 1.0),
         llm_max_retries=_int_env("DATA_AGENT_LLM_MAX_RETRIES", 4),
         llm_retry_backoff=_float_env("DATA_AGENT_LLM_RETRY_BACKOFF", 2.0),
+        llm_stream_chunk_timeout_s=_stream_chunk_timeout_env(
+            "DATA_AGENT_LLM_STREAM_CHUNK_TIMEOUT_S", 600.0
+        ),
         summarization_trigger_fraction=_float_env(
             "DATA_AGENT_SUMMARIZATION_TRIGGER_FRACTION", 0.85
         ),

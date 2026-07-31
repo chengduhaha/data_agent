@@ -1,4 +1,4 @@
-"""Retry and user-facing errors for transient LLM / gateway rate limits."""
+"""Retry and user-facing errors for transient LLM / gateway failures."""
 
 from __future__ import annotations
 
@@ -35,6 +35,26 @@ def is_rate_limit_error(exc: BaseException) -> bool:
     )
 
 
+def is_stream_chunk_timeout_error(exc: BaseException) -> bool:
+    root = _unwrap_exception(exc)
+    try:
+        from langchain_openai.chat_models._client_utils import StreamChunkTimeoutError
+
+        if isinstance(root, StreamChunkTimeoutError):
+            return True
+    except ImportError:
+        pass
+    name = type(root).__name__.lower()
+    if "streamchunktimeout" in name:
+        return True
+    text = str(root).lower()
+    return "no streaming chunk received" in text or "stream_chunk_timeout" in text
+
+
+def is_transient_llm_error(exc: BaseException) -> bool:
+    return is_rate_limit_error(exc) or is_stream_chunk_timeout_error(exc)
+
+
 def _retry_after_seconds(exc: BaseException) -> float | None:
     root = _unwrap_exception(exc)
     response = getattr(root, "response", None)
@@ -62,8 +82,24 @@ def format_rate_limit_error(exc: BaseException | None = None) -> str:
     )
 
 
+def format_stream_chunk_timeout_error(exc: BaseException | None = None) -> str:
+    model_hint = ""
+    if exc is not None:
+        detail = str(_unwrap_exception(exc))
+        if "model-router" in detail:
+            model_hint = (
+                " Model Router can pause while routing — try Gemini 3.5 Flash or GPT-4o "
+                "if this keeps happening."
+            )
+    return (
+        "The model stream paused longer than expected (gateway may still be thinking or routing). "
+        "Your thread is saved — click Continue or retry."
+        f"{model_hint}"
+    )
+
+
 class LlmRateLimitMiddleware(AgentMiddleware):
-    """Retry model calls when the gateway returns HTTP 429 / rate_limit_exceeded."""
+    """Retry model calls on transient gateway failures (429, stream stalls)."""
 
     def __init__(self, cfg: HarnessConfig | None = None) -> None:
         loaded = cfg or load_harness_config()
@@ -77,11 +113,17 @@ class LlmRateLimitMiddleware(AgentMiddleware):
                 return await handler(request)
             except Exception as exc:
                 last_exc = exc
-                if not is_rate_limit_error(exc) or attempt >= self.max_retries:
+                if not is_transient_llm_error(exc) or attempt >= self.max_retries:
                     raise
-                wait = _retry_after_seconds(exc) or self.retry_backoff * (2**attempt)
+                if is_rate_limit_error(exc):
+                    wait = _retry_after_seconds(exc) or self.retry_backoff * (2**attempt)
+                    reason = "rate limited"
+                else:
+                    wait = self.retry_backoff * (2**attempt)
+                    reason = "stream chunk timeout"
                 logger.warning(
-                    "LLM rate limited (attempt %d/%d); retrying in %.1fs: %s",
+                    "LLM %s (attempt %d/%d); retrying in %.1fs: %s",
+                    reason,
                     attempt + 1,
                     self.max_retries + 1,
                     wait,
@@ -96,5 +138,8 @@ class LlmRateLimitMiddleware(AgentMiddleware):
 __all__ = [
     "LlmRateLimitMiddleware",
     "format_rate_limit_error",
+    "format_stream_chunk_timeout_error",
     "is_rate_limit_error",
+    "is_stream_chunk_timeout_error",
+    "is_transient_llm_error",
 ]

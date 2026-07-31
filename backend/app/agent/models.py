@@ -97,6 +97,17 @@ PROVIDERS: list[ProviderInfo] = [
 _PROVIDER_MAP = {p.id: p for p in PROVIDERS}
 _NATIVE = {"openai", "anthropic", "google_genai", "deepseek"}
 _SYNNEX = _meta.provider_id
+# Azure model-router can pause while routing / reasoning between stream chunks.
+_ROUTER_MODEL_MIN_CHUNK_TIMEOUT_S = 900.0
+
+
+def _stream_chunk_timeout_for_model(model_name: str, harness) -> float | None:
+    timeout = harness.llm_stream_chunk_timeout_s
+    if timeout is None or timeout <= 0:
+        return None
+    if (model_name or "").strip() == "model-router":
+        return max(timeout, _ROUTER_MODEL_MIN_CHUNK_TIMEOUT_S)
+    return timeout
 
 
 def list_providers() -> list[ProviderInfo]:
@@ -173,6 +184,9 @@ def _build_openai_compatible(model_cfg: ModelConfig) -> ChatOpenAI:
 
     harness = load_harness_config()
     kwargs["max_retries"] = harness.llm_max_retries
+    chunk_timeout = _stream_chunk_timeout_for_model(name, harness)
+    if chunk_timeout is not None:
+        kwargs["stream_chunk_timeout"] = chunk_timeout
 
     llm_cls = GeminiThoughtSignatureChatOpenAI if _is_gemini_model(name) else ChatOpenAI
     return llm_cls(**kwargs)
@@ -209,13 +223,19 @@ def build_model(cfg: ModelConfig | dict[str, Any] | UserConfig) -> BaseChatModel
             return init_chat_model(f"{provider}:{name}", **kwargs)
         except Exception:
             if provider == "deepseek":
-                return ChatOpenAI(
-                    model=name,
-                    api_key=api_key or "x",
-                    base_url=model_cfg.base_url or "https://api.deepseek.com",
-                    temperature=temperature,
-                    streaming=True,
-                )
+                harness = load_harness_config()
+                ds_kwargs: dict[str, Any] = {
+                    "model": name,
+                    "api_key": api_key or "x",
+                    "base_url": model_cfg.base_url or "https://api.deepseek.com",
+                    "temperature": temperature,
+                    "streaming": True,
+                    "max_retries": harness.llm_max_retries,
+                }
+                chunk_timeout = _stream_chunk_timeout_for_model(name, harness)
+                if chunk_timeout is not None:
+                    ds_kwargs["stream_chunk_timeout"] = chunk_timeout
+                return ChatOpenAI(**ds_kwargs)
             raise
 
     return _build_openai_compatible(model_cfg)
