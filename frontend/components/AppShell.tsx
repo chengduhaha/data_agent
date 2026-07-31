@@ -13,9 +13,10 @@ const NAV = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { user, oauthEnabled } = useAuth();
+  const { user, oauthEnabled, branding } = useAuth();
   const showSettings = isAdminUser(user, oauthEnabled);
   const navItems = NAV.filter((item) => !item.adminOnly || showSettings);
+  const titleSuffix = branding?.title_suffix?.trim();
 
   return (
     <div className="mx-auto flex h-dvh max-h-dvh max-w-[1400px] flex-col overflow-hidden px-4 py-3 md:px-6">
@@ -24,6 +25,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <p className="font-display text-xl font-semibold tracking-tight text-ink-900 md:text-2xl">
             Data Agent
           </p>
+          {titleSuffix ? (
+            <p className="text-[11px] font-medium uppercase tracking-wide text-ink-400">
+              {titleSuffix}
+            </p>
+          ) : null}
           <p className="hidden text-xs text-ink-500 sm:block">
             Developed and supported by the BigData Platform team
           </p>

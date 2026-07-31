@@ -120,6 +120,20 @@ def test_auth_bootstrap_endpoint() -> None:
     assert "config" in body
     assert body["config"]["enabled"] is False
     assert body["user"]["workspace_slug"] == ANONYMOUS_DEV_USER.workspace_slug
+    assert "branding" in body
+    assert "title_suffix" in body["branding"]
+
+
+def test_auth_bootstrap_title_suffix_from_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    from app.config.ui import clear_ui_settings_cache
+
+    monkeypatch.setenv("DATA_AGENT_TITLE_SUFFIX", "for dev")
+    clear_ui_settings_cache()
+    client = TestClient(app)
+    resp = client.get("/api/auth/bootstrap")
+    assert resp.status_code == 200
+    assert resp.json()["branding"]["title_suffix"] == "for dev"
+    clear_ui_settings_cache()
 
 
 def test_auth_bootstrap_unauthenticated_when_oauth_enabled(

@@ -34,7 +34,11 @@ async function stubChatApis(page: Page, streamBody: string) {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ config: authConfig, user: null }),
+      body: JSON.stringify({
+        config: authConfig,
+        user: null,
+        branding: { title_suffix: null },
+      }),
     });
   });
   await page.route("**/api/auth/me", async (route) => {

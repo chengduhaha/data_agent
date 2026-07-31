@@ -29,6 +29,7 @@ from app.auth.session import (
 from app.auth.settings import OAuth2Settings, get_oauth_settings
 from app.auth.userinfo import parse_oidc_userinfo, workspace_slug
 from app.auth.roles import user_role
+from app.config.ui import get_ui_settings
 from app.deps import get_session_user
 from app.store.paths import ensure_user_layout
 
@@ -52,9 +53,14 @@ class AuthUserResponse(BaseModel):
     role: str = "user"
 
 
+class UiBrandingResponse(BaseModel):
+    title_suffix: str | None = None
+
+
 class AuthBootstrapResponse(BaseModel):
     config: AuthConfigResponse
     user: AuthUserResponse | None = None
+    branding: UiBrandingResponse
 
 
 def _user_response(user: AuthenticatedUser) -> AuthUserResponse:
@@ -66,6 +72,11 @@ def _user_response(user: AuthenticatedUser) -> AuthUserResponse:
         workspace_slug=user.workspace_slug,
         role=user_role(user.workspace_slug),
     )
+
+
+def _ui_branding() -> UiBrandingResponse:
+    suffix = (get_ui_settings().title_suffix or "").strip()
+    return UiBrandingResponse(title_suffix=suffix or None)
 
 
 def _require_oauth_config() -> OAuth2Settings:
@@ -98,13 +109,22 @@ async def auth_bootstrap(
         button_label=oauth.button_label or "Log in with Microsoft Entra",
         idle_timeout_seconds=oauth.idle_timeout_seconds,
     )
+    branding = _ui_branding()
     if not oauth.enabled or not oauth.is_configured():
         from app.auth.models import ANONYMOUS_DEV_USER
 
-        return AuthBootstrapResponse(config=config, user=_user_response(ANONYMOUS_DEV_USER))
+        return AuthBootstrapResponse(
+            config=config,
+            user=_user_response(ANONYMOUS_DEV_USER),
+            branding=branding,
+        )
     if session_user is None:
-        return AuthBootstrapResponse(config=config, user=None)
-    return AuthBootstrapResponse(config=config, user=_user_response(session_user))
+        return AuthBootstrapResponse(config=config, user=None, branding=branding)
+    return AuthBootstrapResponse(
+        config=config,
+        user=_user_response(session_user),
+        branding=branding,
+    )
 
 
 @router.get("/me", response_model=AuthUserResponse)

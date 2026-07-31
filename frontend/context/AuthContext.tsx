@@ -10,12 +10,13 @@ import React, {
   useState,
 } from "react";
 import { getAuthBootstrap, getAuthMe, logout as apiLogout } from "@/lib/api";
-import type { AuthConfig, AuthUser } from "@/lib/authTypes";
+import type { AuthBootstrap, AuthConfig, AuthUser, UiBranding } from "@/lib/authTypes";
 import { clearSessionActivity, useIdleLogout } from "@/hooks/useIdleLogout";
 
 interface AuthContextType {
   oauthEnabled: boolean;
   authConfig: AuthConfig | null;
+  branding: UiBranding | null;
   user: AuthUser | null;
   loading: boolean;
   login: () => void;
@@ -27,6 +28,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [authConfig, setAuthConfig] = useState<AuthConfig | null>(null);
+  const [branding, setBranding] = useState<UiBranding | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -47,6 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const bootstrap = await getAuthBootstrap();
         if (cancelled) return;
         setAuthConfig(bootstrap.config);
+        setBranding(bootstrap.branding ?? null);
         setUser(bootstrap.user);
       } catch {
         // Bootstrap failed (backend down / proxy error). Still try /config so
@@ -101,13 +104,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     () => ({
       oauthEnabled: Boolean(authConfig?.enabled),
       authConfig,
+      branding,
       user,
       loading,
       login,
       logout,
       refreshUser,
     }),
-    [authConfig, user, loading, login, logout, refreshUser]
+    [authConfig, branding, user, loading, login, logout, refreshUser]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -4,6 +4,10 @@ export type AuthConfig = {
   idle_timeout_seconds: number;
 };
 
+export type UiBranding = {
+  title_suffix?: string | null;
+};
+
 export type AuthUser = {
   sub: string;
   cis_login_id?: string | null;
@@ -16,6 +20,7 @@ export type AuthUser = {
 export type AuthBootstrap = {
   config: AuthConfig;
   user: AuthUser | null;
+  branding?: UiBranding;
 };
 
 export function getUserDisplayName(user: AuthUser): string {
