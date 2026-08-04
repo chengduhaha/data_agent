@@ -67,6 +67,15 @@
       "api_model": null
     },
     {
+      "id": "gpt-5.5",
+      "display_name": "GPT-5.5 (Synnex Azure)",
+      "api_base": "https://ai-uat-gateway.synnex.org/ai-gateway/api/v1/ai/azure/default/openai/deployments/gpt-5.5",
+      "provider_type": "azure",
+      "api_key": null,
+      "api_version": "2024-10-21",
+      "api_model": null
+    },
+    {
       "id": "gpt-5-mini",
       "display_name": "GPT-5 Mini (Synnex Azure)",
       "api_base": "https://ai-uat-gateway.synnex.org/ai-gateway/api/v1/ai/azure/default/openai/deployments/gpt-5-mini",
