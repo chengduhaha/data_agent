@@ -50,6 +50,14 @@ Rules:
 - Match the user's language when the transcript is clearly non-English.
 - If queries were run against a data source, cite key numbers and note validation gaps.
 - Prefer a short conclusion, supporting evidence, and caveats.
+
+Finalization checklist (also apply when completing constraint-incomplete answers):
+- Answer every part the user explicitly asked for.
+- Retain dates, filters, sort direction, and any requested N.
+- Confirm results are supported by tool evidence in the transcript.
+- Do not present exploration or tool narration as the final answer.
+- State limitations for anything you cannot confirm; do not invent facts.
+- Do not call tools or expand the user's request scope.
 """
 
 
@@ -340,6 +348,64 @@ async def stream_wrapup_tokens(
             "Partial work is saved in this thread — click **Continue** to keep going, "
             "or ask a narrower follow-up."
         )
+
+
+async def stream_completeness_finalization(
+    model: Any,
+    agent: Any,
+    config: dict[str, Any],
+    report: Any,
+    constraints: Any,
+    draft_answer: str,
+    *,
+    harness_cfg: HarnessConfig | None = None,
+) -> AsyncIterator[str]:
+    """One bounded finalization pass when a substantial answer misses generic constraints."""
+    from app.agent.harness.completeness import build_finalization_human
+
+    cfg = harness_cfg or load_harness_config(
+        extended_run=bool(config.get("configurable", {}).get("extended_run"))
+    )
+    try:
+        state = await agent.aget_state(config)
+        values = getattr(state, "values", None) or {}
+        raw_messages = values.get("messages") or []
+    except Exception:
+        logger.debug("completeness finalization could not load state", exc_info=True)
+        raw_messages = []
+
+    turn_messages = messages_for_current_turn(list(raw_messages))
+    context = _build_wrapup_context(turn_messages)
+    thread_id = str(config.get("configurable", {}).get("thread_id") or "default")
+    run_segment = int(config.get("configurable", {}).get("run_segment") or 1)
+    evidence_text = get_evidence_snapshot(thread_id, run_segment).as_text()
+    if evidence_text:
+        context = f"{context}\n\n{evidence_text}"
+
+    human = build_finalization_human(
+        report, constraints, draft_answer=draft_answer
+    )
+    human = f"{human}\n\n### Transcript\n{context}"
+
+    llm = model
+    if cfg.wrapup_max_tokens:
+        try:
+            llm = model.bind(max_tokens=cfg.wrapup_max_tokens)
+        except Exception:
+            llm = model
+
+    try:
+        async for chunk in llm.astream(
+            [
+                SystemMessage(content=WRAPUP_SYSTEM),
+                HumanMessage(content=human),
+            ]
+        ):
+            text = _message_text(getattr(chunk, "content", chunk), strip=False)
+            if text:
+                yield text
+    except Exception:
+        logger.exception("completeness finalization model call failed")
 
 
 async def invoke_wrapup(

@@ -3,7 +3,7 @@
     "id": "synnex",
     "name": "Synnex AI Gateway",
     "kind": "openai_compatible",
-    "description": "Internal UAT gateway presets (Gemini, Azure GPT-4o, Kimi). API keys are embedded for UAT convenience."
+    "description": "Internal UAT gateway presets (Gemini, Azure GPT, Kimi). API keys are embedded for UAT convenience."
   },
   "defaults": {
     "temperature": 0.1,
@@ -13,39 +13,12 @@
   },
   "models": [
     {
-      "id": "gemini-3-flash-preview",
-      "display_name": "Gemini 3 Flash Preview",
-      "api_base": "https://ai-uat-gateway.synnex.org/ai-gateway/api/v1/ai/openai/default",
-      "provider_type": "openai",
-      "api_key": null,
-      "api_version": null,
-      "api_model": null
-    },
-    {
-      "id": "gemini-3.1-pro-preview",
-      "display_name": "Gemini 3.1 Pro Preview",
-      "api_base": "https://ai-uat-gateway.synnex.org/ai-gateway/api/v1/ai/openai/default",
-      "provider_type": "openai",
-      "api_key": null,
-      "api_version": null,
-      "api_model": null
-    },
-    {
       "id": "gemini-3.5-flash",
       "display_name": "Gemini 3.5 Flash (default)",
       "api_base": "https://ai-uat-gateway.synnex.org/ai-gateway/api/v1/ai/openai/default",
       "provider_type": "openai",
       "api_key": null,
       "api_version": null,
-      "api_model": null
-    },
-    {
-      "id": "gpt-4o",
-      "display_name": "GPT-4o (Synnex Azure)",
-      "api_base": "https://ai-uat-gateway.synnex.org/ai-gateway/api/v1/ai/azure/default/openai/deployments/gpt-4o",
-      "provider_type": "azure",
-      "api_key": null,
-      "api_version": "2024-10-21",
       "api_model": null
     },
     {
@@ -58,15 +31,6 @@
       "api_model": "model-router"
     },
     {
-      "id": "gpt-5.1",
-      "display_name": "GPT-5.1 (Synnex Azure)",
-      "api_base": "https://ai-uat-gateway.synnex.org/ai-gateway/api/v1/ai/azure/default/openai/deployments/gpt-5.1",
-      "provider_type": "azure",
-      "api_key": null,
-      "api_version": "2024-10-21",
-      "api_model": null
-    },
-    {
       "id": "gpt-5.5",
       "display_name": "GPT-5.5 (Synnex Azure)",
       "api_base": "https://ai-uat-gateway.synnex.org/ai-gateway/api/v1/ai/azure/default/openai/deployments/gpt-5.5",
@@ -76,9 +40,18 @@
       "api_model": null
     },
     {
-      "id": "gpt-5-mini",
-      "display_name": "GPT-5 Mini (Synnex Azure)",
-      "api_base": "https://ai-uat-gateway.synnex.org/ai-gateway/api/v1/ai/azure/default/openai/deployments/gpt-5-mini",
+      "id": "gpt-5.6-terra",
+      "display_name": "GPT-5.6 Terra (Synnex Azure)",
+      "api_base": "https://ai-uat-gateway.synnex.org/ai-gateway/api/v1/ai/azure/default/openai/deployments/gpt-5.6-terra",
+      "provider_type": "azure",
+      "api_key": null,
+      "api_version": "2024-10-21",
+      "api_model": null
+    },
+    {
+      "id": "gpt-5.6-luna",
+      "display_name": "GPT-5.6 Luna (Synnex Azure)",
+      "api_base": "https://ai-uat-gateway.synnex.org/ai-gateway/api/v1/ai/azure/default/openai/deployments/gpt-5.6-luna",
       "provider_type": "azure",
       "api_key": null,
       "api_version": "2024-10-21",
@@ -92,15 +65,6 @@
       "api_key": null,
       "api_version": null,
       "api_model": "Qwen/Qwen3.6-35B-A3B"
-    },
-    {
-      "id": "google/gemma-4-26B-A4B-it",
-      "display_name": "Gemma 4 26B A4B IT",
-      "api_base": "https://ai-uat-gateway.synnex.org/ai-gateway/api/v1/ai/openai/default",
-      "provider_type": "openai",
-      "api_key": null,
-      "api_version": null,
-      "api_model": "google/gemma-4-26B-A4B-it"
     },
     {
       "id": "kimi-k2.6",

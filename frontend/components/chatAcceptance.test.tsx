@@ -116,6 +116,53 @@ describe("F1 MessageBubble + QueryAppendix", () => {
     expect(document.querySelector(".markdown-body pre.bg-ink-950")).toBeNull();
   });
 
+  it("renders all 10 rows of a top-10 answer when the model glues two ranks per line", () => {
+    // Regression test for a bug where the model streamed two logical table rows
+    // on one physical markdown line (e.g. "| 1 | ... | | 2 | ... |"). GFM only
+    // parsed 5 rows from that input, so only odd ranks (1,3,5,7,9) rendered and
+    // even ranks (2,4,6,8,10) silently disappeared from the final answer.
+    const content = `## Summary
+
+Top 10 negative-NGM orders — 2026-04-30
+
+| Rank | Order | NGM |
+| --- | --- | --- |
+| 1 | -77294 | x | 2 | 621286 | x |
+| 3 | 657888 | x | 4 | 141692 | x |
+| 5 | 413709 | x | 6 | 173937798 | x |
+| 7 | 124858 | x | 8 | 529859 | x |
+| 9 | 303148 | x | 10 | 695266 | x |`;
+
+    render(
+      <MessageBubble
+        message={{
+          id: "a5",
+          role: "assistant",
+          content,
+        }}
+      />
+    );
+
+    const rows = document.querySelectorAll(".markdown-body table tbody tr");
+    expect(rows.length).toBe(10);
+
+    const orderIds = [
+      "-77294",
+      "621286",
+      "657888",
+      "141692",
+      "413709",
+      "173937798",
+      "124858",
+      "529859",
+      "303148",
+      "695266",
+    ];
+    for (const orderId of orderIds) {
+      expect(screen.getByText(orderId)).toBeInTheDocument();
+    }
+  });
+
   it("hides empty subagent start cards and renders end output", () => {
     const sharedId = "019f6a55-e960-79b0-807e-3c1dcef9cbdd";
     render(

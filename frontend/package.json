@@ -9,6 +9,7 @@
     "lint": "next lint",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "test:live": "playwright test --config=playwright.live.config.ts",
     "test:all": "vitest run && playwright test"
   },
   "dependencies": {

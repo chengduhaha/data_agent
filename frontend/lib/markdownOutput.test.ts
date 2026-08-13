@@ -102,6 +102,28 @@ describe("repairMarkdownStructure", () => {
       "## Analysis approach & confidence\n\nData Execution Limitation: query stopped."
     );
   });
+
+  it("splits glued top-N table rows onto separate lines", () => {
+    const raw =
+      "| ---:|---:|---:|---: | | 1 | -77294 | -$3,685,483.05 | 4,428 | | 2 | 621286 | -$897,747.95 | 619 |";
+    const fixed = repairMarkdownStructure(raw);
+    const rows = fixed.split("\n").filter((l) => l.trim().startsWith("|"));
+    expect(rows.length).toBeGreaterThanOrEqual(3);
+    expect(fixed).toContain("| 1 | -77294");
+    expect(fixed).toContain("| 2 | 621286");
+  });
+
+  it("splits two logical rows glued on one line without double pipe", () => {
+    const raw =
+      "| Rank | Order | NGM |\n| --- | --- | --- |\n| 1 | -77294 | x | 2 | 621286 | x |";
+    const fixed = repairMarkdownStructure(raw);
+    expect(fixed).toContain("| 1 | -77294 | x");
+    expect(fixed).toContain("| 2 | 621286 | x");
+    const dataRows = fixed
+      .split("\n")
+      .filter((l) => /^\|\s*-?\d+\s*\|/.test(l.trim()));
+    expect(dataRows.length).toBe(2);
+  });
 });
 
 describe("normalizeNarrativeMarkdown", () => {
@@ -173,6 +195,69 @@ M NGM %
       "Intro.\n\n```\nBased on the vectorsearch results:\n\n### Recommended Table\n```\n\nOutro.";
     expect(normalizeNarrativeMarkdown(raw)).toContain("### Recommended Table");
     expect(normalizeNarrativeMarkdown(raw)).not.toContain("```\nBased on");
+  });
+
+  it("repairs negative NGM top-10 glued table sample", () => {
+    const raw = `Top 10 negative-NGM orders — 2026-04-30
+| Rank | Order
+
+| NGM | Order lines |
+| ---:|---:|---:|---: | | 1 | -77294 | -$3,685,483.05 | 4,428 | | 2 | 621286 | -$897,747.95 | 619 |`;
+
+    const fixed = normalizeNarrativeMarkdown(raw);
+    const pipeLines = fixed.split("\n").filter((l) => l.trim().startsWith("|"));
+    expect(pipeLines.length).toBeGreaterThanOrEqual(4);
+    expect(fixed).toContain("| Rank | Order | NGM | Order lines |");
+    expect(fixed).toContain("| 1 | -77294");
+    expect(fixed).toContain("| 2 | 621286");
+  });
+
+  it("renders all 10 rows when pairs are glued per line", () => {
+    const glued = `| Rank | Order | NGM |
+| --- | --- | --- |
+| 1 | -77294 | x | 2 | 621286 | x |
+| 3 | 657888 | x | 4 | 141692 | x |
+| 5 | 413709 | x | 6 | 173937798 | x |
+| 7 | 124858 | x | 8 | 529859 | x |
+| 9 | 303148 | x | 10 | 695266 | x |`;
+    const fixed = normalizeNarrativeMarkdown(glued);
+    const dataRows = fixed
+      .split("\n")
+      .filter((l) => /^\|\s*-?\d+\s*\|/.test(l.trim()));
+    expect(dataRows.length).toBe(10);
+  });
+
+  it("keeps all 10 rows of a clean low-column GFM table (regression)", () => {
+    // A well-formed 2-column table (the exact shape Vertica top-N answers emit)
+    // must not have its rows merged pairwise into "only odd ranks render".
+    const clean = `## Summary
+
+Top 10 negative-NGM orders — 2026-04-30
+
+| order_no | ngm_amt |
+| :--- | :--- |
+| -77294 | -3,685,483.05 |
+| 621286 | -897,747.95 |
+| 657888 | -703,095.59 |
+| 141692 | -485,643.24 |
+| 413709 | -415,449.31 |
+| 173937798 | -331,151.33 |
+| 124858 | -314,671.20 |
+| 529859 | -311,374.70 |
+| 303148 | -307,996.14 |
+| 695266 | -264,985.81 |`;
+
+    const fixed = normalizeNarrativeMarkdown(clean);
+    const dataRows = fixed
+      .split("\n")
+      .filter((l) => /^\|\s*-?\d+\s*\|/.test(l.trim()));
+    expect(dataRows.length).toBe(10);
+    for (const id of [
+      "-77294", "621286", "657888", "141692", "413709",
+      "173937798", "124858", "529859", "303148", "695266",
+    ]) {
+      expect(fixed).toContain(id);
+    }
   });
 });
 

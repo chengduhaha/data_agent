@@ -35,7 +35,7 @@ PROVIDERS: list[ProviderInfo] = [
         id="openai",
         name="OpenAI",
         kind="native",
-        models=["gpt-4.1", "gpt-4.1-mini", "gpt-4o", "o3-mini", "o4-mini"],
+        models=["gpt-4.1", "o3-mini"],
     ),
     ProviderInfo(
         id="anthropic",
@@ -47,7 +47,7 @@ PROVIDERS: list[ProviderInfo] = [
         id="google_genai",
         name="Google Gemini",
         kind="native",
-        models=["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash"],
+        models=[],
     ),
     ProviderInfo(
         id="deepseek",

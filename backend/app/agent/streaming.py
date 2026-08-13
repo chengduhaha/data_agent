@@ -16,6 +16,12 @@ from app.agent.harness.clarification import (
 from app.agent.harness.context import get_harness_context
 from app.agent.harness.config import load_harness_config, step_limit
 from app.agent.harness.step_budget import get_segment_budget
+from app.agent.harness.completeness import (
+    assess_completeness,
+    build_finalization_human,
+    extract_constraints,
+    last_human_text,
+)
 from app.agent.harness.wrapup import (
     count_research_tool_calls,
     count_sql_evidence_in_messages,
@@ -24,6 +30,7 @@ from app.agent.harness.wrapup import (
     looks_truncated,
     missing_answer_in_stream,
     needs_final_answer_wrapup,
+    stream_completeness_finalization,
     stream_wrapup_tokens,
     _has_synthesis_headings,
 )
@@ -255,6 +262,79 @@ async def _try_synthesis_wrapup(
     return _gen()
 
 
+async def _try_completeness_finalization(
+    agent: Any,
+    config: dict[str, Any],
+    wrapup_model: Any,
+    harness_cfg: Any,
+    *,
+    executed_queries: list[dict[str, str]],
+    streamed_text: str,
+    synthesis_wrapup_ran: bool,
+) -> AsyncIterator[str] | None:
+    """One bounded pass when evidence exists but generic constraints are missing."""
+    if synthesis_wrapup_ran:
+        return None
+    if not harness_cfg.auto_wrapup or wrapup_model is None:
+        return None
+    try:
+        state = await agent.aget_state(config)
+        values = getattr(state, "values", None) or {}
+        msgs = values.get("messages") or []
+        cumulative_q = max(len(executed_queries), count_sql_evidence_in_messages(msgs))
+        research_count = count_research_tool_calls(msgs)
+        user_message = last_human_text(msgs)
+        checkpoint_answer = last_ai_text(msgs)
+        combined = (streamed_text or checkpoint_answer or "").strip()
+        report = assess_completeness(
+            user_message,
+            combined,
+            query_count=cumulative_q,
+            research_tool_count=research_count,
+        )
+        if report.complete or not report.needs_followup:
+            return None
+        if not report.evidence_present:
+            return None
+        constraints = extract_constraints(user_message)
+        logger.info(
+            "completeness finalization triggered: %s",
+            report.reason,
+        )
+    except Exception:
+        logger.debug("completeness precheck failed", exc_info=True)
+        return None
+
+    async def _gen() -> AsyncIterator[str]:
+        yield sse(
+            "status",
+            {
+                "text": "Completing answer coverage…",
+                "phase": "finalization",
+            },
+        )
+        async for piece in stream_completeness_finalization(
+            wrapup_model,
+            agent,
+            config,
+            report,
+            constraints,
+            combined,
+            harness_cfg=harness_cfg,
+        ):
+            yield sse("token", {"text": piece})
+        yield sse(
+            "completeness_done",
+            {
+                "ok": True,
+                "missing": report.missing_constraints,
+                "reason": report.reason,
+            },
+        )
+
+    return _gen()
+
+
 async def stream_agent_events(
     agent: Any,
     input_payload: dict[str, Any] | Any,
@@ -269,6 +349,7 @@ async def stream_agent_events(
     extended = bool(config.get("configurable", {}).get("extended_run"))
     harness_cfg = load_harness_config(extended_run=extended)
     budget_every = 0
+    synthesis_wrapup_ran = False
 
     # Continue on a completed graph (next=[]): synthesize from checkpoint evidence.
     if input_payload is None:
@@ -285,6 +366,7 @@ async def stream_agent_events(
                 if wrapup is not None:
                     async for chunk in wrapup:
                         yield chunk
+                    synthesis_wrapup_ran = True
                     if executed_queries:
                         yield sse("executed_sql", {"queries": executed_queries})
                         yield sse("query_appendix", {"queries": executed_queries})
@@ -463,9 +545,28 @@ async def stream_agent_events(
                     try:
                         async for chunk in wrapup:
                             yield chunk
+                        synthesis_wrapup_ran = True
                         incomplete = True
                     except Exception:
                         logger.exception("synthesis wrap-up after normal completion failed")
+
+                if not synthesis_wrapup_ran:
+                    completeness = await _try_completeness_finalization(
+                        agent,
+                        config,
+                        wrapup_model,
+                        harness_cfg,
+                        executed_queries=executed_queries,
+                        streamed_text=streamed_text,
+                        synthesis_wrapup_ran=synthesis_wrapup_ran,
+                    )
+                    if completeness is not None:
+                        try:
+                            async for chunk in completeness:
+                                yield chunk
+                            incomplete = True
+                        except Exception:
+                            logger.exception("completeness finalization failed")
 
                 if executed_queries:
                     yield sse("executed_sql", {"queries": executed_queries})

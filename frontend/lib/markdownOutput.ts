@@ -219,6 +219,21 @@ function splitGluedTableRows(flat: string): string[] {
   return chunks.map((c) => c.trim()).filter(Boolean);
 }
 
+function mergeLowPipeFragments(rows: string[]): string {
+  let current = "";
+  for (const row of rows) {
+    if (!current) {
+      current = row;
+      continue;
+    }
+    if (isTableSeparatorRow(row)) {
+      break;
+    }
+    current = `${current} ${row.replace(/^\|/, "|")}`;
+  }
+  return normalizeTableRow(current);
+}
+
 /** Join vertically fragmented `| cell |` lines into GFM table rows. */
 export function reassembleFragmentedTable(content: string): string {
   const lines = content.split("\n");
@@ -237,6 +252,16 @@ export function reassembleFragmentedTable(content: string): string {
     while (i < lines.length) {
       const t = lines[i].trim();
       if (!t) {
+        // Allow a single blank line inside a fragmented header (low pipe count).
+        if (
+          block.length > 0 &&
+          i + 1 < lines.length &&
+          lines[i + 1].trim().includes("|") &&
+          pipeCount(block[block.length - 1]) < 5
+        ) {
+          i++;
+          continue;
+        }
         i++;
         continue;
       }
@@ -251,7 +276,25 @@ export function reassembleFragmentedTable(content: string): string {
     }
 
     if (block.some((row) => pipeCount(row) >= 5)) {
-      out.push(...block.map(normalizeTableRow));
+      const headerFrag: string[] = [];
+      let idx = 0;
+      while (
+        idx < block.length &&
+        pipeCount(block[idx]) < 5 &&
+        !isTableSeparatorRow(block[idx]) &&
+        !/^\|\s*-?\d+\s*\|/.test(block[idx])
+      ) {
+        headerFrag.push(block[idx]);
+        idx++;
+      }
+      if (headerFrag.length > 1) {
+        out.push(mergeLowPipeFragments(headerFrag));
+      } else if (headerFrag.length === 1) {
+        out.push(normalizeTableRow(headerFrag[0]));
+      }
+      for (const row of block.slice(idx)) {
+        out.push(normalizeTableRow(row));
+      }
       continue;
     }
 
@@ -261,6 +304,17 @@ export function reassembleFragmentedTable(content: string): string {
       for (const chunk of glued) {
         const row = normalizeTableRow(chunk);
         if (row.includes("|")) out.push(row);
+      }
+      continue;
+    }
+
+    // Reaching here: no row has >=5 pipes (all low-pipe) and no glued split.
+    // If a GFM separator row is present, this is a clean/well-formed table where
+    // each line is an independent row — do NOT merge, or a multi-row table
+    // (e.g. 10 rows of 2 columns) collapses to half its rows.
+    if (block.some(isTableSeparatorRow)) {
+      for (const row of block) {
+        out.push(normalizeTableRow(row));
       }
       continue;
     }
@@ -291,6 +345,78 @@ export function reassembleFragmentedTable(content: string): string {
 }
 
 /**
+ * Split multiple GFM rows glued on one physical line ("| ... | | 1 | ... | | 2 |").
+ */
+function splitWideTableRow(line: string): string[] {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith("|") || isTableSeparatorRow(trimmed)) {
+    return [line];
+  }
+  // Two logical rows on one line without double pipe: "| 1 | a | x | 2 | b | y |"
+  if (pipeCount(trimmed) < 7) {
+    return [line];
+  }
+  const rows: string[] = [];
+  let rest = trimmed;
+  while (rest) {
+    const match = rest.match(/\s\|\s+(?=-?\d{1,2}\s*\|)/);
+    if (!match || match.index === undefined) {
+      const row = rest.trim();
+      if (row) rows.push(normalizeTableRow(row));
+      break;
+    }
+    const head = rest.slice(0, match.index).trim();
+    if (head) rows.push(normalizeTableRow(head));
+    rest = rest.slice(match.index).trim();
+    if (rest && !rest.startsWith("|")) rest = `| ${rest}`;
+  }
+  return rows.length > 1 ? rows : [line];
+}
+
+function splitOneGluedTableLine(line: string): string[] {
+  const trimmed = line.trim();
+  if (!trimmed.startsWith("|")) {
+    return [line];
+  }
+
+  const wide = splitWideTableRow(line);
+  if (wide.length > 1) {
+    return wide;
+  }
+
+  if (pipeCount(trimmed) < 8) {
+    return [line];
+  }
+
+  const rows: string[] = [];
+  let rest = trimmed;
+  while (rest) {
+    const match = rest.match(/\s*\|\s*\|\s+(?=-?\d{1,2}\s*\|)/);
+    if (!match || match.index === undefined) {
+      const row = rest.trim();
+      if (row) rows.push(normalizeTableRow(row));
+      break;
+    }
+    const head = rest.slice(0, match.index).trim();
+    if (head) {
+      let row = head;
+      if ((isTableSeparatorRow(row) || /:---/.test(row)) && !row.trimEnd().endsWith("|")) {
+        row = `${row.trimEnd()} |`;
+      }
+      rows.push(normalizeTableRow(row));
+    }
+    rest = rest.slice(match.index + match[0].length).trimStart();
+    if (rest && !rest.startsWith("|")) rest = `| ${rest}`;
+  }
+
+  return rows.length > 1 ? rows : [line];
+}
+
+export function splitGluedTableRowLines(content: string): string {
+  return content.split("\n").flatMap((line) => splitOneGluedTableLine(line)).join("\n");
+}
+
+/**
  * Repair common streaming/model glitches so GFM tables and headings parse.
  * - Headings glued to prior text ("February## Summary")
  * - Table separator merged with header row ("| Var || :--- |")
@@ -306,8 +432,17 @@ export function repairMarkdownStructure(content: string): string {
   text = text.replace(/([^\n|:\-])\n?---\n(?!:)/g, "$1\n\n---\n\n");
   // Table separator row stuck on same line as header/data ("| Mar || :--- |")
   text = text.replace(/\|\|(\s*:?-{3,})/g, "|\n|$1");
-  // Prose glued to table ("Totals below| A | B |")
-  text = text.replace(/([a-zA-Z0-9%)])(\| [^|\n]+)/g, "$1\n\n$2");
+  text = splitGluedTableRowLines(text);
+  // Title or prose line immediately before a table row
+  text = text.replace(/([^\n|])\n(\| [^\n]+\|)/g, "$1\n\n$2");
+  // Prose glued to table ("Totals below| A | B |") — never inside pipe rows
+  text = text
+    .split("\n")
+    .map((line) => {
+      if (line.trim().startsWith("|")) return line;
+      return line.replace(/([a-zA-Z0-9%)])(\| [^|\n]+)/g, "$1\n\n$2");
+    })
+    .join("\n");
   // Key notes glued to last table cell ("| 2.16% |KeyNotes:")
   text = text.replace(/\|(\s*Key\s*Notes\b)/gi, "|\n\n## Key Notes");
   // Bold section labels glued to body text ("**Evidence**Data execution...")
@@ -358,7 +493,9 @@ export function normalizeNarrativeMarkdown(content: string, streaming = false): 
   }
 
   return repairMarkdownStructure(
-    reassembleFragmentedTable(stripResearchPreamble(unwrapProseCodeFences(text)))
+    reassembleFragmentedTable(
+      stripResearchPreamble(unwrapProseCodeFences(splitGluedTableRowLines(text)))
+    )
   );
 }
 

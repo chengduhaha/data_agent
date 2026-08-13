@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import os
 import sys
@@ -70,6 +71,57 @@ def _truncate_text(text: str, limit: int = 12000) -> tuple[str, bool]:
     return text[:limit] + "\n…[truncated]", True
 
 
+async def _backend_grep(
+    backend: Any,
+    pattern: str,
+    path_prefix: str,
+    glob: str | None,
+    output_mode: Literal["content", "files_with_matches"],
+) -> str:
+    """Call backend grep/agrep with signature-compatible kwargs."""
+    grep_fn = getattr(backend, "agrep", None) or getattr(backend, "grep", None)
+    if grep_fn is None:
+        raise RuntimeError("Backend does not support grep")
+
+    async def _call(**kwargs: Any) -> Any:
+        if hasattr(backend, "agrep"):
+            return await backend.agrep(pattern, **kwargs)
+        result = grep_fn(pattern, **kwargs)
+        if asyncio.iscoroutine(result):
+            return await result
+        return result
+
+    base_kwargs: dict[str, Any] = {"path": path_prefix}
+    if glob:
+        base_kwargs["glob"] = glob
+
+    if output_mode == "files_with_matches":
+        try:
+            raw = await _call(**base_kwargs, output_mode="files_with_matches")
+        except TypeError:
+            raw = await _call(**base_kwargs)
+            text = raw if isinstance(raw, str) else str(raw)
+            paths: list[str] = []
+            for line in text.splitlines():
+                line = line.strip()
+                if not line:
+                    continue
+                if ":" in line and not line.startswith("/"):
+                    path_part = line.split(":", 1)[0].strip()
+                    if path_part:
+                        paths.append(path_part)
+                else:
+                    paths.append(line)
+            return "\n".join(paths)
+        return raw if isinstance(raw, str) else str(raw)
+
+    try:
+        raw = await _call(**base_kwargs, output_mode="content")
+    except TypeError:
+        raw = await _call(**base_kwargs)
+    return raw if isinstance(raw, str) else str(raw)
+
+
 def make_search_knowledge_tool(backend: Any) -> BaseTool:
     """Bind agent filesystem backend for scoped grep/glob."""
 
@@ -81,28 +133,13 @@ def make_search_knowledge_tool(backend: Any) -> BaseTool:
         head_limit: int = 40,
     ) -> str:
         head_limit = max(1, min(head_limit, 200))
-        grep_fn = getattr(backend, "agrep", None) or getattr(backend, "grep", None)
-        if grep_fn is None:
-            return json.dumps({"error": "Backend does not support grep", "matches": []})
         try:
-            if hasattr(backend, "agrep"):
-                raw = await backend.agrep(
-                    pattern,
-                    path=path_prefix,
-                    glob=glob,
-                    output_mode=output_mode,
-                )
-            else:
-                raw = grep_fn(
-                    pattern,
-                    path=path_prefix,
-                    glob=glob,
-                    output_mode=output_mode,
-                )
+            text = await _backend_grep(
+                backend, pattern, path_prefix, glob, output_mode
+            )
         except Exception as exc:
             return json.dumps({"error": str(exc), "matches": []})
 
-        text = raw if isinstance(raw, str) else str(raw)
         truncated = False
         if output_mode == "content":
             lines = text.splitlines()
