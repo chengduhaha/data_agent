@@ -107,9 +107,8 @@ def test_registry_respects_disabled_mcp_servers(workspace_tmp: Path) -> None:
 def test_registry_zero_org_bundle_has_no_capabilities(
     workspace_tmp: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    import app.store.io as io_mod
-
-    monkeypatch.setattr(io_mod, "ORG_SKILLS_DIR", workspace_tmp / "_missing_org_skills")
+    monkeypatch.setattr(paths, "ORG_SKILLS_DIR", workspace_tmp / "_missing_org_skills")
+    monkeypatch.setattr(paths, "PLATFORM_SKILLS_DIR", workspace_tmp / "_missing_platform_skills")
 
     async def run() -> None:
         cfg = await load_user_config("local")

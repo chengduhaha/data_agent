@@ -12,7 +12,15 @@ from typing import Any, Callable
 
 HookFn = Callable[..., None]
 
-_HOOK_NAMES = ("on_phase_enter", "before_tool", "after_tool", "on_synthesis_required")
+_HOOK_NAMES = (
+    "on_phase_enter",
+    "before_tool",
+    "after_tool",
+    "on_synthesis_required",
+    "on_segment_start",
+    "on_segment_end",
+    "on_evidence_added",
+)
 
 
 class HarnessHooks:

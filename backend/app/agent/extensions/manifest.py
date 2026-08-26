@@ -82,6 +82,12 @@ def parse_skill_manifest(content: str) -> SkillManifest:
         if isinstance(harness_raw, dict)
         else False,
         subagent_hints=subagent_hints,
+        evidence_tools=list(harness_raw.get("evidence_tools") or [])
+        if isinstance(harness_raw, dict)
+        else [],
+        synthesis_guidance=str(harness_raw.get("synthesis_guidance") or "")
+        if isinstance(harness_raw, dict)
+        else "",
     )
 
     return SkillManifest(

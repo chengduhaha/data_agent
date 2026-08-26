@@ -489,3 +489,51 @@ def count_sql_evidence_in_messages(messages: list[Any], *, current_turn_only: bo
             else:
                 _maybe_add(str(getattr(tc, "name", "")), getattr(tc, "args", None))
     return len(seen)
+
+
+async def check_completeness_enhanced(
+    user_message: str,
+    draft_answer: str,
+    thread_id: str,
+    run_segment: int,
+) -> object | None:
+    """Use agent-completeness when installed; otherwise return None for regex fallback."""
+    cfg = load_harness_config()
+    if not cfg.enable_completeness_enhanced:
+        return None
+    try:
+        from agent_completeness import CompletenessEvaluator
+        from agent_completeness.integrations.data_agent import DataAgentCompletenessAdapter
+    except ImportError:
+        return None
+    adapter = DataAgentCompletenessAdapter(evaluator=CompletenessEvaluator())
+    return await adapter.evaluate_from_segment(
+        thread_id=thread_id,
+        run_segment=run_segment,
+        draft_answer=draft_answer,
+        user_message=user_message,
+    )
+
+
+async def check_completeness_enhanced(
+    user_message: str,
+    draft_answer: str,
+    thread_id: str,
+    run_segment: int,
+) -> object | None:
+    """Use agent-completeness when installed; otherwise return None for regex fallback."""
+    cfg = load_harness_config()
+    if not cfg.enable_completeness_enhanced:
+        return None
+    try:
+        from agent_completeness import CompletenessEvaluator
+        from agent_completeness.integrations.data_agent import DataAgentCompletenessAdapter
+    except ImportError:
+        return None
+    adapter = DataAgentCompletenessAdapter(evaluator=CompletenessEvaluator())
+    return await adapter.evaluate_from_segment(
+        thread_id=thread_id,
+        run_segment=run_segment,
+        draft_answer=draft_answer,
+        user_message=user_message,
+    )

@@ -20,11 +20,18 @@ from typing import Any, Literal
 from langchain.agents.middleware.types import AgentMiddleware
 from langchain_core.messages import SystemMessage, ToolMessage
 
+from app.agent.harness.budget_registry import BudgetRegistry
 from app.agent.harness.config import HarnessConfig, step_warn_threshold
 from app.agent.harness.context import get_harness_context, get_thread_segment
 from app.agent.harness.evidence import record_evidence
-from app.agent.harness.middleware import get_segment_state
+from app.agent.harness.forward_instruction import (
+    BlockReason,
+    ExpectedAction,
+    ForwardInstruction,
+)
 from app.agent.harness.hooks import harness_hooks
+from app.agent.harness.metrics import inc
+from app.agent.harness.segment_manager import get_segment_state
 
 Phase = Literal["research", "execute", "synthesize"]
 
@@ -57,9 +64,28 @@ class RunPhaseMiddleware(AgentMiddleware):
         cfg: HarnessConfig | None = None,
         *,
         tool_budgets: dict[str, int] | None = None,
+        budget_registry: BudgetRegistry | None = None,
+        evidence_tools: set[str] | None = None,
+        synthesis_guidance: str = "",
     ) -> None:
         self.cfg = cfg or HarnessConfig()
-        self.tool_budgets: dict[str, int] = dict(tool_budgets or {})
+        if budget_registry is not None:
+            self.budget_registry = budget_registry
+        else:
+            self.budget_registry = BudgetRegistry(skill_budgets=tool_budgets or {})
+        self.tool_budgets: dict[str, int] = self.budget_registry.all_budgets()
+        self.evidence_tools = evidence_tools
+        self.synthesis_guidance = synthesis_guidance
+
+    def _is_governed(self, name: str) -> bool:
+        return self.budget_registry.is_governed(name)
+
+    def _should_record_evidence(self, name: str) -> bool:
+        if self.cfg.evidence_track_all_tools or self.evidence_tools == {"*"}:
+            return True
+        if self.evidence_tools is None:
+            return self._is_governed(name)
+        return name in self.evidence_tools
 
     def _extended(self) -> bool:
         return bool(get_harness_context().get("extended_run"))
@@ -72,7 +98,7 @@ class RunPhaseMiddleware(AgentMiddleware):
 
         budget_exhausted = any(
             state.tool_call_counts.get(name, 0) >= limit
-            for name, limit in self.tool_budgets.items()
+            for name, limit in self.budget_registry.all_budgets().items()
         )
         warn_at = step_warn_threshold(extended_run=self._extended())
         step_near_limit = state.tool_step_count >= warn_at
@@ -88,6 +114,7 @@ class RunPhaseMiddleware(AgentMiddleware):
             harness_hooks.emit(
                 "on_phase_enter", thread_id=thread_id, run_segment=run_segment, phase="synthesize"
             )
+            inc("harness_phase_transition_total", from_phase=state.phase, to_phase="synthesize")
             return True
         return False
 
@@ -113,12 +140,25 @@ class RunPhaseMiddleware(AgentMiddleware):
         name = _tool_name(request)
         phase = self._maybe_advance_phase(thread_id, run_segment, from_tool_call=True)
 
-        if phase == "synthesize" and name in self.tool_budgets:
+        if phase == "synthesize" and self._is_governed(name):
+            inc("harness_budget_block_total", tool_name=name, reason="phase_blocked")
+            inc(
+                "harness_forward_instruction_total",
+                reason="phase_blocked",
+                expected_action="synthesize",
+            )
+            state = get_segment_state(thread_id, run_segment)
+            instruction = ForwardInstruction(
+                reason=BlockReason.PHASE_BLOCKED,
+                tool_name=name,
+                used=state.tool_call_counts.get(name, 0),
+                limit=self.budget_registry.get_budget(name),
+                expected_action=ExpectedAction.SYNTHESIZE,
+                evidence_summary=state.evidence_summary(),
+                custom_guidance=self.synthesis_guidance,
+            )
             return ToolMessage(
-                content=(
-                    f"Blocked: run is in the synthesize phase; `{name}` calls are "
-                    "no longer permitted for this run segment. Produce the final answer now."
-                ),
+                content=instruction.to_tool_message_content(),
                 tool_call_id=_tool_call_id(request),
             )
 
@@ -129,11 +169,14 @@ class RunPhaseMiddleware(AgentMiddleware):
         harness_hooks.emit(
             "after_tool", thread_id=thread_id, run_segment=run_segment, tool=name, phase=phase
         )
-        if name in self.tool_budgets:
+        if self._should_record_evidence(name):
             args = getattr(request, "tool_call", {}) or {}
             input_preview = str(args.get("args") if isinstance(args, dict) else "")
             output_preview = str(getattr(result, "content", result))
             record_evidence(thread_id, run_segment, name, input_preview, output_preview)
+            harness_hooks.emit(
+                "on_evidence_added", thread_id=thread_id, run_segment=run_segment, tool=name
+            )
         return result
 
     async def awrap_model_call(self, request: Any, handler: Any) -> Any:

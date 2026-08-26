@@ -3,7 +3,12 @@ import type { NextConfig } from "next";
 function devAllowedOrigins(): string[] {
   const raw =
     process.env.DATA_AGENT_PUBLIC_URL || process.env.OAUTH2_FRONTEND_ORIGIN || "";
-  const origins = new Set<string>(["localhost", "127.0.0.1"]);
+  const origins = new Set<string>([
+    "localhost",
+    "127.0.0.1",
+    "bigdatauatgpu3.synnex.org",
+    "*.synnex.org",
+  ]);
   try {
     if (raw) origins.add(new URL(raw).hostname);
   } catch {
@@ -44,6 +49,11 @@ const nextConfig: NextConfig = {
       { source: "/api/providers", destination: `${backend}/api/providers` },
       { source: "/api/model-catalog", destination: `${backend}/api/model-catalog` },
       { source: "/api/model", destination: `${backend}/api/model` },
+      { source: "/api/governance", destination: `${backend}/api/governance` },
+      { source: "/api/metrics", destination: `${backend}/api/metrics` },
+      { source: "/api/packs", destination: `${backend}/api/packs` },
+      { source: "/api/packs/:path*", destination: `${backend}/api/packs/:path*` },
+      { source: "/api/capabilities", destination: `${backend}/api/capabilities` },
       { source: "/health", destination: `${backend}/health` },
       { source: "/docs", destination: `${backend}/docs` },
       { source: "/openapi.json", destination: `${backend}/openapi.json` },

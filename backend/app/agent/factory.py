@@ -17,6 +17,7 @@ from app.agent.extensions.subagent_routing import (
     filter_subagents_for_routing,
     format_subagent_routing_prompt,
 )
+from app.agent.harness.budget_registry import BudgetRegistry
 from app.agent.harness.config import load_harness_config
 from app.agent.harness.llm_resilience import LlmRateLimitMiddleware
 from app.agent.harness.mcp_resilience import McpToolResilienceMiddleware
@@ -297,17 +298,57 @@ async def create_user_agent(
 
     checkpointer = await get_checkpointer(user_id)
 
-    tool_budgets = dict(capabilities.harness.tool_budgets)
+    dw_budgets: dict[str, int] = {}
+    dw_middleware = None
+    if harness_cfg.enable_dw_governance:
+        try:
+            from dw_agent_governance import DWGovernanceConfig, DWGovernancePipeline
+            from dw_agent_governance.integrations.data_agent import DataAgentDWMiddleware
+
+            dw_config = DWGovernanceConfig(
+                dialect=os.getenv("DW_DIALECT", "vertica"),  # type: ignore[arg-type]
+                token_budget_per_segment=int(os.getenv("DW_TOKEN_BUDGET", "50000")),
+                spill_dir=files_dir(user_id) / "dw_spill",
+                default_query_budgets=dict(capabilities.harness.tool_budgets),
+            )
+            dw_budgets = dict(dw_config.default_query_budgets)
+            dw_pipeline = DWGovernancePipeline(config=dw_config)
+            dw_middleware = DataAgentDWMiddleware(pipeline=dw_pipeline)
+        except ImportError:
+            logger.info("dw-agent-governance not installed; skipping DW middleware")
+
+    strategy = harness_cfg.budget_merge_strategy
+    if strategy not in ("skill_wins", "min", "max"):
+        strategy = "skill_wins"
+    budget_registry = BudgetRegistry(
+        skill_budgets=dict(capabilities.harness.tool_budgets),
+        dw_budgets=dw_budgets or None,
+        merge_strategy=strategy,  # type: ignore[arg-type]
+    )
+    evidence_tools = set(capabilities.harness.evidence_tools) or None
+    synthesis_guidance = capabilities.harness.synthesis_guidance
     harness_middleware = [
         LlmRateLimitMiddleware(harness_cfg),
         McpToolResilienceMiddleware(harness_cfg),
         ToolGovernanceMiddleware(harness_cfg),
-        ToolBudgetMiddleware(tool_budgets),
-        RunPhaseMiddleware(harness_cfg, tool_budgets=tool_budgets),
+        dw_middleware,
+        ToolBudgetMiddleware(
+            budget_registry=budget_registry,
+            synthesis_guidance_map={name: synthesis_guidance for name in budget_registry.all_budgets()}
+            if synthesis_guidance
+            else None,
+        ),
+        RunPhaseMiddleware(
+            harness_cfg,
+            budget_registry=budget_registry,
+            evidence_tools=evidence_tools,
+            synthesis_guidance=synthesis_guidance,
+        ),
         LargeResultSpillMiddleware(harness_cfg),
         StepBudgetMiddleware(harness_cfg),
         make_summarization_middleware(model, backend, harness_cfg),
     ]
+    harness_middleware = [m for m in harness_middleware if m is not None]
 
     agent = create_deep_agent(
         model=model,

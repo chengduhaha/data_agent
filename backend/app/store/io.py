@@ -159,9 +159,12 @@ def _skill_info_from_content(
     with_content: bool,
     disabled_skills: set[str] | None = None,
 ) -> SkillInfo:
+    from app.agent.extensions.default_skills import is_default_builtin_skill
     from app.agent.extensions.manifest import parse_skill_manifest
+    from app.platform.pack import merge_pack_into_manifest
 
     manifest = parse_skill_manifest(content)
+    manifest = merge_pack_into_manifest(manifest, path, source=source)
     name = manifest.name or fallback_name
     return SkillInfo(
         name=name,
@@ -171,6 +174,7 @@ def _skill_info_from_content(
         content=content if with_content else None,
         editable=source == "user",
         disabled=name in (disabled_skills or set()),
+        default_skill=is_default_builtin_skill(name),
         extensions=manifest.extensions,
         harness=manifest.harness,
     )

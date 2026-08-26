@@ -126,6 +126,8 @@ class SkillHarness(BaseModel):
     tool_budgets: dict[str, int] = Field(default_factory=dict)
     require_synthesis: bool = False
     subagent_hints: list[SubagentHint] = Field(default_factory=list)
+    evidence_tools: list[str] = Field(default_factory=list)
+    synthesis_guidance: str = ""
 
 
 class SkillInfo(BaseModel):

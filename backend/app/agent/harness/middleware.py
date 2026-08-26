@@ -11,6 +11,7 @@ from langchain_core.messages import ToolMessage
 
 from app.agent.harness.config import HarnessConfig
 from app.agent.harness.context import get_harness_context, get_thread_segment
+from app.agent.harness.segment_manager import get_segment_state, reset_segment_state
 
 _BLOCKED_PATH_MARKERS = (
     "conversation_history/",
@@ -20,40 +21,6 @@ _BLOCKED_PATH_MARKERS = (
 )
 
 _L1_CATALOG_MARKER = "l1_catalog/"
-
-
-class _SegmentState:
-    __slots__ = (
-        "read_cache",
-        "l1_offset_counts",
-        "task_count",
-        "tool_step_count",
-        "tool_call_counts",
-        "phase",
-    )
-
-    def __init__(self) -> None:
-        self.read_cache: OrderedDict[str, str] = OrderedDict()
-        self.l1_offset_counts: dict[str, int] = {}
-        self.task_count = 0
-        self.tool_step_count = 0
-        self.tool_call_counts: dict[str, int] = {}
-        self.phase: str = "research"
-
-
-# Key: (thread_id, run_segment)
-_segment_states: dict[tuple[str, int], _SegmentState] = {}
-
-
-def reset_segment_state(thread_id: str, run_segment: int) -> None:
-    _segment_states[(thread_id, run_segment)] = _SegmentState()
-
-
-def get_segment_state(thread_id: str, run_segment: int) -> _SegmentState:
-    key = (thread_id, run_segment)
-    if key not in _segment_states:
-        _segment_states[key] = _SegmentState()
-    return _segment_states[key]
 
 
 def _thread_segment_from_request(request: Any) -> tuple[str, int]:

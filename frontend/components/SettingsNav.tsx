@@ -13,6 +13,9 @@ const AGENT_LINKS = [
   { href: "/settings/subagents", label: "Subagents" },
   { href: "/settings/tools", label: "Tools" },
   { href: "/settings/files", label: "Files" },
+  { href: "/settings/governance", label: "Governance" },
+  { href: "/settings/metrics", label: "Metrics" },
+  { href: "/settings/packs", label: "Packs" },
 ];
 
 function NavSection({

@@ -78,6 +78,16 @@ class HarnessConfig:
     auto_continue_max_segments: int = 2
     wrapup_max_tokens: int = 4096
     default_max_input_tokens: int = 128_000
+    segment_max_per_thread: int = 10
+    evidence_max_items: int = 20
+    evidence_track_all_tools: bool = False
+    budget_warn_threshold: float = 0.80
+    budget_merge_strategy: str = "skill_wins"
+    forward_instruction_language: str = "en"
+    synthesize_suffix_customizable: bool = True
+    enable_dw_governance: bool = False
+    enable_completeness_enhanced: bool = True
+    enable_pack_framework: bool = True
 
 
 def load_harness_config(*, extended_run: bool = False) -> HarnessConfig:
@@ -85,7 +95,7 @@ def load_harness_config(*, extended_run: bool = False) -> HarnessConfig:
         "DATA_AGENT_TOOL_STEP_LIMIT_EXTENDED" if extended_run else "DATA_AGENT_TOOL_STEP_LIMIT",
         400 if extended_run else 150,
     )
-    return HarnessConfig(
+    cfg = HarnessConfig(
         tool_step_limit=_int_env("DATA_AGENT_TOOL_STEP_LIMIT", 150),
         tool_step_limit_extended=_int_env("DATA_AGENT_TOOL_STEP_LIMIT_EXTENDED", 400),
         recursion_buffer=_int_env("DATA_AGENT_RECURSION_BUFFER", 5),
@@ -120,7 +130,25 @@ def load_harness_config(*, extended_run: bool = False) -> HarnessConfig:
         auto_continue_max_segments=_int_env("DATA_AGENT_AUTO_CONTINUE_MAX_SEGMENTS", 2),
         wrapup_max_tokens=_int_env("DATA_AGENT_WRAPUP_MAX_TOKENS", 4096),
         default_max_input_tokens=_int_env("DATA_AGENT_MAX_INPUT_TOKENS", 128_000),
+        segment_max_per_thread=_int_env("DATA_AGENT_SEGMENT_MAX_PER_THREAD", 10),
+        evidence_max_items=_int_env("DATA_AGENT_EVIDENCE_MAX_ITEMS", 20),
+        evidence_track_all_tools=_bool_env("DATA_AGENT_EVIDENCE_TRACK_ALL_TOOLS", False),
+        budget_warn_threshold=_float_env("DATA_AGENT_BUDGET_WARN_THRESHOLD", 0.80),
+        budget_merge_strategy=os.getenv("DATA_AGENT_BUDGET_MERGE_STRATEGY", "skill_wins"),
+        forward_instruction_language=os.getenv("DATA_AGENT_FORWARD_INSTRUCTION_LANGUAGE", "en"),
+        synthesize_suffix_customizable=_bool_env("DATA_AGENT_SYNTHESIZE_SUFFIX_CUSTOMIZABLE", True),
+        enable_dw_governance=_bool_env("DATA_AGENT_ENABLE_DW_GOVERNANCE", False),
+        enable_completeness_enhanced=_bool_env("DATA_AGENT_ENABLE_COMPLETENESS_ENHANCED", True),
+        enable_pack_framework=_bool_env("DATA_AGENT_ENABLE_PACK_FRAMEWORK", True),
     )
+    from app.agent.harness.runtime_overrides import get_overrides
+
+    overrides = get_overrides()
+    if overrides:
+        data = cfg.__dict__.copy()
+        data.update(overrides)
+        return HarnessConfig(**data)
+    return cfg
 
 
 def recursion_limit(*, extended_run: bool = False) -> int:

@@ -14,7 +14,20 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.agent.factory import close_checkpointers
 from app.agent.mcp_manager import mcp_manager
-from app.api import auth, chat, config_routes, files, mcp, model_routes, rules, skills, subagents, tools
+from app.api import (
+    auth,
+    chat,
+    config_routes,
+    files,
+    governance,
+    mcp,
+    metrics,
+    model_routes,
+    rules,
+    skills,
+    subagents,
+    tools,
+)
 from app.auth.settings import get_oauth_settings
 from app.deps import require_web_auth, require_admin
 from app.store.paths import DEFAULT_USER_ID, ensure_user_layout
@@ -47,7 +60,10 @@ def _cors_origins() -> list[str]:
         "http://localhost:3001",
         "http://localhost:6641",
         "http://127.0.0.1:6641",
+        "http://localhost:6662",
+        "http://127.0.0.1:6662",
         "http://bigdatauatgpu3.synnex.org:6641",
+        "http://bigdatauatgpu3.synnex.org:6662",
     ]
 
 
@@ -89,6 +105,8 @@ app.include_router(rules.router, dependencies=admin_only)
 app.include_router(subagents.router, dependencies=admin_only)
 app.include_router(tools.router, dependencies=admin_only)
 app.include_router(files.router, dependencies=admin_only)
+app.include_router(metrics.router, dependencies=protected)
+app.include_router(governance.router, dependencies=admin_only)
 
 
 @app.get("/health")

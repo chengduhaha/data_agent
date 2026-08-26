@@ -85,6 +85,8 @@ def _overlay_harness(overlay: dict[str, Any]) -> SkillHarness | None:
         tool_budgets=dict(raw.get("tool_budgets") or {}),
         require_synthesis=bool(raw.get("require_synthesis")),
         subagent_hints=hints,
+        evidence_tools=list(raw.get("evidence_tools") or []),
+        synthesis_guidance=str(raw.get("synthesis_guidance") or ""),
     )
 
 
@@ -95,7 +97,13 @@ def _extensions_from_pack(pack: dict[str, Any], skill_root: Path, source: str) -
         for entry in requires.get("mcp_servers") or []:
             if isinstance(entry, dict) and entry.get("name"):
                 name = str(entry["name"])
-                ext.mcp.append(MCP_NAME_ALIASES.get(name, name))
+                canonical = MCP_NAME_ALIASES.get(name, name)
+                for candidate in (name, canonical):
+                    if candidate not in ext.mcp:
+                        ext.mcp.append(candidate)
+                for alias, target in MCP_NAME_ALIASES.items():
+                    if target == canonical and alias not in ext.mcp:
+                        ext.mcp.append(alias)
     scripts = pack.get("scripts") or {}
     if isinstance(scripts, dict) and scripts.get("wkb_query"):
         ext.tools.append("wkb_query")
@@ -137,6 +145,12 @@ def merge_pack_into_manifest(
         harness = overlay_harness
     elif pack and pack_ext.tools and "wkb_query" in pack_ext.tools and not harness.tool_budgets:
         harness = _CONTRACT_GUIDED_HARNESS
+    pack_budgets = pack.get("tool_budgets") if pack else None
+    if isinstance(pack_budgets, dict) and pack_budgets and not harness.tool_budgets:
+        harness = harness.model_copy(update={"tool_budgets": {str(k): int(v) for k, v in pack_budgets.items()}})
+    pack_guidance = pack.get("synthesis_guidance") if pack else None
+    if isinstance(pack_guidance, str) and pack_guidance.strip() and not harness.synthesis_guidance:
+        harness = harness.model_copy(update={"synthesis_guidance": pack_guidance})
 
     return SkillManifest(
         name=manifest.name or str(pack.get("name") or skill_root.name),

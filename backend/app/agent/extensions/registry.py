@@ -53,6 +53,14 @@ class CapabilityRegistry:
         except OSError:
             return None
         manifest = parse_skill_manifest(content)
+        from app.platform.pack import merge_pack_into_manifest
+
+        source = "org"
+        if "/skills_builtin/" in str(p) or "/skills/builtin/" in str(p):
+            source = "builtin"
+        elif "/skills/user/" in str(p) or "/users/" in str(p):
+            source = "user"
+        manifest = merge_pack_into_manifest(manifest, p, source=source)
         self._manifest_cache[cache_key] = manifest
         return manifest
 
@@ -107,6 +115,14 @@ class CapabilityRegistry:
                 out.harness.phases = manifest.harness.phases
             if manifest.harness.require_synthesis:
                 out.harness.require_synthesis = True
+            if manifest.harness.evidence_tools:
+                existing = list(out.harness.evidence_tools)
+                for name in manifest.harness.evidence_tools:
+                    if name not in existing:
+                        existing.append(name)
+                out.harness.evidence_tools = existing
+            if manifest.harness.synthesis_guidance:
+                out.harness.synthesis_guidance = manifest.harness.synthesis_guidance
 
         if active_skills:
             sub_cfg = await load_subagents_config(user_id)
