@@ -84,3 +84,11 @@ def test_segment_to_dw_context_sums_token_budget_used() -> None:
     ctx = segment.to_dw_context()
     assert ctx is not None
     assert ctx.token_budget_used == 2000
+
+
+def test_segment_to_dw_context_syncs_tool_call_indexes() -> None:
+    segment = RunSegment(thread_id="t-idx", segment_id=1)
+    segment.dw_tool_call_indexes = {"run_query": 3}
+    ctx = segment.to_dw_context()
+    assert ctx is not None
+    assert ctx.tool_call_indexes.get("run_query") == 3

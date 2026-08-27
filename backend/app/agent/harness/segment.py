@@ -37,6 +37,7 @@ class RunSegment:
     read_cache_max: int = 256
     l1_offset_counts: dict[str, int] = field(default_factory=dict)
     budget_warned: dict[str, bool] = field(default_factory=dict)
+    dw_tool_call_indexes: dict[str, int] = field(default_factory=dict)
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     last_active_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     is_closed: bool = False
@@ -127,6 +128,7 @@ class RunSegment:
             token_budget_used=token_budget_used,
             spilled_files=spills,
             budget_warned=dict(self.budget_warned),
+            tool_call_indexes=dict(self.dw_tool_call_indexes),
         )
 
 
