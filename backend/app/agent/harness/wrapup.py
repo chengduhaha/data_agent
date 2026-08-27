@@ -498,9 +498,12 @@ async def check_completeness_enhanced(
     run_segment: int,
 ) -> object | None:
     """Use agent-completeness when installed; otherwise return None for regex fallback."""
+    from app.agent.harness.metrics import inc
+
     cfg = load_harness_config()
     if not cfg.enable_completeness_enhanced:
         return None
+    inc("completeness_checks_total", path="enhanced")
     try:
         from agent_completeness import CompletenessEvaluator
         from agent_completeness.integrations.data_agent import DataAgentCompletenessAdapter
@@ -515,25 +518,58 @@ async def check_completeness_enhanced(
     )
 
 
-async def check_completeness_enhanced(
-    user_message: str,
+async def stream_enhanced_completeness_finalization(
+    model: Any,
+    agent: Any,
+    config: dict[str, Any],
+    completeness_result: Any,
     draft_answer: str,
-    thread_id: str,
-    run_segment: int,
-) -> object | None:
-    """Use agent-completeness when installed; otherwise return None for regex fallback."""
-    cfg = load_harness_config()
-    if not cfg.enable_completeness_enhanced:
-        return None
-    try:
-        from agent_completeness import CompletenessEvaluator
-        from agent_completeness.integrations.data_agent import DataAgentCompletenessAdapter
-    except ImportError:
-        return None
-    adapter = DataAgentCompletenessAdapter(evaluator=CompletenessEvaluator())
-    return await adapter.evaluate_from_segment(
-        thread_id=thread_id,
-        run_segment=run_segment,
-        draft_answer=draft_answer,
-        user_message=user_message,
+    *,
+    harness_cfg: HarnessConfig | None = None,
+) -> AsyncIterator[str]:
+    """Stream a wrap-up pass using agent-completeness instructions."""
+    cfg = harness_cfg or load_harness_config(
+        extended_run=bool(config.get("configurable", {}).get("extended_run"))
     )
+    instruction = completeness_result.generate_wrapup_instruction()
+    try:
+        state = await agent.aget_state(config)
+        values = getattr(state, "values", None) or {}
+        raw_messages = values.get("messages") or []
+    except Exception:
+        logger.debug("enhanced completeness finalization could not load state", exc_info=True)
+        raw_messages = []
+
+    turn_messages = messages_for_current_turn(list(raw_messages))
+    context = _build_wrapup_context(turn_messages)
+    thread_id = str(config.get("configurable", {}).get("thread_id") or "default")
+    run_segment = int(config.get("configurable", {}).get("run_segment") or 1)
+    evidence_text = get_evidence_snapshot(thread_id, run_segment).as_text()
+    if evidence_text:
+        context = f"{context}\n\n{evidence_text}"
+
+    human = (
+        f"{instruction}\n\n### Draft answer\n{draft_answer}\n\n"
+        f"### Transcript\n{context}"
+    )
+
+    llm = model
+    if cfg.wrapup_max_tokens:
+        try:
+            llm = model.bind(max_tokens=cfg.wrapup_max_tokens)
+        except Exception:
+            llm = model
+
+    try:
+        async for chunk in llm.astream(
+            [
+                SystemMessage(content=WRAPUP_SYSTEM),
+                HumanMessage(content=human),
+            ]
+        ):
+            text = _message_text(getattr(chunk, "content", chunk), strip=False)
+            if text:
+                yield text
+    except Exception:
+        logger.exception("enhanced completeness finalization model call failed")
+

@@ -13,7 +13,8 @@ from app.agent.harness.clarification import (
     extract_clarification_payload,
     is_clarification_interrupt,
 )
-from app.agent.harness.context import get_harness_context
+from app.agent.harness.context import get_harness_context, get_thread_segment
+from app.agent.harness.metrics import inc
 from app.agent.harness.config import load_harness_config, step_limit
 from app.agent.harness.step_budget import get_segment_budget
 from app.agent.harness.completeness import (
@@ -23,6 +24,7 @@ from app.agent.harness.completeness import (
     last_human_text,
 )
 from app.agent.harness.wrapup import (
+    check_completeness_enhanced,
     count_research_tool_calls,
     count_sql_evidence_in_messages,
     last_ai_text,
@@ -31,6 +33,7 @@ from app.agent.harness.wrapup import (
     missing_answer_in_stream,
     needs_final_answer_wrapup,
     stream_completeness_finalization,
+    stream_enhanced_completeness_finalization,
     stream_wrapup_tokens,
     _has_synthesis_headings,
 )
@@ -286,6 +289,51 @@ async def _try_completeness_finalization(
         user_message = last_human_text(msgs)
         checkpoint_answer = last_ai_text(msgs)
         combined = (streamed_text or checkpoint_answer or "").strip()
+        thread_id, segment_id = get_thread_segment()
+
+        enhanced = await check_completeness_enhanced(
+            user_message,
+            combined,
+            thread_id,
+            segment_id,
+        )
+        if enhanced is not None:
+            if enhanced.is_complete:
+                return None
+            inc("completeness_wrapup_triggered", path="enhanced")
+            logger.info("enhanced completeness finalization triggered")
+
+            async def _gen_enhanced() -> AsyncIterator[str]:
+                yield sse(
+                    "status",
+                    {
+                        "text": "Completing answer coverage (enhanced)…",
+                        "phase": "finalization",
+                    },
+                )
+                async for piece in stream_enhanced_completeness_finalization(
+                    wrapup_model,
+                    agent,
+                    config,
+                    enhanced,
+                    combined,
+                    harness_cfg=harness_cfg,
+                ):
+                    yield sse("token", {"text": piece})
+                yield sse(
+                    "completeness_done",
+                    {
+                        "ok": True,
+                        "missing": [
+                            v.violation_type.value for v in enhanced.violations
+                        ],
+                        "reason": "enhanced_completeness",
+                    },
+                )
+
+            return _gen_enhanced()
+
+        inc("completeness_checks_total", path="regex")
         report = assess_completeness(
             user_message,
             combined,
@@ -297,6 +345,7 @@ async def _try_completeness_finalization(
         if not report.evidence_present:
             return None
         constraints = extract_constraints(user_message)
+        inc("completeness_wrapup_triggered", path="regex")
         logger.info(
             "completeness finalization triggered: %s",
             report.reason,

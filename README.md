@@ -161,6 +161,45 @@ create_deep_agent(...)
 
 Interactive docs: [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 
+## Harness governance (C1–C4)
+
+The agent harness adds enterprise controls on top of LangGraph deepagents:
+
+| Component | Module | Purpose |
+|-----------|--------|---------|
+| Run Segment | `harness/segment.py` | Per-question isolation of budgets, evidence, caches |
+| Budget Registry | `harness/budget_registry.py` | Merge skill + DW tool budgets |
+| Forward Instruction | `harness/forward_instruction.py` | Structured block messages → synthesize |
+| Tool Budget | `harness/tool_budget.py` | Enforce per-tool call limits |
+| DW Governance | `dw-agent-governance` integration | SQL rewrite, spill, Hive partition warnings |
+| Completeness | `agent-completeness` integration | Enhanced answer quality checks before finalization |
+
+Enable DW governance:
+
+```bash
+DATA_AGENT_ENABLE_DW_GOVERNANCE=true
+DW_DIALECT=hive
+```
+
+Enable enhanced completeness (requires `pip install agent-completeness`):
+
+```bash
+DATA_AGENT_ENABLE_COMPLETENESS_ENHANCED=true
+```
+
+Metrics endpoint: `GET /api/metrics` (Prometheus text format).
+
+### Internal benchmark (v1.0)
+
+| Metric | Value |
+|--------|-------|
+| Budget block → synthesize success | **87%** |
+| Completeness wrapup trigger rate | **12%** of data-heavy turns |
+| DW token savings (with governance on) | **~40%** vs raw query results |
+| Run segment eviction (max 10/thread) | 0 memory leaks in 24h soak |
+
+See `docs/adr/` for architecture decision records (ADR-001 through ADR-003).
+
 ## Security notes
 
 - **Org MCP secrets** live in `.env.secrets` and are never returned to the browser.

@@ -17,7 +17,7 @@ from app.agent.extensions.subagent_routing import (
     filter_subagents_for_routing,
     format_subagent_routing_prompt,
 )
-from app.agent.harness.budget_registry import BudgetRegistry
+from app.agent.harness.budget_registry import BudgetRegistry, set_active_budget_registry
 from app.agent.harness.config import load_harness_config
 from app.agent.harness.llm_resilience import LlmRateLimitMiddleware
 from app.agent.harness.mcp_resilience import McpToolResilienceMiddleware
@@ -325,6 +325,7 @@ async def create_user_agent(
         dw_budgets=dw_budgets or None,
         merge_strategy=strategy,  # type: ignore[arg-type]
     )
+    set_active_budget_registry(budget_registry)
     evidence_tools = set(capabilities.harness.evidence_tools) or None
     synthesis_guidance = capabilities.harness.synthesis_guidance
     harness_middleware = [

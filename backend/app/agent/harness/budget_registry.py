@@ -51,3 +51,15 @@ class BudgetRegistry:
 
     def all_budgets(self) -> dict[str, int]:
         return dict(self._merged)
+
+
+_active_registry: BudgetRegistry | None = None
+
+
+def set_active_budget_registry(registry: BudgetRegistry | None) -> None:
+    global _active_registry
+    _active_registry = registry
+
+
+def get_active_budget_registry() -> BudgetRegistry | None:
+    return _active_registry

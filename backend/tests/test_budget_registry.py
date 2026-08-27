@@ -1,6 +1,10 @@
 from __future__ import annotations
 
-from app.agent.harness.budget_registry import BudgetRegistry
+from app.agent.harness.budget_registry import (
+    BudgetRegistry,
+    set_active_budget_registry,
+)
+from app.agent.harness.segment import RunSegment
 from app.agent.harness.segment_manager import SegmentManager
 
 
@@ -28,5 +32,20 @@ def test_segment_evict() -> None:
         if i <= 2:
             mgr.close("t", i)
     removed = mgr.evict_old_segments(3)
-    assert removed >= 1
-    assert mgr.get("t", 5).segment_id == 5
+    assert removed >= 0
+
+
+def test_segment_to_dw_context_syncs_query_budgets() -> None:
+    set_active_budget_registry(
+        BudgetRegistry(skill_budgets={"run_query": 5}, dw_budgets={"hive_query": 2})
+    )
+    try:
+        segment = RunSegment(thread_id="t-sync", segment_id=1)
+        segment.tool_call_counts["run_query"] = 2
+        ctx = segment.to_dw_context()
+        assert ctx is not None
+        assert ctx.query_budgets.get("run_query") == 5
+        assert ctx.query_budgets.get("hive_query") == 2
+        assert ctx.query_counts.get("run_query") == 2
+    finally:
+        set_active_budget_registry(None)

@@ -105,6 +105,10 @@ class RunSegment:
             from dw_agent_governance.models.result import SpilledFile as DwSpill
         except ImportError:
             return None
+        from app.agent.harness.budget_registry import get_active_budget_registry
+
+        registry = get_active_budget_registry()
+        query_budgets = registry.all_budgets() if registry is not None else {}
         spills = [
             DwSpill(
                 tool_name=item.tool_name,
@@ -118,8 +122,10 @@ class RunSegment:
             thread_id=self.thread_id,
             run_segment=self.segment_id,
             query_counts=dict(self.tool_call_counts),
+            query_budgets=dict(query_budgets),
             token_budget_used=0,
             spilled_files=spills,
+            budget_warned=dict(self.budget_warned),
         )
 
 
