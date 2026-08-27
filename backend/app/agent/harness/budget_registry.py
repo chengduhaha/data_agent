@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextvars
 from typing import Literal
 
 
@@ -53,13 +54,14 @@ class BudgetRegistry:
         return dict(self._merged)
 
 
-_active_registry: BudgetRegistry | None = None
+_active_registry: contextvars.ContextVar[BudgetRegistry | None] = contextvars.ContextVar(
+    "active_budget_registry", default=None
+)
 
 
 def set_active_budget_registry(registry: BudgetRegistry | None) -> None:
-    global _active_registry
-    _active_registry = registry
+    _active_registry.set(registry)
 
 
 def get_active_budget_registry() -> BudgetRegistry | None:
-    return _active_registry
+    return _active_registry.get()
