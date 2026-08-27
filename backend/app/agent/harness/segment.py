@@ -118,12 +118,13 @@ class RunSegment:
             )
             for item in self.spilled_files
         ]
+        token_budget_used = sum(item.token_estimate for item in self.spilled_files)
         return DWGovernanceContext(
             thread_id=self.thread_id,
             run_segment=self.segment_id,
             query_counts=dict(self.tool_call_counts),
             query_budgets=dict(query_budgets),
-            token_budget_used=0,
+            token_budget_used=token_budget_used,
             spilled_files=spills,
             budget_warned=dict(self.budget_warned),
         )
